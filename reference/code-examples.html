@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code examples - copy and paste</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="#code" aria-current="page">Code</a></nav>
+
+<p class="kicker">Reference - Copy and paste</p>
+<h1>Code examples, inline</h1>
+<p class="subtitle">Every key file from the lab in readable code blocks with explanations and a copy button.</p>
+
+<div class="meta">
+  <span class="accent">22 files</span>
+  <span>3 sections</span>
+  <span>Copy button on every block</span>
+</div>
+
+<div class="callout note">
+  <span class="callout-title">How to use this page</span>
+  Click any file in the index to jump to it. Each code block has a <strong>copy</strong> button (top-right).
+  The italic line above each block tells you what it teaches and how to run it.
+  For non-code artifacts, see the <a href="code-browser.html">classic code browser</a>.
+</div>
+
+<h2>Index</h2>
+<ul class="toc"><li><a href="#tracker">tracker.py - the CLI</a></li>
+<li><a href="#test_tracker">test_tracker.py - the suite</a></li>
+<li><a href="#check">check.py - the gate</a></li>
+<li><a href="#settings">settings.json - guardrails</a></li>
+<li><a href="#audit">hooks/audit.py - tripwire</a></li>
+<li><a href="#SKILL">skills/release - Friday chore</a></li>
+<li><a href="#detective">agents/detective - investigator</a></li>
+<li><a href="#nightly">nightly.py - night shift</a></li>
+<li><a href="#client">client.py - request contract</a></li>
+<li><a href="#tools">tools.py - interface + errors</a></li>
+<li><a href="#context">context.py - the budget</a></li>
+<li><a href="#patterns">patterns.py - composition</a></li>
+<li><a href="#evals">evals.py - evidence + economics</a></li>
+<li><a href="#real_example">real_example.py - first real call</a></li>
+<li><a href="#example">example.py - full demo</a></li>
+<li><a href="#conversation">M1: conversation.py</a></li>
+<li><a href="#extractor">M2: extractor.py</a></li>
+<li><a href="#loop">M3: loop.py</a></li>
+<li><a href="#context">M5: context.py</a></li>
+<li><a href="#patterns">M7: patterns.py</a></li>
+<li><a href="#evalcost">M8: evalcost.py</a></li>
+<li><a href="#capstone">M10: capstone.py</a></li></ul>
+<script>
+function copyCode(btn) {
+  var pre = btn.parentElement.querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(function() {
+    btn.textContent = 'copied';
+    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+  });
+}
+</script>
+<style>
+.code-section { margin: 2.5rem 0; }
+.code-section h3 { font-family: -apple-system, sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8a2323; margin-bottom: 0.3rem; }
+.code-section .desc { font-size: 0.9rem; color: #6b675e; margin-bottom: 0.6rem; font-style: italic; }
+.code-wrap { position: relative; border: 1px solid #e3ded2; border-radius: 10px; background: #faf9f4; overflow: hidden; }
+.code-wrap .copy-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem; z-index: 5;
+  font-family: -apple-system, sans-serif; font-size: 0.7rem; font-weight: 600;
+  color: #6b675e; background: #fffdf7; border: 1px solid #e3ded2;
+  border-radius: 5px; padding: 0.25rem 0.7rem; cursor: pointer;
+}
+.code-wrap .copy-btn:hover { color: #8a2323; border-color: #8a2323; }
+.code-wrap pre {
+  margin: 0; padding: 2.5rem 1.2rem 1.2rem; overflow-x: auto;
+  font-size: 0.78rem; line-height: 1.55; font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.code-wrap .filename {
+  position: absolute; top: 0.5rem; left: 1.2rem;
+  font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; color: #a39e93;
+}
+.toc { list-style: none; padding: 0; columns: 2; column-gap: 2rem; }
+.toc li { padding: 0.3rem 0; border-bottom: 1px dotted #e3ded2; }
+.toc a { text-decoration: none; font-size: 0.85rem; }
+</style>
+<h2 style="margin-top:3rem">Tracker (the worked example)</h2>
+<div class="code-section" id="tracker">
+<h3>tracker.py - the CLI</h3>
+<p class="desc">The complete issue-tracker CLI: stateless JSON, atomic writes, quotes-safe args, tags, search. Run: python3 tracker.py add text #tag</p>
+<div class="code-wrap">
+<span class="filename">tracker/tracker.py &middot; 140 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Tracker — the story&#x27;s project, complete. (The worked example; rebuild yours via the chapters.)
+
+Born Chapter 1 (skeleton + add), hardened Chapter 2 (quotes + atomic writes),
+completed Chapters 4/8 (close, tag, search). stdlib only.
+&quot;&quot;&quot;
+import json
+import os
+import sys
+import tempfile
+from pathlib import Path
+
+VERSION = &quot;1.0.1&quot;
+DATA = Path(os.environ.get(&quot;TRACKER_DATA&quot;, Path(__file__).parent / &quot;tasks.json&quot;))
+USAGE = &quot;&quot;&quot;usage: tracker.py &lt;command&gt; [args]
+  add &lt;text...&gt;      add a task (multi-word and quotes safe); #tag tokens become tags
+  close &lt;id&gt;         mark a task done
+  tag &lt;id&gt; &lt;tag&gt;     add a tag to a task
+  list               list all tasks
+  search &lt;text...&gt;   find tasks by text or tag (case-insensitive)
+  version            print the version&quot;&quot;&quot;
+
+
+def load():
+    try:
+        return json.loads(DATA.read_text())
+    except FileNotFoundError:
+        return {&quot;next_id&quot;: 1, &quot;tasks&quot;: []}
+    except json.JSONDecodeError:
+        # Chapter 2&#x27;s law: never destroy corrupt data — back it up (never overwrite
+        # an earlier backup), start clean.
+        n = 1
+        backup = DATA.with_name(f&quot;{DATA.stem}.corrupt.json&quot;)
+        while backup.exists():
+            backup = DATA.with_name(f&quot;{DATA.stem}.corrupt-{n}.json&quot;)
+            n += 1
+        DATA.replace(backup)
+        print(f&quot;warning: {DATA.name} was corrupt; backed up to {backup.name}&quot;, file=sys.stderr)
+        return {&quot;next_id&quot;: 1, &quot;tasks&quot;: []}
+
+
+def save(data):
+    # Chapter 2&#x27;s law: atomic writes — a failed write must never truncate real data.
+    fd, tmp = tempfile.mkstemp(dir=str(DATA.parent))
+    try:
+        with os.fdopen(fd, &quot;w&quot;) as f:
+            json.dump(data, f, indent=1)
+        os.replace(tmp, DATA)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
+def _split_tags(words):
+    &quot;&quot;&quot;Chapter 8: &#x27;#infra&#x27; tokens are tags; the rest is the task text.&quot;&quot;&quot;
+    tags = [w.lstrip(&quot;#&quot;).lower() for w in words if w.startswith(&quot;#&quot;)]
+    text = &quot; &quot;.join(w for w in words if not w.startswith(&quot;#&quot;))
+    return text, tags
+
+
+def cmd_add(words):
+    text, tags = _split_tags(words)
+    if not text:
+        sys.exit(&quot;add: need task text&quot;)
+    data = load()
+    tid = data[&quot;next_id&quot;]
+    data[&quot;next_id&quot;] += 1
+    data[&quot;tasks&quot;].append({&quot;id&quot;: tid, &quot;text&quot;: text, &quot;status&quot;: &quot;open&quot;, &quot;tags&quot;: sorted(set(tags))})
+    save(data)
+    print(tid)
+
+
+def cmd_close(tid):
+    data = load()
+    for t in data[&quot;tasks&quot;]:
+        if t[&quot;id&quot;] == tid:
+            t[&quot;status&quot;] = &quot;done&quot;
+            save(data)
+            return
+    sys.exit(f&quot;close: no task {tid}&quot;)
+
+
+def cmd_tag(tid, tag):
+    data = load()
+    for t in data[&quot;tasks&quot;]:
+        if t[&quot;id&quot;] == tid:
+            t[&quot;tags&quot;] = sorted(set(t[&quot;tags&quot;] + [tag.lstrip(&quot;#&quot;).lower()]))
+            save(data)
+            return
+    sys.exit(f&quot;tag: no task {tid}&quot;)
+
+
+def cmd_list():
+    for t in load()[&quot;tasks&quot;]:
+        mark = &quot;x&quot; if t[&quot;status&quot;] == &quot;done&quot; else &quot; &quot;
+        tags = &quot;&quot;.join(f&quot; #{g}&quot; for g in t[&quot;tags&quot;])
+        print(f&quot;{t[&#x27;id&#x27;]:&gt;3} [{mark}] {t[&#x27;text&#x27;]}{tags}&quot;)
+
+
+def cmd_search(words):
+    # Chapter 8: search matches text and tags; closed tasks still searchable.
+    # Fix (review): strip &#x27;#&#x27; per token so &quot;#infra now&quot; stays a two-word needle.
+    needle = &quot; &quot;.join(w.lstrip(&quot;#&quot;) for w in words).lower()
+    for t in load()[&quot;tasks&quot;]:
+        hay = (t[&quot;text&quot;] + &quot; &quot; + &quot; &quot;.join(t[&quot;tags&quot;])).lower()
+        if needle in hay:
+            mark = &quot;x&quot; if t[&quot;status&quot;] == &quot;done&quot; else &quot; &quot;
+            print(f&quot;{t[&#x27;id&#x27;]:&gt;3} [{mark}] {t[&#x27;text&#x27;]}&quot;)
+
+
+def main(argv):
+    if not argv or argv[0] in (&quot;-h&quot;, &quot;--help&quot;, &quot;help&quot;):
+        print(USAGE)
+        return
+    cmd = argv[0]
+    if cmd == &quot;version&quot;:
+        print(f&quot;tracker {VERSION}&quot;)
+    elif cmd == &quot;add&quot;:
+        cmd_add(argv[1:])
+    elif cmd == &quot;close&quot;:
+        try:
+            cmd_close(int(argv[1]))
+        except (IndexError, ValueError):
+            sys.exit(&quot;close: usage — close &lt;id&gt;&quot;)
+    elif cmd == &quot;tag&quot;:
+        try:
+            cmd_tag(int(argv[1]), argv[2])
+        except (IndexError, ValueError):
+            sys.exit(&quot;tag: usage — tag &lt;id&gt; &lt;tag&gt;&quot;)
+    elif cmd == &quot;list&quot;:
+        cmd_list()
+    elif cmd == &quot;search&quot;:
+        cmd_search(argv[1:])
+    else:
+        sys.exit(USAGE)
+
+
+if __name__ == &quot;__main__&quot;:
+    main(sys.argv[1:])
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="test_tracker">
+<h3>test_tracker.py - the suite</h3>
+<p class="desc">13 tests: atomic-write guarantee, corrupt backup isolation, deterministic listing, search needles, graceful errors.</p>
+<div class="code-wrap">
+<span class="filename">tracker/tests/test_tracker.py &middot; 134 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;Tracker&#x27;s test suite — grown chapter by chapter (Ch2 atomicity, Ch5 determinism, Ch8 features).&quot;&quot;&quot;
+import importlib
+import json
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import tracker as tr
+
+
+class TrackerTests(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.data_file = Path(self.tmp.name) / &quot;tasks.json&quot;
+        patcher = mock.patch.object(tr, &quot;DATA&quot;, self.data_file)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    # Chapter 1-2: the core contract ------------------------------------
+
+    def test_add_assigns_incrementing_ids(self):
+        tr.cmd_add([&quot;first task&quot;])
+        tr.cmd_add([&quot;second&quot;])
+        ids = [t[&quot;id&quot;] for t in tr.load()[&quot;tasks&quot;]]
+        self.assertEqual(ids, [1, 2])
+
+    def test_multiline_and_quoted_text_survives(self):
+        # Chapter 2&#x27;s original bug: shell-fragmented quotes.
+        tr.cmd_add([&#x27;fix&#x27;, &#x27;the&#x27;, &#x27;&quot;login&quot;&#x27;, &#x27;bug&#x27;])
+        self.assertEqual(tr.load()[&quot;tasks&quot;][0][&quot;text&quot;], &#x27;fix the &quot;login&quot; bug&#x27;)
+
+    def test_close_marks_done(self):
+        tr.cmd_add([&quot;task&quot;])
+        tr.cmd_close(1)
+        self.assertEqual(tr.load()[&quot;tasks&quot;][0][&quot;status&quot;], &quot;done&quot;)
+
+    # Chapter 2: atomic writes -------------------------------------------
+
+    def test_failed_save_never_truncates_real_data(self):
+        tr.cmd_add([&quot;survive&quot;])
+        real = self.data_file.read_text()
+        with mock.patch.object(json, &quot;dump&quot;, side_effect=OSError(&quot;disk full&quot;)):
+            with self.assertRaises(OSError):
+                tr.cmd_add([&quot;doomed&quot;])
+        self.assertEqual(self.data_file.read_text(), real)      # intact
+        data = tr.load()
+        self.assertEqual(len(data[&quot;tasks&quot;]), 1)                 # only the survivor
+
+    def test_corrupt_file_is_backed_up_not_destroyed(self):
+        tr.cmd_add([&quot;precious&quot;])
+        self.data_file.write_text(&quot;{not json at all&quot;)
+        data = tr.load()
+        self.assertEqual(data[&quot;tasks&quot;], [])                      # clean start
+        backup = self.data_file.with_name(&quot;tasks.corrupt.json&quot;)
+        self.assertIn(&quot;not json&quot;, backup.read_text())            # evidence kept
+
+    def test_second_corruption_never_overwrites_the_first_backup(self):
+        tr.cmd_add([&quot;first incident&quot;])
+        self.data_file.write_text(&quot;{bad one&quot;)
+        tr.load()                                               # -&gt; tasks.corrupt.json
+        self.data_file.write_text(&quot;{bad two&quot;)
+        tr.load()                                               # -&gt; tasks.corrupt-1.json
+        self.assertTrue((self.data_file.with_name(&quot;tasks.corrupt-1.json&quot;)).exists())
+
+    def test_search_handles_hashed_multiword_needles(self):
+        # Fix (review): &#x27;#&#x27; is stripped per token, so [&quot;#infra&quot;, &quot;now&quot;] searches
+        # &quot;infra now&quot; — and a mid-phrase hash token keeps the needle well-formed.
+        tr.cmd_add([&quot;audit infra now&quot;, &quot;#sec&quot;])
+        out = []
+        with mock.patch(&quot;builtins.print&quot;, out.append):
+            tr.cmd_search([&quot;#infra&quot;, &quot;now&quot;])
+        self.assertEqual(len(out), 1)
+        out2 = []
+        with mock.patch(&quot;builtins.print&quot;, out2.append):
+            tr.cmd_search([&quot;audit&quot;, &quot;#infra&quot;])
+        self.assertEqual(len(out2), 1)   # mid-phrase hash: needle &quot;audit infra&quot;
+
+    def test_close_with_bad_args_exits_gracefully(self):
+        tr.cmd_add([&quot;task&quot;])
+        with self.assertRaises(SystemExit):
+            tr.main([&quot;close&quot;, &quot;abc&quot;])
+
+    # Chapter 8: tags + search --------------------------------------------
+
+    def test_hash_tokens_become_tags(self):
+        tr.cmd_add([&quot;rotate&quot;, &quot;keys&quot;, &quot;#infra&quot;, &quot;#security&quot;])
+        t = tr.load()[&quot;tasks&quot;][0]
+        self.assertEqual(t[&quot;text&quot;], &quot;rotate keys&quot;)
+        self.assertEqual(t[&quot;tags&quot;], [&quot;infra&quot;, &quot;security&quot;])
+
+    def test_tag_command_adds_tag(self):
+        tr.cmd_add([&quot;task&quot;])
+        tr.cmd_tag(1, &quot;#later&quot;)
+        self.assertEqual(tr.load()[&quot;tasks&quot;][0][&quot;tags&quot;], [&quot;later&quot;])
+
+    def test_search_matches_text_and_tags(self):
+        tr.cmd_add([&quot;rotate&quot;, &quot;keys&quot;, &quot;#infra&quot;])
+        tr.cmd_add([&quot;write&quot;, &quot;the&quot;, &quot;docs&quot;])
+        out = []
+        with mock.patch(&quot;builtins.print&quot;, out.append):
+            tr.cmd_search([&quot;#infra&quot;])
+        self.assertEqual(len(out), 1)
+        self.assertIn(&quot;rotate&quot;, out[0])
+
+    def test_closed_tasks_still_searchable(self):
+        tr.cmd_add([&quot;old&quot;, &quot;bug&quot;])
+        tr.cmd_close(1)
+        out = []
+        with mock.patch(&quot;builtins.print&quot;, out.append):
+            tr.cmd_search([&quot;bug&quot;])
+        self.assertEqual(len(out), 1)
+
+    # Chapter 5: determinism (the Tuesday fix) -----------------------------
+
+    def test_listing_is_deterministic_regardless_of_order(self):
+        # Fix (review): exercise the PRINTED output, not load()&#x27;s order.
+        for i in range(20):
+            tr.cmd_add([f&quot;task-{i}&quot;])
+        out = []
+        with mock.patch(&quot;builtins.print&quot;, out.append):
+            tr.cmd_list()
+        ids = [int(line.split()[0]) for line in out]
+        self.assertEqual(ids, sorted(ids))                       # id order, always
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="check">
+<h3>check.py - the gate</h3>
+<p class="desc">Runs suite + checks artifacts + live demo. Prints TRACKER: COMPLETE.</p>
+<div class="code-wrap">
+<span class="filename">tracker/check.py &middot; 38 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Tracker&#x27;s completion check: suite green + artifacts present + demo run.&quot;&quot;&quot;
+import os, re, subprocess, sys, tempfile
+from pathlib import Path
+
+HERE = Path(__file__).parent
+ARTIFACTS = [
+    &quot;tracker.py&quot;, &quot;CLAUDE.md&quot;, &quot;CHANGELOG.md&quot;, &quot;README.md&quot;,
+    &quot;.claude/settings.json&quot;, &quot;.claude/hooks/audit.py&quot;,
+    &quot;.claude/skills/release/SKILL.md&quot;, &quot;.claude/skills/sync/SKILL.md&quot;,
+    &quot;.claude/agents/detective.md&quot;, &quot;.github/workflows/ci.yml&quot;,
+    &quot;scripts/nightly.py&quot;, &quot;RUNBOOK.md&quot;, &quot;COSTS.md&quot;,
+    &quot;meridian-toolkit/.claude-plugin/plugin.json&quot;, &quot;meridian-toolkit/marketplace.json&quot;,
+]
+
+r = subprocess.run([sys.executable, &quot;-m&quot;, &quot;unittest&quot;, &quot;discover&quot;, &quot;-s&quot;, &quot;tests&quot;],
+                   capture_output=True, text=True, cwd=HERE)
+ran = re.search(r&quot;Ran (\d+) tests&quot;, r.stderr)
+ok = &quot;OK&quot; in r.stderr and ran and int(ran.group(1)) &gt;= 10   # suite grows, gate adapts
+missing = [a for a in ARTIFACTS if not (HERE / a).exists()]
+
+with tempfile.TemporaryDirectory() as td:
+    env = {**os.environ, &quot;TRACKER_DATA&quot;: str(Path(td) / &quot;t.json&quot;)}
+    def run(*args):
+        return subprocess.run([sys.executable, str(HERE / &quot;tracker.py&quot;), *args],
+                              capture_output=True, text=True, env=env).stdout
+    run(&quot;add&quot;, &quot;ship v1.0&quot;, &quot;#story&quot;)
+    run(&quot;add&quot;, &quot;second task&quot;)
+    run(&quot;close&quot;, &quot;2&quot;)
+    demo = run(&quot;search&quot;, &quot;story&quot;)
+
+verdict = ok and not missing and &quot;ship v1.0&quot; in demo
+print(f&quot;suite: GREEN ({ran.group(1)} tests)&quot; if ok else &quot;suite: RED&quot;)
+print(&quot;artifacts:&quot;, &quot;ALL PRESENT&quot; if not missing else f&quot;MISSING {missing}&quot;)
+print(&quot;demo search:&quot;, repr(demo.strip()))
+print(&quot;TRACKER:&quot;, &quot;COMPLETE — v1.0.1&quot; if verdict else &quot;INCOMPLETE&quot;)
+sys.exit(0 if verdict else 1)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="settings">
+<h3>settings.json - guardrails</h3>
+<p class="desc">Deny-ask-allow rules, closed push denials, audit hook config.</p>
+<div class="code-wrap">
+<span class="filename">tracker/.claude/settings.json &middot; 36 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-json">{
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [
+      &quot;Bash(python3 *)&quot;,
+      &quot;Bash(git status)&quot;,
+      &quot;Bash(git diff *)&quot;
+    ],
+    &quot;ask&quot;: [
+      &quot;Bash(git push*)&quot;
+    ],
+    &quot;deny&quot;: [
+      &quot;Bash(git push)&quot;,
+      &quot;Bash(git push --force*)&quot;,
+      &quot;Bash(git push -f*)&quot;,
+      &quot;Bash(git push origin main*)&quot;,
+      &quot;Bash(git push origin HEAD:main*)&quot;,
+      &quot;Bash(git push origin master*)&quot;,
+      &quot;Bash(rm -rf *)&quot;,
+      &quot;Read(./tasks.json)&quot;,
+      &quot;Read(./tasks.corrupt*.json)&quot;
+    ]
+  },
+  &quot;hooks&quot;: {
+    &quot;PreToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash&quot;,
+        &quot;hooks&quot;: [
+          {
+            &quot;type&quot;: &quot;command&quot;,
+            &quot;command&quot;: &quot;python3 .claude/hooks/audit.py&quot;
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+</div>
+</div>
+<div class="code-section" id="audit">
+<h3>hooks/audit.py - tripwire</h3>
+<p class="desc">PreToolUse: logs Bash calls, blocks destructive rm. Exit 2 blocks.</p>
+<div class="code-wrap">
+<span class="filename">tracker/.claude/hooks/audit.py &middot; 16 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Chapter 7&#x27;s tripwire: log every Bash call; block destructive variants the rules miss.
+Exit 0 = allow (logged); exit 2 = block. NOTE (the honesty box): hooks fail open —
+the permission rules in settings.json are the guarantee layer; this is the recorder.&quot;&quot;&quot;
+import json, re, sys
+from pathlib import Path
+
+event = json.loads(sys.stdin.read() or &quot;{}&quot;)
+cmd = str(event.get(&quot;tool_input&quot;, {}).get(&quot;command&quot;, &quot;&quot;))
+with open(Path(__file__).parents[2] / &quot;.audit.log&quot;, &quot;a&quot;) as f:
+    f.write(cmd + &quot;\n&quot;)
+if re.search(r&quot;rm\s+(-\w*\s+)*-rf?\s+(/|/\*|~|\$HOME|\.)&quot;, cmd):
+    print(json.dumps({&quot;systemMessage&quot;: &quot;blocked by audit hook: destructive rm&quot;}))
+    sys.exit(2)
+sys.exit(0)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="SKILL">
+<h3>skills/release - Friday chore</h3>
+<p class="desc">Release ritual: allowed-tools, abort-on-red, branch discipline.</p>
+<div class="code-wrap">
+<span class="filename">tracker/.claude/skills/release/SKILL.md &middot; 9 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-markdown">---
+description: Runs the full release ritual for Tracker. Use when asked to release or bump.
+argument-hint: &quot;[version, e.g. v0.4]&quot;
+allowed-tools: Bash(python3 *), Bash(git *)
+---
+Run the tests first (python3 -m unittest discover -s tests); ABORT the release
+if any fail. Then bump VERSION in tracker.py, prepend a dated CHANGELOG.md
+entry, commit &quot;release: &lt;version&gt;&quot;, tag, push with tags. Announce nothing.
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="detective">
+<h3>agents/detective - investigator</h3>
+<p class="desc">Read-only subagent: description-driven delegation, tool allowlist.</p>
+<div class="code-wrap">
+<span class="filename">tracker/.claude/agents/detective.md &middot; 10 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-markdown">---
+name: detective
+description: Investigates bugs and flaky tests read-only before any fix is attempted.
+  Use proactively when a test fails intermittently or a bug&#x27;s cause is unclear.
+  Returns the suspected cause and the files involved.
+tools: [Read, Grep, Glob]
+---
+You are a careful investigator. Find the smallest reproducible cause. Cite
+file and line. Never edit — investigation only.
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="nightly">
+<h3>nightly.py - night shift</h3>
+<p class="desc">Headless with fences: one retry, exit codes, page-a-human.</p>
+<div class="code-wrap">
+<span class="filename">tracker/scripts/nightly.py &middot; 34 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Chapter 10&#x27;s night-shift. Fences IMPLEMENTED (review fix):
+- retry: exactly one retry window, then file + page-a-human
+- exit codes honored; failures produce a distinct morning report
+- allow-list: read-only tools (claude flags)
+- spend cap: enforced at the workspace/plan level (documented in COSTS.md);
+  this script&#x27;s lever is the tight allow-list + single retry budget
+Dry-runs without a claude binary.&quot;&quot;&quot;
+import subprocess, sys, shutil
+from pathlib import Path
+
+PROMPT = &quot;Run the sync per RUNBOOK.md; on failure retry once, then file an issue.&quot;
+CMD = [&quot;claude&quot;, &quot;-p&quot;, PROMPT, &quot;--output-format&quot;, &quot;json&quot;,
+       &quot;--allowedTools&quot;, &quot;Read,Grep,Glob,mcp__github__list_issues&quot;]
+REPORT = Path(__file__).parents[1] / &quot;.nightly-report.txt&quot;
+
+def attempt(n):
+    if not shutil.which(&quot;claude&quot;):
+        print(f&quot;dry-run (no claude binary): {&#x27; &#x27;.join(CMD)}&quot;)
+        REPORT.write_text(&quot;dry-run: no claude binary\n&quot;)
+        return 0
+    r = subprocess.run(CMD, capture_output=True, text=True)
+    REPORT.write_text(f&quot;attempt {n}: exit={r.returncode}\n{r.stdout}\n{r.stderr}\n&quot;)
+    return r.returncode
+
+rc1 = attempt(1)
+if rc1 == 0:
+    print(&quot;nightly: green on first window&quot;); sys.exit(0)
+rc2 = attempt(2)                      # the ONE retry window
+if rc2 == 0:
+    print(&quot;nightly: green on retry&quot;); sys.exit(0)
+print(&quot;nightly: PAGE A HUMAN — two failed windows (report: .nightly-report.txt)&quot;)
+sys.exit(2)
+</code></pre>
+</div>
+</div>
+<h2 style="margin-top:3rem">Starter kit (fundamentals)</h2>
+<div class="code-section" id="client">
+<h3>client.py - request contract</h3>
+<p class="desc">Builder, stop-reason switchboard, echo rules, tool_result placement.</p>
+<div class="code-wrap">
+<span class="filename">starter/claude_starter/client.py &middot; 112 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;client.py — the request contract, enforced. Law 1, 2, 3, 4.
+
+A Messages-API-shaped client: fixtures by default, real API optional.
+The RequestBuilder refuses to build an invalid request; handle_response
+turns stop_reason into an action. Copy this into any project.
+&quot;&quot;&quot;
+from dataclasses import dataclass, field
+from enum import Enum
+
+
+def estimate_tokens(text):
+    &quot;&quot;&quot;~4 chars/token. Swap for the Token Counting API in production.&quot;&quot;&quot;
+    return max(1, len(str(text)) // 4)
+
+
+@dataclass
+class ContentBlock:
+    type: str                 # &quot;text&quot; | &quot;tool_use&quot; | &quot;tool_result&quot;
+    text: str = &quot;&quot;
+    id: str = &quot;&quot;
+    name: str = &quot;&quot;
+    input: dict = field(default_factory=dict)
+    tool_use_id: str = &quot;&quot;
+
+
+@dataclass
+class Response:
+    content: list
+    stop_reason: str          # end_turn | tool_use | max_tokens | refusal
+    usage: dict = field(default_factory=dict)
+
+
+class Action(Enum):
+    COMPLETE = &quot;complete&quot;
+    RUN_TOOLS = &quot;run_tools&quot;
+    TRUNCATED = &quot;truncated&quot;
+    REFUSED = &quot;refused&quot;
+
+
+class FixtureModel:
+    &quot;&quot;&quot;A stateless, scripted model — the real API&#x27;s contract in miniature.&quot;&quot;&quot;
+
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.requests_seen = []
+
+    def complete(self, request):
+        self.requests_seen.append(request)
+        if not self._responses:
+            return Response([ContentBlock(&quot;text&quot;, text=&quot;…&quot;)], &quot;end_turn&quot;)
+        return self._responses.pop(0)
+
+
+class RealClient:
+    &quot;&quot;&quot;Optional: wire a real SDK here. Same complete(request) shape.&quot;&quot;&quot;
+
+    def __init__(self, sdk_messages, model=&quot;claude-sonnet-4-6&quot;):
+        self._create = sdk_messages
+        self.model = model
+
+    def complete(self, request):
+        raw = self._create(**request)
+        blocks = [ContentBlock(b.get(&quot;type&quot;, &quot;text&quot;),
+                               text=b.get(&quot;text&quot;, &quot;&quot;),
+                               id=b.get(&quot;id&quot;, &quot;&quot;),
+                               name=b.get(&quot;name&quot;, &quot;&quot;),
+                               input=b.get(&quot;input&quot;, {}))
+                  for b in raw.content]
+        return Response(blocks, raw.stop_reason, dict(raw.usage))
+
+
+class RequestBuilder:
+    &quot;&quot;&quot;Builds only contract-valid requests (Law 1: statelessness).&quot;&quot;&quot;
+
+    def build(self, messages, system, max_tokens=1024, tools=None, model=&quot;claude-sonnet-4-6&quot;):
+        if not messages:
+            raise ValueError(&quot;messages must not be empty&quot;)
+        if messages[-1][&quot;role&quot;] != &quot;user&quot;:
+            raise ValueError(&quot;requests must end with a user message (no prefills)&quot;)
+        request = {&quot;model&quot;: model, &quot;max_tokens&quot;: max_tokens, &quot;system&quot;: system,
+                   &quot;messages&quot;: messages}
+        if tools:
+            request[&quot;tools&quot;] = tools
+        return request
+
+
+def handle_response(response):
+    &quot;&quot;&quot;The stop_reason switchboard -&gt; (Action, payload).&quot;&quot;&quot;
+    if response.stop_reason == &quot;end_turn&quot;:
+        text = &quot; &quot;.join(b.text for b in response.content if b.type == &quot;text&quot;)
+        return Action.COMPLETE, text
+    if response.stop_reason == &quot;tool_use&quot;:
+        return Action.RUN_TOOLS, [b for b in response.content if b.type == &quot;tool_use&quot;]
+    if response.stop_reason == &quot;max_tokens&quot;:
+        return Action.TRUNCATED, None          # your cap fired — not the model
+    if response.stop_reason == &quot;refusal&quot;:
+        return Action.REFUSED, None            # policy path — never retry blindly
+    raise ValueError(f&quot;unknown stop_reason: {response.stop_reason}&quot;)
+
+
+def assistant_turn_message(response):
+    &quot;&quot;&quot;The echo rule: the full assistant turn, blocks intact (Law 5).&quot;&quot;&quot;
+    return {&quot;role&quot;: &quot;assistant&quot;,
+            &quot;content&quot;: [{&quot;type&quot;: b.type, &quot;text&quot;: b.text, &quot;id&quot;: b.id,
+                         &quot;name&quot;: b.name, &quot;input&quot;: b.input} for b in response.content]}
+
+
+def tool_results_message(blocks):
+    &quot;&quot;&quot;One user message, tool_result blocks only, first in content (Law 5).&quot;&quot;&quot;
+    return {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: [
+        {&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: b.id, &quot;content&quot;: str(b.input)} for b in blocks]}
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="tools">
+<h3>tools.py - interface + errors</h3>
+<p class="desc">Tool audit, error taxonomy, IdempotencyLedger.</p>
+<div class="code-wrap">
+<span class="filename">starter/claude_starter/tools.py &middot; 89 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;tools.py — the interface discipline and the error taxonomy. Law 5, 6.&quot;&quot;&quot;
+from dataclasses import dataclass, field
+
+
+class TransientError(Exception):
+    def __init__(self, msg, retry_after):
+        super().__init__(msg)
+        self.retry_after = retry_after
+
+class PermanentError(Exception):
+    def __init__(self, msg, alternative):
+        super().__init__(msg)
+        self.alternative = alternative
+
+class UncertainStateError(Exception):
+    def __init__(self, msg, verify_hint):
+        super().__init__(msg)
+        self.verify_hint = verify_hint
+
+
+@dataclass
+class Tool:
+    name: str
+    description: str          # the four questions: what / when / when-not / limits
+    input_schema: dict
+    fn: object = None         # callable(input_dict) -&gt; str
+    strict: bool = True
+
+
+def audit(tool):
+    &quot;&quot;&quot;The four-question audit — returns findings; [] means clean.&quot;&quot;&quot;
+    findings = []
+    desc = tool.description or &quot;&quot;
+    if sum(desc.count(c) for c in &quot;.!?&quot;) &lt; 3:
+        findings.append(&quot;description-too-short (aim 3-4+ sentences)&quot;)
+    for key, prop in tool.input_schema.get(&quot;properties&quot;, {}).items():
+        if &quot;description&quot; not in prop:
+            findings.append(f&quot;param-missing-description:{key}&quot;)
+        if &quot;one of&quot; in prop.get(&quot;description&quot;, &quot;&quot;).lower() and &quot;enum&quot; not in prop:
+            findings.append(f&quot;open-world:{key} (described but not enforced)&quot;)
+    if &quot;_&quot; not in tool.name:
+        findings.append(&quot;name-not-namespaced&quot;)
+    return findings
+
+
+class ToolRunner:
+    &quot;&quot;&quot;Executes tool_use blocks and builds contract-correct results.&quot;&quot;&quot;
+
+    def __init__(self, tools):
+        self.tools = {t.name: t for t in tools}
+
+    def execute(self, block):
+        &quot;&quot;&quot;-&gt; a tool_result block dict. Unknown tools get instructive errors.&quot;&quot;&quot;
+        tool = self.tools.get(block.name)
+        if tool is None:
+            available = &quot;, &quot;.join(sorted(self.tools))
+            return {&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;is_error&quot;: True,
+                    &quot;content&quot;: f&quot;Unknown tool &#x27;{block.name}&#x27;. Available: {available}&quot;}
+        try:
+            return {&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id,
+                    &quot;content&quot;: str(tool.fn(block.input))}
+        except (TransientError, PermanentError, UncertainStateError) as exc:
+            return {&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;is_error&quot;: True,
+                    &quot;content&quot;: error_content(exc)}
+
+
+def error_content(exc):
+    &quot;&quot;&quot;Instructive error text — the model reads this and decides (Law 6).&quot;&quot;&quot;
+    if isinstance(exc, TransientError):
+        return f&quot;{exc}. Retry after {exc.retry_after} seconds.&quot;
+    if isinstance(exc, PermanentError):
+        return f&quot;{exc}. Do not retry. {exc.alternative}&quot;
+    return (f&quot;{exc}. Outcome UNKNOWN — do not retry. {exc.verify_hint}&quot;)
+
+
+class IdempotencyLedger:
+    &quot;&quot;&quot;Same key, one execution — makes retries safe by construction.&quot;&quot;&quot;
+
+    def __init__(self):
+        self._results = {}
+        self.call_counts = {}
+
+    def run(self, key, fn):
+        if key in self._results:
+            return self._results[key]
+        self.call_counts[key] = self.call_counts.get(key, 0) + 1
+        self._results[key] = fn()
+        return self._results[key]
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="context">
+<h3>context.py - the budget</h3>
+<p class="desc">400 rule, compaction, cache-aware clearing, memory-before-clear.</p>
+<div class="code-wrap">
+<span class="filename">starter/claude_starter/context.py &middot; 66 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;context.py — the budget that rots, managed. Law 7.&quot;&quot;&quot;
+from .client import estimate_tokens
+
+PLACEHOLDER = &quot;[cleared: tool result removed to save context]&quot;
+
+
+def count_tokens(messages):
+    &quot;&quot;&quot;Everything counts: text, tool_result blocks, all of it.&quot;&quot;&quot;
+    total = 0
+    for m in messages:
+        content = m.get(&quot;content&quot;, &quot;&quot;)
+        if isinstance(content, list):
+            for b in content:
+                total += estimate_tokens(b.get(&quot;content&quot;, b.get(&quot;text&quot;, &quot;&quot;)))
+        else:
+            total += estimate_tokens(content)
+    return total
+
+
+def would_overflow(messages, window):
+    &quot;&quot;&quot;Input alone over the window — the pre-send check (the 400 rule).&quot;&quot;&quot;
+    return count_tokens(messages) &gt; window
+
+
+def compact(messages, summarize, keep_recent=4):
+    &quot;&quot;&quot;The primary strategy: old turns -&gt; ONE summary; tail verbatim.&quot;&quot;&quot;
+    if len(messages) &lt;= keep_recent:
+        return list(messages)
+    summary = {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;[conversation summary] &quot; + summarize(messages[:-keep_recent])}
+    return [summary] + messages[-keep_recent:]
+
+
+def clear_tool_results(messages, trigger, keep=3, clear_at_least=0, exclude_tools=()):
+    &quot;&quot;&quot;The clear_tool_uses rulebook. Returns (new_messages, tokens_cleared, applied).&quot;&quot;&quot;
+    total = count_tokens(messages)
+    if total &lt;= trigger:
+        return list(messages), 0, False
+    tool_msgs = [i for i, m in enumerate(messages)
+                 if isinstance(m.get(&quot;content&quot;), list)
+                 and any(b.get(&quot;type&quot;) == &quot;tool_result&quot; for b in m[&quot;content&quot;])
+                 and m.get(&quot;tool&quot;) not in exclude_tools]
+    clearable = tool_msgs[:-keep] if keep else tool_msgs
+    if not clearable:
+        return list(messages), 0, False
+    savings = sum(count_tokens([messages[i]]) for i in clearable)
+    if savings &lt; clear_at_least:
+        return list(messages), 0, False        # don&#x27;t torch the cache for a trickle
+    new_messages = [dict(m) for m in messages]
+    for i in clearable:
+        new_messages[i] = {**new_messages[i], &quot;content&quot;: [
+            {**b, &quot;content&quot;: PLACEHOLDER} if b.get(&quot;type&quot;) == &quot;tool_result&quot; else b
+            for b in new_messages[i][&quot;content&quot;]]}
+    return new_messages, savings, True
+
+
+def save_essentials(messages, memory, threshold, warn_fraction=0.9):
+    &quot;&quot;&quot;The memory-before-clear dance: persist essentials inside the warning zone.&quot;&quot;&quot;
+    if count_tokens(messages) &lt; threshold * warn_fraction:
+        return []
+    keys = []
+    for i, m in enumerate(messages[-5:]):
+        key = f&quot;essential-{i}&quot;
+        memory.save(key, str(m.get(&quot;content&quot;))[:200])
+        keys.append(key)
+    return keys
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="patterns">
+<h3>patterns.py - composition</h3>
+<p class="desc">Route, chain, vote, scale_effort, orchestrator.</p>
+<div class="code-wrap">
+<span class="filename">starter/claude_starter/patterns.py &middot; 52 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;patterns.py — the composition kit. Law 9: buy each rung only when it pays.&quot;&quot;&quot;
+from pathlib import Path
+
+
+def route(value, lanes, classifier):
+    &quot;&quot;&quot;lanes: {label: {...config}}; classifier: value -&gt; label.
+    Routing&#x27;s three wins: focus, cost tiers, privacy enforcement.&quot;&quot;&quot;
+    label = classifier(value)
+    return {&quot;lane&quot;: label, **lanes[label]}
+
+
+def chain_with_gates(steps, gates):
+    &quot;&quot;&quot;Run step, check gate, continue. First failing gate stops the chain.&quot;&quot;&quot;
+    output = None
+    for i, step in enumerate(steps):
+        output = step(output) if i else step()
+        if not gates[i](output):
+            return output, i
+    return output, None
+
+
+def vote(verdicts, threshold):
+    &quot;&quot;&quot;Same task, N lenses. The threshold IS the precision/recall decision.&quot;&quot;&quot;
+    return {&quot;flagged&quot;: sum(bool(v) for v in verdicts) &gt;= threshold,
+            &quot;votes&quot;: len(verdicts)}
+
+
+def scale_effort(complexity):
+    &quot;&quot;&quot;Anthropic&#x27;s embedded rules: workers / max calls per worker.&quot;&quot;&quot;
+    return {&quot;simple&quot;: (1, 10), &quot;comparison&quot;: (2, 15), &quot;complex&quot;: (10, None)}[complexity]
+
+
+def orchestrate(query, plan, worker, artifact_dir, recorder=None):
+    &quot;&quot;&quot;Orchestrator-workers: plan first, references back, failures isolated.&quot;&quot;&quot;
+    artifact_dir = Path(artifact_dir)
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    (artifact_dir / &quot;plan.md&quot;).write_text(f&quot;# Plan\n\nQuery: {query}\n&quot;
+                                          + &quot;\n&quot;.join(f&quot;- {t[&#x27;area&#x27;]}: {t[&#x27;objective&#x27;]}&quot; for t in plan))
+    if recorder:
+        recorder.log(&quot;plan-saved&quot;)
+    references, failures = [], []
+    for task in plan:
+        try:
+            references.append(worker(task[&quot;area&quot;], task[&quot;objective&quot;], artifact_dir))
+        except Exception as exc:                       # isolated, never fatal
+            failures.append({&quot;area&quot;: task[&quot;area&quot;], &quot;error&quot;: str(exc)})
+    areas = [t[&quot;area&quot;] for t in plan]
+    report = f&quot;Report on: {query}\n&quot; + &quot;\n&quot;.join(
+        f&quot;- {a}: {&#x27;COMPLETE&#x27; if a in {r[&#x27;area&#x27;] for r in references} else &#x27;FAILED&#x27;}&quot; for a in areas)
+    return {&quot;plan_saved&quot;: True, &quot;references&quot;: references,
+            &quot;failures&quot;: failures, &quot;report&quot;: report}
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="evals">
+<h3>evals.py - evidence + economics</h3>
+<p class="desc">Cross-model judging, suites, cost multipliers, invalidation.</p>
+<div class="code-wrap">
+<span class="filename">starter/claude_starter/evals.py &middot; 56 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;evals.py — evidence and economics. Law 10.&quot;&quot;&quot;
+
+
+class SameModelJudgingError(Exception):
+    &quot;&quot;&quot;The judge is the generator — it inherits its own blind spots.&quot;&quot;&quot;
+
+
+def exact_match(actual, expected):
+    &quot;&quot;&quot;The spectrum&#x27;s floor: normalized equality.&quot;&quot;&quot;
+    norm = lambda s: &quot; &quot;.join(str(s).split()).lower()
+    return norm(actual) == norm(expected)
+
+
+def llm_judge(output, judge, rubric, threshold=0.8):
+    &quot;&quot;&quot;Cross-model rule FIRST; then score via judge[&#x27;fn&#x27;](output, rubric).&quot;&quot;&quot;
+    if judge[&quot;name&quot;] == output.get(&quot;generator&quot;):
+        raise SameModelJudgingError(
+            f&quot;{judge[&#x27;name&#x27;]} judged its own output — use a different model&quot;)
+    score = judge[&quot;fn&quot;](output, rubric)
+    return {&quot;score&quot;: score, &quot;passed&quot;: score &gt;= threshold}
+
+
+def run_suite(cases):
+    &quot;&quot;&quot;Outcome-based: totals plus failing ids — ready to paste.&quot;&quot;&quot;
+    failures = [c[&quot;id&quot;] for c in cases if not exact_match(c[&quot;actual&quot;], c[&quot;expected&quot;])]
+    return {&quot;total&quot;: len(cases), &quot;passed&quot;: len(cases) - len(failures), &quot;failures&quot;: failures}
+
+
+BATCH_DISCOUNT = 0.5
+CACHE_READ_MULTIPLIER = 0.1
+CACHE_WRITE_MULTIPLIER = 1.25
+
+
+def monthly_cost(usage, prices, batch=True, cache=True):
+    &quot;&quot;&quot;The arithmetic: reads 0.1x, writes 1.25x, batch stacks on everything.&quot;&quot;&quot;
+    input_price = prices[&quot;input&quot;]
+    if cache:
+        input_cost = (usage.get(&quot;cached_read_mtok&quot;, 0) * CACHE_READ_MULTIPLIER
+                      + usage.get(&quot;cached_write_mtok&quot;, 0) * CACHE_WRITE_MULTIPLIER
+                      + usage.get(&quot;uncached_input_mtok&quot;, 0)) * input_price
+    else:
+        total_input = sum(usage.get(k, 0) for k in
+                          (&quot;cached_read_mtok&quot;, &quot;cached_write_mtok&quot;, &quot;uncached_input_mtok&quot;))
+        input_cost = total_input * input_price
+    output_cost = usage.get(&quot;output_mtok&quot;, 0) * prices[&quot;output&quot;]
+    total = input_cost + output_cost
+    return total * BATCH_DISCOUNT if batch else total
+
+
+INVALIDATION = {&quot;tools&quot;: 3, &quot;system&quot;: 2, &quot;messages&quot;: 1}
+
+
+def invalidated_levels(change):
+    &quot;&quot;&quot;The hierarchy: tools -&gt; 3 levels die, system -&gt; 2, messages -&gt; 1.&quot;&quot;&quot;
+    return INVALIDATION[change[&quot;layer&quot;]]
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="real_example">
+<h3>real_example.py - first real call</h3>
+<p class="desc">~$0.01 via stdlib urllib. Set ANTHROPIC_API_KEY.</p>
+<div class="code-wrap">
+<span class="filename">starter/real_example.py &middot; 56 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;real_example.py — your FIRST REAL API call. Budget: about $0.01.
+
+The whole course runs on fixtures; this is the ten minutes where theory becomes
+touched reality. Stdlib only (raw HTTPS — no SDK needed).
+
+Run:  python3 real_example.py
+Requires ANTHROPIC_API_KEY in your environment. No key? It prints exactly how
+to get one, and nothing else happens.
+&quot;&quot;&quot;
+import json
+import os
+import sys
+import urllib.request
+
+URL = &quot;https://api.anthropic.com/v1/messages&quot;
+MODEL = &quot;claude-sonnet-4-5&quot;        # a current mid-tier model; tiny bill
+MAX_TOKENS = 64                     # the whole budget
+
+
+def main():
+    key = os.environ.get(&quot;ANTHROPIC_API_KEY&quot;)
+    if not key:
+        print(&quot;No ANTHROPIC_API_KEY found.\n\n&quot;
+              &quot;1. Create a key at console.anthropic.com (Settings → API keys)\n&quot;
+              &quot;2. export ANTHROPIC_API_KEY=&#x27;sk-ant-...&#x27;\n&quot;
+              &quot;3. Re-run me. Expect one request, ~$0.01.\n&quot;)
+        sys.exit(0)
+
+    request_body = {
+        &quot;model&quot;: MODEL,
+        &quot;max_tokens&quot;: MAX_TOKENS,
+        &quot;system&quot;: &quot;You answer in exactly one short sentence.&quot;,
+        &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;,
+                      &quot;content&quot;: &quot;Name the single most important property of the Messages API.&quot;}],
+    }
+    req = urllib.request.Request(
+        URL,
+        data=json.dumps(request_body).encode(),
+        headers={&quot;x-api-key&quot;: key,
+                 &quot;anthropic-version&quot;: &quot;2023-06-01&quot;,
+                 &quot;content-type&quot;: &quot;application/json&quot;},
+    )
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read())
+
+    print(&quot;stop_reason:&quot;, data[&quot;stop_reason&quot;])
+    print(&quot;text:&quot;, data[&quot;content&quot;][0][&quot;text&quot;])
+    print(&quot;usage:&quot;, data[&quot;usage&quot;])
+    print(&quot;\nYou just saw it live: the reply is a list of content blocks, the stop_reason&quot;)
+    print(&quot;told you why generation ended, and usage is your (tiny) bill. That&#x27;s lesson 0001.&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="example">
+<h3>example.py - full demo</h3>
+<p class="desc">Everything end-to-end: loop, routing, context, evals, idempotency.</p>
+<div class="code-wrap">
+<span class="filename">starter/example.py &middot; 106 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;example.py — the starter kit working end-to-end on fixtures.
+
+Run:  python3 example.py    (no API key, no dependencies)
+&quot;&quot;&quot;
+import tempfile
+from pathlib import Path
+
+from claude_starter.client import (
+    FixtureModel, RequestBuilder, handle_response, Action,
+    assistant_turn_message, tool_results_message, ContentBlock, Response,
+)
+from claude_starter.tools import Tool, ToolRunner, IdempotencyLedger
+from claude_starter import context, patterns, evals
+
+
+# --- tools with interface discipline -------------------------------------------
+get_status = Tool(
+    name=&quot;get_flight_status&quot;,
+    description=(&quot;Gets the current status of one Apex flight. Use when the user asks &quot;
+                 &quot;about departure time, delay, or gate for a specific flight number. &quot;
+                 &quot;Do not use for bookings — that is a separate tool. &quot;
+                 &quot;Returns one line of status; no weather, no rebooking.&quot;),
+    input_schema={&quot;type&quot;: &quot;object&quot;,
+                  &quot;properties&quot;: {&quot;flight_number&quot;: {&quot;type&quot;: &quot;string&quot;,
+                                                   &quot;description&quot;: &quot;Apex code, e.g. AX204&quot;}},
+                  &quot;required&quot;: [&quot;flight_number&quot;]},
+    fn=lambda inp: &quot;AX204: delayed 45m, gate 12, reason weather.&quot; if inp[&quot;flight_number&quot;] == &quot;AX204&quot;
+                   else f&quot;No flight {inp[&#x27;flight_number&#x27;]}.&quot;)
+search = Tool(
+    name=&quot;search_airports&quot;,
+    description=(&quot;Resolves city names to IATA codes. Use before any tool needing an &quot;
+                 &quot;airport code when the user gave a city. Do not use for flight status. &quot;
+                 &quot;Returns &#x27;CODE — name&#x27; or a not-found line.&quot;),
+    input_schema={&quot;type&quot;: &quot;object&quot;,
+                  &quot;properties&quot;: {&quot;query&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;City name.&quot;}},
+                  &quot;required&quot;: [&quot;query&quot;]},
+    fn=lambda inp: &quot;AUS — Austin-Bergstrom&quot; if &quot;austin&quot; in inp[&quot;query&quot;].lower() else &quot;Not found.&quot;)
+runner = ToolRunner([get_status, search])
+
+
+def demo():
+    # Phase 3: the core loop (law 1, 2, 5)
+    model = FixtureModel([
+        Response([ContentBlock(&quot;tool_use&quot;, id=&quot;t1&quot;, name=&quot;get_flight_status&quot;,
+                               input={&quot;flight_number&quot;: &quot;AX204&quot;})], &quot;tool_use&quot;),
+        Response([ContentBlock(&quot;text&quot;, text=&quot;AX204 is delayed 45 minutes due to weather.&quot;)], &quot;end_turn&quot;),
+    ])
+    builder = RequestBuilder()
+    messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;How is AX204?&quot;}]
+    print(&quot;== core loop ==&quot;)
+    while True:
+        request = builder.build(messages, system=&quot;You are Apex&#x27;s assistant. Be concise.&quot;)
+        response = model.complete(request)
+        action, payload = handle_response(response)
+        messages.append(assistant_turn_message(response))
+        if action is Action.COMPLETE:
+            print(&quot;final:&quot;, payload)
+            break
+        messages.append(tool_results_message(payload))
+        print(&quot;tool executed:&quot;, payload[0].name)
+
+    # Phase 7: patterns (law 9)
+    lanes = {&quot;easy&quot;: {&quot;model&quot;: &quot;haiku&quot;, &quot;privacy_enforced&quot;: False},
+             &quot;regulated&quot;: {&quot;model&quot;: &quot;certified&quot;, &quot;privacy_enforced&quot;: True}}
+    print(&quot;\n== routing ==&quot;)
+    print(patterns.route(&quot;compensation claim&quot;, lanes, lambda t: &quot;regulated&quot; if &quot;claim&quot; in t else &quot;easy&quot;))
+    print(patterns.vote([True, True, False], threshold=2))
+
+    # Phase 5 + 8: context budget and evidence (law 7, 10)
+    big = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;x&quot; * 4000}] * 6
+    print(&quot;\n== context ==&quot;)
+    print(&quot;tokens:&quot;, context.count_tokens(big), &quot;| overflow@1000:&quot;, context.would_overflow(big, 1000))
+    compacted = context.compact(big, summarize=lambda ms: &quot;six near-identical questions&quot;)
+    print(&quot;after compact:&quot;, len(compacted), &quot;messages&quot;)
+    suite = [{&quot;id&quot;: 0, &quot;expected&quot;: &quot;delayed&quot;, &quot;actual&quot;: &quot;Delayed &quot;},
+             {&quot;id&quot;: 1, &quot;expected&quot;: &quot;on time&quot;, &quot;actual&quot;: &quot;delayed&quot;}]
+    print(&quot;\n== evals &amp; cost ==&quot;)
+    print(evals.run_suite(suite))
+    print(&quot;monthly:&quot;, round(evals.monthly_cost(
+        {&quot;uncached_input_mtok&quot;: 0.25, &quot;cached_read_mtok&quot;: 0.5,
+         &quot;cached_write_mtok&quot;: 0.25, &quot;output_mtok&quot;: 1.0},
+        {&quot;input&quot;: 3.0, &quot;output&quot;: 15.0}, batch=True, cache=True), 2))
+
+    # Orchestrator-workers (law 9)
+    def file_worker(area, objective, directory):
+        path = Path(directory) / f&quot;{area}.md&quot;
+        path.write_text(f&quot;{area}: {objective}&quot;)
+        return {&quot;area&quot;: area, &quot;artifact&quot;: str(path)}
+    with tempfile.TemporaryDirectory() as td:
+        result = patterns.orchestrate(&quot;digest&quot;, [
+            {&quot;area&quot;: &quot;ops&quot;, &quot;objective&quot;: &quot;delays&quot;},
+            {&quot;area&quot;: &quot;crew&quot;, &quot;objective&quot;: &quot;coverage&quot;}], file_worker, td)
+        print(&quot;\n== orchestrator ==&quot;)
+        print(result[&quot;report&quot;])
+
+    ledger = IdempotencyLedger()
+    calls = []
+    ledger.run(&quot;key-1&quot;, lambda: calls.append(1) or &quot;CHARGED&quot;)
+    ledger.run(&quot;key-1&quot;, lambda: calls.append(1) or &quot;CHARGED&quot;)
+    print(&quot;\nidempotency: fn ran&quot;, len(calls), &quot;time(s) across a retry&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    demo()
+</code></pre>
+</div>
+</div>
+<h2 style="margin-top:3rem">Apex project (milestone starters)</h2>
+<div class="code-section" id="conversation">
+<h3>M1: conversation.py</h3>
+<p class="desc">Request contract: full history, stop-reason, legacy migration. 4 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m1_request_anatomy/conversation.py &middot; 61 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M1 starter — implement the TODO sections. Read BRIEF.md first.
+
+Types and the FixtureModel come from fixtures.py (working code).
+Everything you implement is checked by test_m1.py; run `python3 verify.py`.
+&quot;&quot;&quot;
+from fixtures import FixtureModel, text_response  # noqa: F401 (re-exported for convenience)
+
+
+class TruncatedResponse(Exception):
+    &quot;&quot;&quot;stop_reason == &quot;max_tokens&quot;: the reply was cut off by your own cap.&quot;&quot;&quot;
+
+
+class RefusedResponse(Exception):
+    &quot;&quot;&quot;stop_reason == &quot;refusal&quot;: policy path, never retry blindly.&quot;&quot;&quot;
+
+
+class ConversationManager:
+    def __init__(self, model):
+        self.model = model
+        self.messages = []       # list of {&quot;role&quot;: ..., &quot;content&quot;: ...}
+        self.escalate = False    # set True on refusal (Lesson 0003&#x27;s safety path)
+
+    # ------------------------------------------------------------------
+    # TODO 1: build the request (Lesson 0001)
+    # Return a dict: {&quot;model&quot;: ..., &quot;max_tokens&quot;: max_tokens, &quot;system&quot;: system,
+    #                 &quot;messages&quot;: &lt;the FULL history, oldest first&gt;}
+    # The API is stateless: send everything. The request must end with a
+    # user message (Lesson 0002).
+    # ------------------------------------------------------------------
+    def build_request(self, system, max_tokens=1024):
+        raise NotImplementedError(&quot;TODO 1: build_request&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 2: the stop_reason switchboard (Lesson 0003)
+    # - end_turn: append the assistant&#x27;s text blocks to self.messages as one
+    #   {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &lt;joined text&gt;} turn; return the text.
+    # - max_tokens: raise TruncatedResponse (the cap fired, not the model).
+    # - refusal: set self.escalate = True and raise RefusedResponse.
+    # ------------------------------------------------------------------
+    def handle_response(self, response):
+        raise NotImplementedError(&quot;TODO 2: handle_response&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 3: migrate a legacy request (Lessons 0002 + 0003)
+    # Return a NEW dict (don&#x27;t mutate the input) with:
+    # - no &quot;temperature&quot; key unless it is exactly 1.0 (the dial is retired)
+    # - no trailing assistant message in &quot;messages&quot; (retired prefill hack)
+    # - &quot;output_format&quot; renamed to {&quot;output_config&quot;: {&quot;format&quot;: &lt;value&gt;}}
+    # ------------------------------------------------------------------
+    def fix_legacy_request(self, request):
+        raise NotImplementedError(&quot;TODO 3: fix_legacy_request&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 4: the turn glue
+    # Add the user message, build a request with the given system prompt,
+    # call self.model.complete(...), and handle the response. Loop until a
+    # turn completes; return the assistant&#x27;s text.
+    # ------------------------------------------------------------------
+    def turn(self, user_text, system=&quot;You are Apex Airlines&#x27; assistant. Be concise.&quot;, max_tokens=1024):
+        raise NotImplementedError(&quot;TODO 4: turn&quot;)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="extractor">
+<h3>M2: extractor.py</h3>
+<p class="desc">Three validation layers. 4 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m2_structured_outputs/extractor.py &middot; 92 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M2 starter — implement the TODO sections. Read BRIEF.md first.
+
+Lesson 0004&#x27;s three validation layers, as code:
+  grammar   -&gt; validate_schema()        (what constrained decoding would enforce)
+  semantic  -&gt; semantic_validate()      (your code, post-parse)
+  human     -&gt; review flags in extract()(high stakes / low confidence)
+&quot;&quot;&quot;
+import json
+import re
+from dataclasses import dataclass, field
+
+# The grammar layer: only what constrained decoding SUPPORTS (Lesson 0004&#x27;s table).
+# Types, enums, required — no numerical constraints, no minLength/maxLength.
+DELAY_SCHEMA = {
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+        &quot;flight_number&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;airport_code&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;delay_minutes&quot;: {&quot;type&quot;: &quot;integer&quot;},
+        &quot;reason&quot;: {&quot;enum&quot;: [&quot;weather&quot;, &quot;crew&quot;, &quot;mechanical&quot;, &quot;air_traffic&quot;]},
+        &quot;confidence&quot;: {&quot;type&quot;: &quot;number&quot;},
+    },
+    &quot;required&quot;: [&quot;flight_number&quot;, &quot;airport_code&quot;, &quot;delay_minutes&quot;, &quot;reason&quot;, &quot;confidence&quot;],
+}
+
+# Keys the grammar layer CANNOT enforce — per the official docs these 400 at request
+# time. Your validator must refuse them the same way, with a different exception.
+UNSUPPORTED_SCHEMA_KEYS = {&quot;minimum&quot;, &quot;maximum&quot;, &quot;multipleOf&quot;, &quot;minLength&quot;, &quot;maxLength&quot;}
+
+
+class UnsupportedSchemaError(Exception):
+    &quot;&quot;&quot;The schema asks the grammar for something it can&#x27;t say (an API 400).&quot;&quot;&quot;
+
+
+class SchemaViolation(Exception):
+    &quot;&quot;&quot;Shape is wrong: missing required field, wrong type, bad enum value.&quot;&quot;&quot;
+
+
+class SemanticViolation(Exception):
+    &quot;&quot;&quot;Grammar-valid but rule-breaking — ranges, formats: your code&#x27;s job.&quot;&quot;&quot;
+
+
+@dataclass
+class Extraction:
+    data: dict
+    needs_human_review: bool = False
+    flags: list = field(default_factory=list)
+    source_text: str = &quot;&quot;    # provenance: the report the extraction came from
+
+
+# ------------------------------------------------------------------
+# TODO 1: the grammar layer
+# Validate `data` against `schema` (object type, per-property types, enum
+# membership, required fields present). Raise SchemaViolation with a useful
+# message on any shape problem. If the SCHEMA itself contains any key from
+# UNSUPPORTED_SCHEMA_KEYS (anywhere in properties), raise
+# UnsupportedSchemaError — mimicking the API&#x27;s 400.
+# ------------------------------------------------------------------
+def validate_schema(data, schema):
+    raise NotImplementedError(&quot;TODO 1: validate_schema&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 2: parse the model&#x27;s raw text
+# The model returns a text block that may carry a preamble and markdown
+# json fences. Extract the JSON and return it as a dict; raise ValueError
+# if no JSON object is found.
+# ------------------------------------------------------------------
+def parse_model_json(text):
+    raise NotImplementedError(&quot;TODO 2: parse_model_json&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 3: the semantic layer (the grammar can&#x27;t say these)
+# - delay_minutes must be an integer in [0, 300]
+# - airport_code must be EXACTLY three uppercase letters ([A-Z]{3})
+# Raise SemanticViolation naming the broken rule.
+# ------------------------------------------------------------------
+def semantic_validate(data):
+    raise NotImplementedError(&quot;TODO 3: semantic_validate&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 4: the full pipeline with the human-review gate
+# Parse -&gt; schema-validate -&gt; semantic-validate; then flags:
+# - confidence below `threshold` -&gt; needs_human_review=True, flag
+#   &quot;low-confidence&quot;
+# Always keep source_text for provenance. Return an Extraction.
+# ------------------------------------------------------------------
+def extract(report_text, model, threshold=0.7):
+    raise NotImplementedError(&quot;TODO 4: extract&quot;)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="loop">
+<h3>M3: loop.py</h3>
+<p class="desc">Tool_use-tool_result cycle. 4 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m3_tool_loop/loop.py &middot; 57 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M3 starter — implement the TODO sections. Read BRIEF.md first.
+
+Lesson 0005&#x27;s loop, built by hand: parse tool_use, execute, return tool_result
+in a user message matched by tool_use_id, echo the assistant turn in full,
+loop until end_turn — with a stopping condition.
+&quot;&quot;&quot;
+from fixtures import TOOL_IMPLEMENTATIONS
+
+
+class LoopLimitReached(Exception):
+    &quot;&quot;&quot;The max_turns stopping condition fired — never loop forever.&quot;&quot;&quot;
+
+
+class ToolLoopRunner:
+    def __init__(self, model, tools=None):
+        self.model = model
+        self.tools = tools if tools is not None else TOOL_IMPLEMENTATIONS
+        self.messages = []
+
+    # ------------------------------------------------------------------
+    # TODO 1: execute one tool call
+    # Look up block.name in self.tools and call it with block.input.
+    # Return a tool_result block dict:
+    #   {&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;content&quot;: &lt;output&gt;}
+    # Unknown tool name -&gt; a result with &quot;is_error&quot;: True and instructive
+    # content (&quot;Unknown tool &lt;name&gt;; available: ...&quot;) — never an exception.
+    # ------------------------------------------------------------------
+    def execute_tool(self, block):
+        raise NotImplementedError(&quot;TODO 1: execute_tool&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 2: append the assistant turn IN FULL
+    # Append {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: [...]} carrying the response&#x27;s
+    # blocks (all of them — the echo rule; the model re-reads its own request).
+    # ------------------------------------------------------------------
+    def append_assistant_turn(self, response):
+        raise NotImplementedError(&quot;TODO 2: append_assistant_turn&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 3: append the tool results
+    # ONE user message containing ONLY tool_result blocks — first in content,
+    # immediately after the assistant turn, one per tool_use, matched by id.
+    # ------------------------------------------------------------------
+    def append_tool_results(self, result_blocks):
+        raise NotImplementedError(&quot;TODO 3: append_tool_results&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 4: the loop itself
+    # Build each request with the FULL history (statelessness — Lesson 0001),
+    # call self.model.complete, and branch on stop_reason:
+    #   &quot;tool_use&quot; -&gt; execute every tool_use block, append results, continue
+    #   &quot;end_turn&quot; -&gt; append the assistant turn, return the text
+    # Raise LoopLimitReached if more than max_turns model calls are needed.
+    # ------------------------------------------------------------------
+    def run_turn(self, user_text, system=&quot;You are Apex Airlines&#x27; assistant.&quot;, max_turns=6):
+        raise NotImplementedError(&quot;TODO 4: run_turn&quot;)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="context">
+<h3>M5: context.py</h3>
+<p class="desc">Token counting, 400 check, compaction, clearing. 5 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m5_context_management/context.py &middot; 64 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M5 starter — implement the TODO sections. Read BRIEF.md first.
+
+Lesson 0008 as code: what counts, when input alone would 400, compaction
+as the primary strategy, cache-aware tool-result clearing, and the
+memory-before-clear dance.
+&quot;&quot;&quot;
+from fixtures import estimate_tokens, summarize
+
+
+PLACEHOLDER = &quot;[cleared: tool result removed to save context]&quot;
+
+
+class ContextManager:
+
+    # ------------------------------------------------------------------
+    # TODO 1: account for what counts (Lesson 0008&#x27;s budget box)
+    # Sum the token estimate over ALL messages — text and tool_result
+    # blocks alike (tool results count; so would images/docs if we had them).
+    # ------------------------------------------------------------------
+    def count_tokens(self, messages):
+        raise NotImplementedError(&quot;TODO 1: count_tokens&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 2: the overflow rule (the API&#x27;s 400)
+    # True iff the INPUT ALONE exceeds `window` tokens — the check you
+    # must run before sending, because &quot;prompt is too long&quot; is a 400.
+    # ------------------------------------------------------------------
+    def would_overflow(self, messages, window):
+        raise NotImplementedError(&quot;TODO 2: would_overflow&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 3: compaction — &quot;the primary strategy&quot;
+    # Replace all but the last `keep_recent` messages with ONE summary
+    # message: {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;[conversation summary] &quot; +
+    # summarize(older)}. Return the new list. The recent tail must be
+    # untouched, verbatim.
+    # ------------------------------------------------------------------
+    def compact(self, messages, keep_recent=4):
+        raise NotImplementedError(&quot;TODO 3: compact&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 4: cache-aware tool-result clearing (clear_tool_uses rules)
+    # Fires only when total tokens exceed `trigger`. Clears OLDEST-first:
+    # replace a tool_result block&#x27;s content with PLACEHOLDER — but never
+    # the `keep` most recent tool_result blocks, never blocks whose
+    # message&#x27;s &quot;tool&quot; is in `exclude_tools`. Stop once at least
+    # `clear_at_least` tokens would be saved; if the achievable savings
+    # are below clear_at_least, change NOTHING and report applied=False
+    # (don&#x27;t torch the cache for a trickle).
+    # Return (new_messages, tokens_cleared, applied).
+    # ------------------------------------------------------------------
+    def clear_tool_results(self, messages, trigger, keep=3, clear_at_least=0, exclude_tools=()):
+        raise NotImplementedError(&quot;TODO 4: clear_tool_results&quot;)
+
+    # ------------------------------------------------------------------
+    # TODO 5: the memory-before-clear dance
+    # When tokens exceed `threshold * warn_fraction`, that&#x27;s the warning
+    # zone: save the essentials (each recent message&#x27;s text) into `memory`
+    # under keys &quot;essential-&lt;i&gt;&quot;, and return the list of keys saved.
+    # Below the zone: save nothing, return [].
+    # ------------------------------------------------------------------
+    def save_essentials_before_clearing(self, messages, memory, threshold, warn_fraction=0.9):
+        raise NotImplementedError(&quot;TODO 5: save_essentials_before_clearing&quot;)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="patterns">
+<h3>M7: patterns.py</h3>
+<p class="desc">Route, chain, vote, orchestrate. 5 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m7_patterns/patterns.py &middot; 74 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M7 starter — implement the TODO sections. Read BRIEF.md first.
+
+Lessons 0013-0015 as runnable machinery: routing with a privacy lane,
+gated chains, voting thresholds, effort scaling, and the
+orchestrator-workers digest with filesystem artifacts.
+&quot;&quot;&quot;
+from pathlib import Path
+
+
+# ------------------------------------------------------------------
+# TODO 1: route(ticket, classifier)  (0014: routing&#x27;s three wins)
+# Classify, then dispatch per lane:
+#   easy       -&gt; {&quot;lane&quot;: &quot;easy&quot;, &quot;model&quot;: &quot;haiku&quot;, &quot;privacy_enforced&quot;: False}
+#   hard       -&gt; sonnet lane
+#   regulated  -&gt; certified-model lane with privacy_enforced: True
+#                 (routing as policy enforcement)
+#   abusive    -&gt; {&quot;lane&quot;: &quot;abusive&quot;, &quot;response&quot;: CANNED_ABUSIVE_RESPONSE,
+#                  &quot;model&quot;: None}  — no LLM call at all
+# ------------------------------------------------------------------
+def route(ticket, classifier):
+    raise NotImplementedError(&quot;TODO 1: route&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 2: chain_with_gates(steps, gates)  (0014: prompt chaining)
+# steps: list of callables, each taking the previous output.
+# gates: list of callables(output -&gt; bool), gates[i] runs AFTER steps[i].
+# Run step, check gate, continue. First failing gate: STOP — return
+# (output_so_far, failed_at=i). All pass: (final_output, None).
+# Gates are programmatic checks, not model calls.
+# ------------------------------------------------------------------
+def chain_with_gates(steps, gates):
+    raise NotImplementedError(&quot;TODO 2: chain_with_gates&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 3: vote(verdicts, threshold)  (0014: parallelization / voting)
+# verdicts: list of booleans from N independent screeners.
+# Return {&quot;flagged&quot;: &lt;count &gt;= threshold&gt;, &quot;votes&quot;: count}.
+# The threshold IS the precision/recall business decision.
+# ------------------------------------------------------------------
+def vote(verdicts, threshold):
+    raise NotImplementedError(&quot;TODO 3: vote&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 4: scale_effort(complexity)  (0015: embedded scaling rules)
+# &quot;simple&quot;     -&gt; 1 worker,  max 10 tool calls
+# &quot;comparison&quot; -&gt; 2 workers, max 15 calls each
+# &quot;complex&quot;    -&gt; 10 workers, no call cap (None)
+# Return (worker_count, max_calls_per_worker).
+# ------------------------------------------------------------------
+def scale_effort(complexity):
+    raise NotImplementedError(&quot;TODO 4: scale_effort&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 5: orchestrate(query, plan, worker, artifact_dir, recorder)  (0015)
+# The orchestrator-workers digest:
+#  1. SAVE THE PLAN FIRST — write plan.md into artifact_dir and
+#     recorder.log(&quot;plan-saved&quot;) BEFORE any worker runs (contexts
+#     truncate; the plan must survive).
+#  2. Dispatch every task in `plan` to worker(area, objective,
+#     artifact_dir); collect {&quot;area&quot;, &quot;artifact&quot;} REFERENCES (not
+#     contents — minimize the game of telephone).
+#  3. Failure isolation: a raising worker is caught, logged as
+#     {&quot;area&quot;, &quot;error&quot;}, and does NOT stop the others.
+#  4. Synthesize a report string naming every area (from references).
+# Return {&quot;plan_saved&quot;: bool, &quot;references&quot;: [...], &quot;failures&quot;: [...],
+#         &quot;report&quot;: str}.
+# ------------------------------------------------------------------
+def orchestrate(query, plan, worker, artifact_dir, recorder):
+    raise NotImplementedError(&quot;TODO 5: orchestrate&quot;)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="evalcost">
+<h3>M8: evalcost.py</h3>
+<p class="desc">Judges, suites, cost arithmetic. 5 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m8_evals_and_cost/evalcost.py &middot; 67 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M8 starter — implement the TODO sections. Read BRIEF.md first.
+
+Lesson 0016 as a harness: normalized exact match, an LLM-judge with the
+cross-model rule, outcome-based suites. Lesson 0017 as arithmetic: the
+batch discount, the cache multipliers, and the invalidation hierarchy.
+&quot;&quot;&quot;
+from fixtures import (
+    BATCH_DISCOUNT, CACHE_READ_MULTIPLIER, CACHE_WRITE_MULTIPLIER, PRICES,
+)
+
+
+class SameModelJudgingError(Exception):
+    &quot;&quot;&quot;The judge is the generator — it inherits its own blind spots.&quot;&quot;&quot;
+
+
+# ------------------------------------------------------------------
+# TODO 1: exact_match(actual, expected)  (0016: the spectrum&#x27;s floor)
+# Normalize whitespace and case on both sides, then compare.
+# ------------------------------------------------------------------
+def exact_match(actual, expected):
+    raise NotImplementedError(&quot;TODO 1: exact_match&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 2: llm_judge(output, judge, rubric, threshold=0.8)  (0016)
+# Enforce the cross-model rule FIRST: if judge[&quot;name&quot;] equals
+# output[&quot;generator&quot;], raise SameModelJudgingError — every official
+# example judges with a different model.
+# Otherwise score via judge[&quot;fn&quot;](output, rubric) and return
+# {&quot;score&quot;: s, &quot;passed&quot;: s &gt;= threshold}.
+# ------------------------------------------------------------------
+def llm_judge(output, judge, rubric, threshold=0.8):
+    raise NotImplementedError(&quot;TODO 2: llm_judge&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 3: run_suite(cases)  (0016: outcome-based, volume &gt; polish)
+# Each case: {&quot;id&quot;, &quot;expected&quot;, &quot;actual&quot;, &quot;grader&quot;: &quot;exact_match&quot;}.
+# Grade every case by OUTCOME; return
+# {&quot;total&quot;: n, &quot;passed&quot;: k, &quot;failures&quot;: [ids that failed]}.
+# ------------------------------------------------------------------
+def run_suite(cases):
+    raise NotImplementedError(&quot;TODO 3: run_suite&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 4: monthly_cost(usage, prices, batch=False, cache=True)  (0017)
+# Token amounts are in millions; prices per million.
+# Input side (prices[&quot;input&quot;]):
+#   cache=True  -&gt; reads ×0.1, writes ×1.25, uncached ×1.0
+#   cache=False -&gt; all input (uncached + reads + writes) ×1.0
+# Output side: output_mtok × prices[&quot;output&quot;], always ×1.0
+# batch=True multiplies the WHOLE total by 0.5 (it stacks).
+# ------------------------------------------------------------------
+def monthly_cost(usage, prices, batch=False, cache=True):
+    raise NotImplementedError(&quot;TODO 4: monthly_cost&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 5: invalidated_levels(change)  (0017: the hierarchy)
+# change: {&quot;layer&quot;: &quot;tools&quot; | &quot;system&quot; | &quot;messages&quot;}
+# tools -&gt; 3 (tools, system, messages all die)
+# system -&gt; 2 ; messages -&gt; 1
+# ------------------------------------------------------------------
+def invalidated_levels(change):
+    raise NotImplementedError(&quot;TODO 5: invalidated_levels&quot;)
+</code></pre>
+</div>
+</div>
+<div class="code-section" id="capstone">
+<h3>M10: capstone.py</h3>
+<p class="desc">Full checklist wired. 4 TODOs.</p>
+<div class="code-wrap">
+<span class="filename">project/milestones/m10_capstone/capstone.py &middot; 62 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">&quot;&quot;&quot;M10 starter — the capstone. Read BRIEF.md first.
+
+Lesson 0022&#x27;s master checklist as ONE pipeline: lanes, drafts, enforced
+compliance, voting, escalation, the nightly digest, and the report card
+(evals + the bill). Each function is a checklist line.
+&quot;&quot;&quot;
+from pathlib import Path
+
+
+# ------------------------------------------------------------------
+# TODO 1: handle_ticket(ticket, ctx)  (lines 3-8 of the checklist)
+# ctx: {&quot;classifier&quot;, &quot;draft&quot; (the scripted draft text), &quot;competitors&quot;,
+#       &quot;verdicts&quot;, &quot;policy_topics&quot;, &quot;canned_abusive&quot;, &quot;vote_threshold&quot;: 2}
+# Flow:
+#   lane = ctx[&quot;classifier&quot;](ticket)
+#   abusive  -&gt; {&quot;lane&quot;: &quot;abusive&quot;, &quot;response&quot;: canned, &quot;model_called&quot;: False}
+#   easy/hard -&gt; draft = ctx[&quot;draft&quot;]; filtered = compliance filter
+#                (SSN \d{3}-\d{2}-\d{4} -&gt; &quot;[PII removed]&quot;, competitor
+#                names -&gt; &quot;[competitor]&quot;); flagged = 2-of-3 vote;
+#                escalated = flagged OR last-user policy topic
+#   regulated -&gt; certified lane: privacy_enforced True, same draft flow
+# Return the result dict (keep keys: lane, response, privacy_enforced,
+# model_called, flagged, escalated, reasons).
+# ------------------------------------------------------------------
+def handle_ticket(ticket, ctx):
+    raise NotImplementedError(&quot;TODO 1: handle_ticket&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 2: nightly_digest(plan, worker, artifact_dir, recorder)  (0015/0022)
+# Save plan.md and recorder.log(&quot;plan-saved&quot;) BEFORE workers; dispatch all
+# tasks; collect references (area + artifact path); isolate failures into
+# a failures list; report names every area (failed ones included).
+# Return {&quot;plan_saved&quot;: bool, &quot;references&quot;: [...], &quot;failures&quot;: [...],
+#         &quot;report&quot;: str}.
+# ------------------------------------------------------------------
+def nightly_digest(plan, worker, artifact_dir, recorder):
+    raise NotImplementedError(&quot;TODO 2: nightly_digest&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 3: report_card(cases, usage, prices)  (0016/0017/0022)
+# Eval side: outcome-based over cases ({&quot;id&quot;,&quot;expected&quot;,&quot;actual&quot;}) with
+# normalized exact match -&gt; {&quot;passed&quot;: k, &quot;total&quot;: n, &quot;failures&quot;: [ids]}.
+# Cost side: reads x0.1, writes x1.25, uncached x1.0 of input price;
+# output full price; batch=True multiplies the total by 0.5.
+# Return {&quot;eval&quot;: {...}, &quot;monthly_cost&quot;: c,
+#         &quot;summary&quot;: &quot;eval 8/10 | bill $X.XX&quot;}.
+# ------------------------------------------------------------------
+def report_card(cases, usage, prices, batch=True):
+    raise NotImplementedError(&quot;TODO 3: report_card&quot;)
+
+
+# ------------------------------------------------------------------
+# TODO 4: master_checklist(architecture)  (0022&#x27;s design review)
+# architecture: {item_name: bool} for the 11 checklist lines. Return the
+# list of FALSE item names (what&#x27;s missing); [] when the design review
+# passes. Order preserved from the input dict.
+# ------------------------------------------------------------------
+def master_checklist(architecture):
+    raise NotImplementedError(&quot;TODO 4: master_checklist&quot;)
+</code></pre>
+</div>
+</div>
+
+<footer class="course-footer">
+  Code examples - every file runs offline with python3 -
+  <a href="code-browser.html">classic browser</a> -
+  <a href="../index.html">front door</a>
+</footer>
+
+</body>
+</html>
