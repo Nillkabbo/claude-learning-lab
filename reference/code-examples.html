@@ -12,8 +12,8 @@
 <p class="subtitle">Every key file from the lab in readable code blocks with explanations and a copy button.</p>
 
 <div class="meta">
-  <span class="accent">22 files</span>
-  <span>3 sections</span>
+  <span class="accent">24 files</span>
+  <span>4 sections</span>
   <span>Copy button on every block</span>
 </div>
 
@@ -46,7 +46,9 @@
 <li><a href="#context">M5: context.py</a></li>
 <li><a href="#patterns">M7: patterns.py</a></li>
 <li><a href="#evalcost">M8: evalcost.py</a></li>
-<li><a href="#capstone">M10: capstone.py</a></li></ul>
+<li><a href="#capstone">M10: capstone.py</a></li>
+<li><a href="#insight_analyzer">Insight: analyzer.py - the engine</a></li>
+<li><a href="#insight_cli">Insight: insight.py - the CLI</a></li></ul>
 <script>
 function copyCode(btn) {
   var pre = btn.parentElement.querySelector('pre');
@@ -1687,6 +1689,714 @@ def report_card(cases, usage, prices, batch=True):
 # ------------------------------------------------------------------
 def master_checklist(architecture):
     raise NotImplementedError(&quot;TODO 4: master_checklist&quot;)
+</code></pre>
+</div>
+</div>
+
+<div class="code-section" id="insight_analyzer">
+<h3>analyzer.py - the engine</h3>
+<p class="desc">All five starter modules composed: routing, tool loop, validation layers, context budget, cost.</p>
+<div class="code-wrap">
+<span class="filename">portfolio/analyzer.py &middot; 439 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;analyzer.py — Insight&#x27;s core engine. Composes every starter module.
+
+  client   -&gt; contract-valid requests + stop-reason dispatch   (Laws 1, 2, 3)
+  tools    -&gt; read/grep/glob + the full error taxonomy          (Laws 5, 6)
+  context  -&gt; the 400 pre-check, cache-aware clearing, compact  (Law 7)
+  patterns -&gt; routing, gated validation chain, voting           (Law 9)
+  evals    -&gt; cost arithmetic with real cache/batch multipliers (Law 10)
+
+Offline by default: no model given means FixtureModel replaying scripted
+responses from fixtures/responses.py. Pass a RealClient for production —
+the engine never knows which one it is talking to.
+
+Zero dependencies: Python 3 stdlib only.
+&quot;&quot;&quot;
+import json
+import re
+import sys
+from pathlib import Path
+
+_HERE = Path(__file__).resolve().parent
+_ROOT = _HERE.parent
+for _p in (str(_HERE), str(_ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from starter.claude.client import (
+    Action, FixtureModel, RealClient, RequestBuilder, assistant_turn_message,
+    handle_response,
+)
+from starter.claude.tools import (
+    IdempotencyLedger, PermanentError, Tool, ToolRunner, TransientError,
+    UncertainStateError, audit,
+)
+from starter.claude.context import (
+    clear_tool_results, compact, count_tokens, would_overflow,
+)
+from starter.claude.patterns import chain_with_gates, route, vote
+from starter.claude.evals import monthly_cost
+
+
+# --- Law 3: the system prompt is policy, not vibe ----------------------------
+SYSTEM_PROMPT = (
+    &quot;You are Insight, a static-analysis assistant embedded in a code-quality CLI.\n&quot;
+    &quot;Role: read source files with your tools and report correctness, security, and &quot;
+    &quot;maintainability issues.\n&quot;
+    &quot;Scope: the single target file you are given; report only what the code shows you.\n&quot;
+    &quot;Output: exactly one fenced ```json block of the shape &quot;
+    &#x27;{&quot;file&quot;: &quot;...&quot;, &quot;findings&quot;: [...]}; every finding needs id, severity &#x27;
+    &quot;(critical|warning|info), line, title, evidence, recommendation.\n&quot;
+    &quot;Do not: report an issue you cannot locate, invent line numbers, propose code &quot;
+    &quot;edits, or read anything outside the target path.\n&quot;
+    &quot;If the file is clean, return an empty findings list.&quot;
+)
+
+SEVERITIES = (&quot;critical&quot;, &quot;warning&quot;, &quot;info&quot;)
+CONTEXT_WINDOW = 100_000        # tokens, Sonnet-class
+COMPACT_TRIGGER = 60_000        # start reclaiming before the cliff
+CLEAR_KEEP = 3                  # newest tool results stay intact
+MAX_STEPS = 8                   # tool-loop guard
+COST_BUDGET_USD = 0.05          # per-analysis budget (REQUIREMENTS.md)
+SIMPLE_LANE_MAX_LINES = 30      # routing threshold (Law 9)
+PRICES = {&quot;input&quot;: 3.0, &quot;output&quot;: 15.0}   # $ per million tokens, Sonnet-class
+
+# Law 9: routing buys each rung only when it pays.
+LANES = {
+    &quot;simple&quot;: {&quot;mode&quot;: &quot;single-call&quot;, &quot;max_tokens&quot;: 1024, &quot;tools&quot;: False},
+    &quot;deep&quot;:   {&quot;mode&quot;: &quot;tool-loop&quot;,   &quot;max_tokens&quot;: 2048, &quot;tools&quot;: True},
+}
+
+
+class GrammarError(Exception):
+    &quot;&quot;&quot;A validation layer rejected the model&#x27;s output (Law 4).&quot;&quot;&quot;
+
+
+class LoopLimitError(Exception):
+    &quot;&quot;&quot;The tool loop exceeded MAX_STEPS — complexity was misrouted.&quot;&quot;&quot;
+
+
+class TruncationError(Exception):
+    &quot;&quot;&quot;max_tokens stayed exhausted even after lifting the cap twice.&quot;&quot;&quot;
+
+
+class RefusalError(Exception):
+    &quot;&quot;&quot;The model refused — a policy path, never retried blindly.&quot;&quot;&quot;
+
+
+# --- Law 5: tools with interface discipline + the error taxonomy (Law 6) -----
+DENIED_PATH_TOKENS = (&quot;.env&quot;, &quot;secret&quot;, &quot;id_rsa&quot;, &quot;.pem&quot;, &quot;.key&quot;, &quot;.p12&quot;)
+
+
+def _read_fn(ledger):
+    def read_file(inp):
+        raw = inp.get(&quot;path&quot;, &quot;&quot;)
+        path = Path(raw)
+        low = str(path).lower()
+        if any(token in low for token in DENIED_PATH_TOKENS):
+            raise PermanentError(
+                f&quot;&#x27;{raw}&#x27; looks like secret material.&quot;,
+                &quot;It is deny-listed. Analyze code files only.&quot;)
+        if not path.exists():
+            raise PermanentError(
+                f&quot;&#x27;{raw}&#x27; does not exist.&quot;,
+                &quot;List candidate files with insight_glob first.&quot;)
+        if path.is_dir():
+            raise PermanentError(
+                f&quot;&#x27;{raw}&#x27; is a directory.&quot;,
+                &quot;Use insight_glob to list its files instead.&quot;)
+        if path.suffix == &quot;.writing&quot;:
+            raise TransientError(
+                f&quot;&#x27;{raw}&#x27; is mid-write (lock convention).&quot;, 2)
+        # Same path = one filesystem read, even if the model asks twice.
+        return ledger.run(str(path), lambda: path.read_text())
+    return read_file
+
+
+def _grep_fn(inp):
+    path = Path(inp.get(&quot;path&quot;, &quot;&quot;))
+    pattern = inp.get(&quot;pattern&quot;, &quot;&quot;)
+    if inp.get(&quot;fixed_string&quot;, False):
+        rx = re.compile(re.escape(pattern))
+    else:
+        try:
+            rx = re.compile(pattern)
+        except re.error as exc:
+            raise PermanentError(
+                f&quot;invalid regex &#x27;{pattern}&#x27;: {exc}.&quot;,
+                &quot;Pass fixed_string=true to search for it literally.&quot;)
+    if not path.is_file():
+        raise PermanentError(
+            f&quot;&#x27;{path}&#x27; is not a readable file.&quot;,
+            &quot;Resolve the right path with insight_read_file or insight_glob.&quot;)
+    hits = [f&quot;{i}: {line.rstrip()}&quot;
+            for i, line in enumerate(path.read_text().splitlines(), 1)
+            if rx.search(line)]
+    return &quot;\n&quot;.join(hits) if hits else f&quot;no matches for /{pattern}/&quot;
+
+
+def _glob_fn(inp):
+    directory = Path(inp.get(&quot;directory&quot;, &quot;.&quot;))
+    pattern = inp.get(&quot;pattern&quot;, &quot;*&quot;)
+    if not directory.is_dir():
+        raise PermanentError(
+            f&quot;&#x27;{directory}&#x27; is not a directory.&quot;,
+            &quot;Use insight_read_file for single files.&quot;)
+    matches = sorted(str(p) for p in directory.rglob(pattern) if p.is_file())
+    return &quot;\n&quot;.join(matches[:50]) if matches else f&quot;no files match &#x27;{pattern}&#x27;&quot;
+
+
+def make_tools(ledger=None):
+    &quot;&quot;&quot;The analyzer&#x27;s toolset. Each tool passes the four-question audit.&quot;&quot;&quot;
+    read = Tool(
+        name=&quot;insight_read_file&quot;,
+        description=(&quot;Reads one file and returns its full text. Use when you need the &quot;
+                     &quot;source of the analysis target. Do not use for directories or for &quot;
+                     &quot;searching — that is insight_glob and insight_grep. Secret-looking &quot;
+                     &quot;paths (.env, keys) are deny-listed and always fail.&quot;),
+        input_schema={&quot;type&quot;: &quot;object&quot;,
+                      &quot;properties&quot;: {&quot;path&quot;: {&quot;type&quot;: &quot;string&quot;,
+                                              &quot;description&quot;: &quot;Absolute or cwd-relative path of one file.&quot;}},
+                      &quot;required&quot;: [&quot;path&quot;]},
+        fn=_read_fn(ledger or IdempotencyLedger()))
+    grep = Tool(
+        name=&quot;insight_grep&quot;,
+        description=(&quot;Searches one file for a regex, returning numbered matching lines. &quot;
+                     &quot;Use to confirm an issue appears elsewhere in the file. Do not use &quot;
+                     &quot;on unknown paths — read the file first. An invalid pattern is a &quot;
+                     &quot;permanent error unless fixed_string is true.&quot;),
+        input_schema={&quot;type&quot;: &quot;object&quot;,
+                      &quot;properties&quot;: {&quot;path&quot;: {&quot;type&quot;: &quot;string&quot;,
+                                              &quot;description&quot;: &quot;File to search.&quot;},
+                                     &quot;pattern&quot;: {&quot;type&quot;: &quot;string&quot;,
+                                                 &quot;description&quot;: &quot;Python regex, or literal text when fixed_string is true.&quot;},
+                                     &quot;fixed_string&quot;: {&quot;type&quot;: &quot;boolean&quot;,
+                                                      &quot;description&quot;: &quot;Treat pattern as literal text instead of regex.&quot;}},
+                      &quot;required&quot;: [&quot;path&quot;, &quot;pattern&quot;]},
+        fn=_grep_fn)
+    glob = Tool(
+        name=&quot;insight_glob&quot;,
+        description=(&quot;Lists files under a directory matching a glob pattern, newest &quot;
+                     &quot;paths sorted, capped at 50. Use to discover files before reading. &quot;
+                     &quot;Do not use to read contents — that is insight_read_file. &quot;
+                     &quot;Directories only; a file path is a permanent error.&quot;),
+        input_schema={&quot;type&quot;: &quot;object&quot;,
+                      &quot;properties&quot;: {&quot;directory&quot;: {&quot;type&quot;: &quot;string&quot;,
+                                                   &quot;description&quot;: &quot;Directory to search from.&quot;},
+                                     &quot;pattern&quot;: {&quot;type&quot;: &quot;string&quot;,
+                                                 &quot;description&quot;: &quot;Glob such as *.py or **/*.json.&quot;}},
+                      &quot;required&quot;: [&quot;directory&quot;, &quot;pattern&quot;]},
+        fn=_glob_fn)
+    tools = [read, grep, glob]
+    for tool in tools:                      # interface discipline, enforced
+        problems = audit(tool)
+        if problems:
+            raise RuntimeError(f&quot;{tool.name} failed tool audit: {problems}&quot;)
+    return tools
+
+
+TOOL_SPECS = [{&quot;name&quot;: t.name, &quot;description&quot;: t.description,
+               &quot;input_schema&quot;: t.input_schema} for t in make_tools()]
+
+
+# --- Law 4: validation layers, chained behind gates (Law 9) ------------------
+def _extract_json_block(text):
+    fence = re.search(r&quot;```json\s*(.*?)```&quot;, text, re.DOTALL)
+    if fence:
+        return fence.group(1).strip()
+    first, last = text.find(&quot;{&quot;), text.rfind(&quot;}&quot;)
+    return text[first:last + 1] if 0 &lt;= first &lt; last else None
+
+
+def _parse_json(block):
+    try:
+        return json.loads(block)
+    except json.JSONDecodeError:
+        return None
+
+
+def _semantic_pass(parsed, line_count):
+    &quot;&quot;&quot;Code checks the model&#x27;s claims: severity enum, line bounds, dedupe.&quot;&quot;&quot;
+    if not all(isinstance(f, dict) for f in parsed[&quot;findings&quot;]):
+        return None
+    kept, dropped, seen = [], [], set()
+    for finding in parsed[&quot;findings&quot;]:
+        fid = finding.get(&quot;id&quot;, &quot;&quot;)
+        problems = []
+        if not isinstance(fid, str) or not fid.strip():
+            problems.append(&quot;missing-id&quot;)
+        elif fid in seen:
+            problems.append(&quot;duplicate-id&quot;)
+        if finding.get(&quot;severity&quot;) not in SEVERITIES:
+            problems.append(f&quot;bad-severity:{finding.get(&#x27;severity&#x27;)!r}&quot;)
+        line = finding.get(&quot;line&quot;)
+        if not isinstance(line, int) or not 1 &lt;= line &lt;= max(line_count, 1):
+            problems.append(f&quot;line-out-of-range:{line!r}&quot;)
+        if not str(finding.get(&quot;title&quot;, &quot;&quot;)).strip():
+            problems.append(&quot;missing-title&quot;)
+        if not str(finding.get(&quot;recommendation&quot;, &quot;&quot;)).strip():
+            problems.append(&quot;missing-recommendation&quot;)
+        if problems:
+            dropped.append({&quot;id&quot;: str(fid) or &quot;&lt;unnamed&gt;&quot;, &quot;problems&quot;: problems})
+        else:
+            seen.add(fid)
+            kept.append(finding)
+    return {&quot;findings&quot;: kept, &quot;dropped&quot;: dropped}
+
+
+def parse_findings(text, line_count):
+    &quot;&quot;&quot;Three layers behind gates: locate -&gt; grammar -&gt; semantics.
+
+    A failing layer stops the chain and raises — the analyzer refuses to
+    invent findings it cannot validate.
+    &quot;&quot;&quot;
+    steps = [
+        lambda: _extract_json_block(text),
+        _parse_json,
+        lambda parsed: _semantic_pass(parsed, line_count),
+    ]
+    gates = [
+        lambda block: isinstance(block, str) and bool(block.strip()),
+        lambda parsed: isinstance(parsed, dict) and isinstance(parsed.get(&quot;findings&quot;), list),
+        lambda result: result is not None,
+    ]
+    result, failed_at = chain_with_gates(steps, gates)
+    if failed_at is not None:
+        layer = (&quot;locating the JSON block&quot;, &quot;JSON grammar&quot;, &quot;semantic checks&quot;)[failed_at]
+        raise GrammarError(f&quot;validation failed at layer {failed_at} ({layer}); &quot;
+                           &quot;refusing to report unvalidated findings&quot;)
+    return result
+
+
+# --- Law 7: the context budget, managed before every send --------------------
+def _summarize(old_messages):
+    parts = []
+    for message in old_messages:
+        content = message.get(&quot;content&quot;, &quot;&quot;)
+        if isinstance(content, list):
+            content = &quot; &quot;.join(str(b.get(&quot;content&quot;, b.get(&quot;text&quot;, &quot;&quot;))) for b in content)
+        parts.append(str(content)[:200])
+    return f&quot;{len(old_messages)} earlier turns: &quot; + &quot; | &quot;.join(parts)[:2000]
+
+
+def _starts_with_tool_result(message):
+    content = message.get(&quot;content&quot;, &quot;&quot;)
+    return (isinstance(content, list) and bool(content)
+            and content[0].get(&quot;type&quot;) == &quot;tool_result&quot;)
+
+
+def _repair_alternation(messages):
+    &quot;&quot;&quot;compact() inserts a user summary; fold it in if the next message is
+    also user-without-tool_result, or the builder will (correctly) refuse.&quot;&quot;&quot;
+    if len(messages) &gt;= 2 and messages[0].get(&quot;role&quot;) == &quot;user&quot; \
+            and messages[1].get(&quot;role&quot;) == &quot;user&quot; \
+            and not _starts_with_tool_result(messages[1]):
+        second = messages[1].get(&quot;content&quot;)
+        folded = str(messages[0].get(&quot;content&quot;))
+        if isinstance(second, str):
+            folded += &quot;\n\n&quot; + second
+        else:
+            folded += &quot;\n\n&quot; + json.dumps(second)
+        return [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: folded}] + messages[2:]
+    return messages
+
+
+def check_context(messages, window=CONTEXT_WINDOW, trigger=COMPACT_TRIGGER):
+    &quot;&quot;&quot;Cheap first (clear old tool results), drastic second (compact).&quot;&quot;&quot;
+    messages, _cleared, applied = clear_tool_results(
+        messages, trigger, keep=CLEAR_KEEP, clear_at_least=2000)
+    if applied:
+        return _repair_alternation(messages)
+    if would_overflow(messages, window):        # the 400 check, before the 400
+        compacted = compact(messages, _summarize, keep_recent=4)
+        return _repair_alternation(compacted)
+    return messages
+
+
+# --- Laws 1 + 2 + 5: the stateless loop ---------------------------------------
+def run_conversation(model, messages, system, max_tokens, tools=None, runner=None):
+    &quot;&quot;&quot;Resend the full history every request (Law 1); dispatch on stop_reason
+    (Law 2); echo the assistant turn and place tool_results as the next user
+    message (Law 5). Returns (final_text, usage, messages).&quot;&quot;&quot;
+    builder = RequestBuilder()
+    usage = {&quot;requests&quot;: 0, &quot;uncached_input_tokens&quot;: 0, &quot;cached_read_tokens&quot;: 0,
+             &quot;output_tokens&quot;: 0, &quot;tool_calls&quot;: 0}
+    lifts = 0
+    for _step in range(MAX_STEPS):
+        messages = check_context(messages)
+        request = builder.build(messages, system, max_tokens, tools=tools)
+        response = model.complete(request)
+        usage[&quot;requests&quot;] += 1
+        tokens_in = response.usage.get(&quot;input_tokens&quot;, 0)
+        # First request pays full input; later requests hit the cached prefix.
+        if usage[&quot;requests&quot;] == 1:
+            usage[&quot;uncached_input_tokens&quot;] += tokens_in
+        else:
+            usage[&quot;cached_read_tokens&quot;] += tokens_in
+        usage[&quot;output_tokens&quot;] += response.usage.get(&quot;output_tokens&quot;, 0)
+
+        action, payload = handle_response(response)
+        if action is Action.COMPLETE:
+            return payload, usage, messages
+        if action is Action.RUN_TOOLS:
+            usage[&quot;tool_calls&quot;] += len(payload)
+            messages.append(assistant_turn_message(response))
+            results = [runner.execute(block) for block in payload]
+            messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})
+            continue
+        if action is Action.TRUNCATED:          # your cap fired — lift it, twice max
+            if lifts &gt;= 2:
+                raise TruncationError(&quot;output still truncated after lifting max_tokens twice&quot;)
+            lifts += 1
+            max_tokens *= 2
+            continue
+        raise RefusalError(f&quot;the model refused: {payload!r}&quot;)   # policy path
+    raise LoopLimitError(f&quot;tool loop exceeded {MAX_STEPS} steps&quot;)
+
+
+# --- Law 10: the economics ----------------------------------------------------
+def calculate_cost(usage):
+    &quot;&quot;&quot;Cost of one analysis run via the real multipliers (reads 0.1x, no batch).&quot;&quot;&quot;
+    mtok = {&quot;uncached_input_mtok&quot;: usage.get(&quot;uncached_input_tokens&quot;, 0) / 1e6,
+            &quot;cached_read_mtok&quot;: usage.get(&quot;cached_read_tokens&quot;, 0) / 1e6,
+            &quot;cached_write_mtok&quot;: 0.0,
+            &quot;output_mtok&quot;: usage.get(&quot;output_tokens&quot;, 0) / 1e6}
+    total = monthly_cost(mtok, PRICES, batch=False, cache=True)
+    return {&quot;total_usd&quot;: round(total, 6),
+            &quot;under_budget&quot;: total &lt; COST_BUDGET_USD,
+            &quot;budget_usd&quot;: COST_BUDGET_USD,
+            &quot;usage_mtok&quot;: {k: round(v, 6) for k, v in mtok.items()},
+            &quot;prices_per_mtok&quot;: dict(PRICES)}
+
+
+# --- Law 6 (verify): evidence must survive the analysis -----------------------
+def analyze_file(path, model=None, system=SYSTEM_PROMPT):
+    &quot;&quot;&quot;Analyze one file. Routes complexity (Law 9), runs the loop, validates
+    the output (Law 4), verifies the file did not change mid-flight (Law 6),
+    and prices the run (Law 10).&quot;&quot;&quot;
+    resolved = Path(path).resolve()
+    if not resolved.is_file():
+        raise PermanentError(f&quot;&#x27;{path}&#x27; is not a readable file.&quot;,
+                             &quot;Pass a .py file or a directory to the CLI.&quot;)
+    text = resolved.read_text()
+    line_count = len(text.splitlines())
+    mtime_before = resolved.stat().st_mtime_ns
+
+    lane = route(resolved, LANES, classify)
+    if model is None:
+        from fixtures.responses import script_for
+        model = FixtureModel(script_for(resolved, lane[&quot;lane&quot;]))
+    runner = ToolRunner(make_tools(IdempotencyLedger()))
+
+    if lane[&quot;tools&quot;]:
+        messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;:
+                     f&quot;Analyze {resolved.name} for correctness, security, and &quot;
+                     f&quot;maintainability issues. The file is at {resolved}. Use your &quot;
+                     &quot;tools to read it, then report findings in the specified JSON.&quot;}]
+        tool_specs = TOOL_SPECS
+    else:
+        messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;:
+                     f&quot;Analyze {resolved.name} for correctness, security, and &quot;
+                     &quot;maintainability issues. The full source:\n\n```\n&quot;
+                     + text + &quot;\n```\nReport findings in the specified JSON.&quot;}]
+        tool_specs = None
+
+    final_text, usage, _messages = run_conversation(
+        model, messages, system, lane[&quot;max_tokens&quot;], tools=tool_specs, runner=runner)
+
+    if resolved.stat().st_mtime_ns != mtime_before:
+        raise UncertainStateError(
+            f&quot;{resolved.name} changed while it was being analyzed.&quot;,
+            &quot;Do not trust these findings — re-run the analysis.&quot;)
+
+    parsed = parse_findings(final_text, line_count)
+    order = {s: i for i, s in enumerate(SEVERITIES)}
+    parsed[&quot;findings&quot;].sort(key=lambda f: (order[f[&quot;severity&quot;]], f[&quot;line&quot;]))
+    return {&quot;file&quot;: str(resolved), &quot;name&quot;: resolved.name,
+            &quot;lane&quot;: lane[&quot;lane&quot;], &quot;mode&quot;: lane[&quot;mode&quot;],
+            &quot;findings&quot;: parsed[&quot;findings&quot;], &quot;dropped&quot;: parsed[&quot;dropped&quot;],
+            &quot;usage&quot;: usage, &quot;cost&quot;: calculate_cost(usage)}
+
+
+def analyze_path(path, model=None):
+    &quot;&quot;&quot;CLI entry: one file, or every .py file under a directory.&quot;&quot;&quot;
+    resolved = Path(path)
+    if resolved.is_dir():
+        files = sorted(p for p in resolved.rglob(&quot;*.py&quot;) if p.is_file())
+        return [analyze_file(f, model=model) for f in files]
+    return [analyze_file(resolved, model=model)]
+
+
+def classify(path):
+    &quot;&quot;&quot;The routing classifier: small files get one call, big ones the loop.&quot;&quot;&quot;
+    lines = len(Path(path).read_text().splitlines())
+    return &quot;simple&quot; if lines &lt;= SIMPLE_LANE_MAX_LINES else &quot;deep&quot;
+
+
+def stability_vote(runs):
+    &quot;&quot;&quot;vote() over per-file verdicts: found everything, with correct severities.&quot;&quot;&quot;
+    return vote([r.get(&quot;exact&quot;, False) for r in runs], threshold=len(runs))
+</code></pre>
+</div>
+</div>
+
+<div class="code-section" id="insight_cli">
+<h3>insight.py - the CLI</h3>
+<p class="desc">analyze / report / eval / cost commands, offline fixtures by default, --real for the live API.</p>
+<div class="code-wrap">
+<span class="filename">portfolio/insight.py &middot; 249 lines</span>
+<button class="copy-btn" onclick="copyCode(this)">copy</button>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;insight.py — the CLI face of the Insight analyzer.
+
+  python3 insight.py analyze &lt;file|dir&gt; [--real] [--json]
+  python3 insight.py report
+  python3 insight.py eval
+  python3 insight.py cost
+
+Offline by default (FixtureModel). --real switches to the live Messages API
+via the stdlib — needs ANTHROPIC_API_KEY, costs about $0.02 per file.
+&quot;&quot;&quot;
+import argparse
+import json
+import os
+import sys
+import urllib.request
+from pathlib import Path
+from types import SimpleNamespace
+
+_HERE = Path(__file__).resolve().parent
+if str(_HERE) not in sys.path:
+    sys.path.insert(0, str(_HERE))
+
+import analyzer
+from fixtures.responses import SEED_ISSUES
+
+LAST_RUN = _HERE / &quot;.insight&quot; / &quot;last-run.json&quot;
+FIXTURES = _HERE / &quot;fixtures&quot; / &quot;code_samples&quot;
+SEVERITY_MARK = {&quot;critical&quot;: &quot;CRITICAL&quot;, &quot;warning&quot;: &quot;WARNING &quot;, &quot;info&quot;: &quot;INFO    &quot;}
+
+
+# --- optional live mode (Law 1: same shape, different transport) --------------
+def make_real_model(model=&quot;claude-sonnet-4-5&quot;):
+    from starter.claude.client import RealClient
+    key = os.environ.get(&quot;ANTHROPIC_API_KEY&quot;)
+    if not key:
+        sys.exit(&quot;No ANTHROPIC_API_KEY set. Create one at console.anthropic.com, &quot;
+                 &quot;export it, and re-run. Offline mode needs no key (just drop --real).&quot;)
+
+    def sdk(**request):
+        req = urllib.request.Request(
+            &quot;https://api.anthropic.com/v1/messages&quot;,
+            data=json.dumps(request).encode(),
+            headers={&quot;x-api-key&quot;: key, &quot;anthropic-version&quot;: &quot;2023-06-01&quot;,
+                     &quot;content-type&quot;: &quot;application/json&quot;})
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read())
+        return SimpleNamespace(content=data[&quot;content&quot;],
+                               stop_reason=data[&quot;stop_reason&quot;],
+                               usage=data[&quot;usage&quot;])
+
+    return RealClient(sdk, model=model)
+
+
+# --- output -------------------------------------------------------------------
+def print_result(result):
+    usage, cost = result[&quot;usage&quot;], result[&quot;cost&quot;]
+    print(f&quot;\n{result[&#x27;name&#x27;]} · lane: {result[&#x27;lane&#x27;]} ({result[&#x27;mode&#x27;]}) · &quot;
+          f&quot;{usage[&#x27;tool_calls&#x27;]} tool calls · {usage[&#x27;requests&#x27;]} requests · &quot;
+          f&quot;${cost[&#x27;total_usd&#x27;]:.4f}&quot;)
+    if not result[&quot;findings&quot;]:
+        print(&quot;  no findings&quot;)
+    for finding in result[&quot;findings&quot;]:
+        print(f&quot;  {SEVERITY_MARK[finding[&#x27;severity&#x27;]]}  L{finding[&#x27;line&#x27;]:&lt;4} &quot;
+              f&quot;{finding[&#x27;id&#x27;]} — {finding[&#x27;title&#x27;]}&quot;)
+        print(f&quot;            → {finding[&#x27;recommendation&#x27;]}&quot;)
+    for drop in result[&quot;dropped&quot;]:
+        print(f&quot;  [dropped by validation] {drop[&#x27;id&#x27;]}: {&#x27;, &#x27;.join(drop[&#x27;problems&#x27;])}&quot;)
+    if not cost[&quot;under_budget&quot;]:
+        print(f&quot;  ! cost ${cost[&#x27;total_usd&#x27;]:.4f} exceeds the ${cost[&#x27;budget_usd&#x27;]} budget&quot;)
+
+
+def cmd_analyze(args):
+    model = make_real_model() if args.real else None
+    results = []
+    for target in args.paths:
+        try:
+            results.extend(analyzer.analyze_path(target, model=model))
+        except analyzer.GrammarError as exc:
+            sys.exit(f&quot;error: {exc}&quot;)
+        except Exception as exc:                      # taxonomy errors reach here
+            sys.exit(f&quot;error analyzing {target}: {exc}&quot;)
+    for result in results:
+        print_result(result)
+    totals = _totals(results)
+    print(f&quot;\ntotal: {totals[&#x27;files&#x27;]} files, {totals[&#x27;findings&#x27;]} findings &quot;
+          f&quot;({totals[&#x27;critical&#x27;]} critical / {totals[&#x27;warning&#x27;]} warning / &quot;
+          f&quot;{totals[&#x27;info&#x27;]} info) · ${totals[&#x27;cost&#x27;]:.4f}&quot;)
+    LAST_RUN.parent.mkdir(exist_ok=True)
+    LAST_RUN.write_text(json.dumps(results, indent=2))
+    print(f&quot;saved: {LAST_RUN.relative_to(_HERE.parent)}  (see: report, cost)&quot;)
+    if args.json:
+        print(json.dumps(results, indent=2))
+
+
+def _totals(results):
+    counts = {s: 0 for s in analyzer.SEVERITIES}
+    for r in results:
+        for f in r[&quot;findings&quot;]:
+            counts[f[&quot;severity&quot;]] += 1
+    return {&quot;files&quot;: len(results), &quot;findings&quot;: sum(counts.values()), **counts,
+            &quot;cost&quot;: sum(r[&quot;cost&quot;][&quot;total_usd&quot;] for r in results)}
+
+
+def _load_last_run():
+    if not LAST_RUN.exists():
+        sys.exit(&quot;No run on record yet — start with: python3 insight.py analyze &quot;
+                 f&quot;{FIXTURES.relative_to(_HERE.parent)}&quot;)
+    return json.loads(LAST_RUN.read_text())
+
+
+def cmd_report(_args):
+    results = _load_last_run()
+    totals = _totals(results)
+    lanes = {&quot;deep&quot;: sum(1 for r in results if r[&quot;lane&quot;] == &quot;deep&quot;),
+             &quot;simple&quot;: sum(1 for r in results if r[&quot;lane&quot;] == &quot;simple&quot;)}
+    usage = {k: sum(r[&quot;usage&quot;][k] for r in results) for k in
+             (&quot;requests&quot;, &quot;uncached_input_tokens&quot;, &quot;cached_read_tokens&quot;,
+              &quot;output_tokens&quot;, &quot;tool_calls&quot;)}
+    dropped = sum(len(r[&quot;dropped&quot;]) for r in results)
+    print(&quot;Insight — last run&quot;)
+    print(f&quot;  files: {totals[&#x27;files&#x27;]} · findings: {totals[&#x27;findings&#x27;]} &quot;
+          f&quot;({totals[&#x27;critical&#x27;]}C / {totals[&#x27;warning&#x27;]}W / {totals[&#x27;info&#x27;]}I)&quot;)
+    print(f&quot;  lanes: {lanes[&#x27;deep&#x27;]} deep (tool-loop), {lanes[&#x27;simple&#x27;]} simple (single-call)&quot;)
+    print(f&quot;  tool calls: {usage[&#x27;tool_calls&#x27;]} · requests: {usage[&#x27;requests&#x27;]} · &quot;
+          f&quot;tokens in: {usage[&#x27;uncached_input_tokens&#x27;] + usage[&#x27;cached_read_tokens&#x27;]:,} &quot;
+          f&quot;({usage[&#x27;uncached_input_tokens&#x27;]:,} uncached) · out: {usage[&#x27;output_tokens&#x27;]:,}&quot;)
+    print(f&quot;  cost: ${totals[&#x27;cost&#x27;]:.4f} (budget ${analyzer.COST_BUDGET_USD}/analysis)&quot;)
+    print(f&quot;  dropped by validation: {dropped}&quot;)
+    for r in results:
+        c = {s: sum(1 for f in r[&quot;findings&quot;] if f[&quot;severity&quot;] == s)
+             for s in analyzer.SEVERITIES}
+        print(f&quot;    {r[&#x27;name&#x27;]:&lt;18} {len(r[&#x27;findings&#x27;])} findings &quot;
+              f&quot;({c[&#x27;critical&#x27;]}C/{c[&#x27;warning&#x27;]}W/{c[&#x27;info&#x27;]}I) · {r[&#x27;lane&#x27;]:&lt;6} &quot;
+              f&quot;${r[&#x27;cost&#x27;][&#x27;total_usd&#x27;]:.4f}&quot;)
+
+
+def cmd_cost(_args):
+    results = _load_last_run()
+    usage = {k: sum(r[&quot;usage&quot;][k] for r in results) for k in
+             (&quot;uncached_input_tokens&quot;, &quot;cached_read_tokens&quot;, &quot;output_tokens&quot;)}
+    total = sum(r[&quot;cost&quot;][&quot;total_usd&quot;] for r in results)
+    for r in results:
+        u = r[&quot;usage&quot;]
+        print(f&quot;  {r[&#x27;name&#x27;]:&lt;18} ${r[&#x27;cost&#x27;][&#x27;total_usd&#x27;]:.4f}   &quot;
+              f&quot;in {u[&#x27;uncached_input_tokens&#x27;]:,} uncached + {u[&#x27;cached_read_tokens&#x27;]:,} &quot;
+              f&quot;cached · out {u[&#x27;output_tokens&#x27;]:,}&quot;)
+    print(f&quot;\n  total: ${total:.4f} across {len(results)} files &quot;
+          f&quot;(avg ${total / len(results):.4f}/file, budget ${analyzer.COST_BUDGET_USD})&quot;)
+    print(&quot;  arithmetic: input $3/MTok, cached reads 0.1x, output $15/MTok, &quot;
+          &quot;no batch discount (interactive CLI). Multipliers from evals.monthly_cost.&quot;)
+
+
+# --- Law 10: the eval suite, scored against the seed --------------------------
+def _run_exact(result, seed):
+    found = {(f[&quot;id&quot;], f[&quot;severity&quot;]) for f in result[&quot;findings&quot;]}
+    expected = {(f[&quot;id&quot;], f[&quot;severity&quot;]) for f in seed}
+    return found == expected
+
+
+def cmd_eval(_args):
+    from starter.claude.evals import run_suite
+    from fixtures.responses import SEED_ISSUES as seed_all
+    cases, lines = [], []
+    results, reruns = {}, {}
+    for name in sorted(seed_all):
+        results[name] = analyzer.analyze_file(FIXTURES / name)
+        reruns[name] = analyzer.analyze_file(FIXTURES / name)
+
+    seed_flat = {f[&quot;id&quot;]: f for seed in SEED_ISSUES.values() for f in seed}
+    found_sev = {f[&quot;id&quot;]: f[&quot;severity&quot;]
+                 for r in results.values() for f in r[&quot;findings&quot;]}
+
+    for fid, seed_f in seed_flat.items():
+        actual = (f&quot;{fid}:found:{found_sev[fid]}&quot; if fid in found_sev
+                  else f&quot;{fid}:missing&quot;)
+        cases.append({&quot;id&quot;: fid, &quot;actual&quot;: actual,
+                      &quot;expected&quot;: f&quot;{fid}:found:{seed_f[&#x27;severity&#x27;]}&quot;})
+        lines.append((&quot;ok &quot; if actual == cases[-1][&quot;expected&quot;] else &quot;FAIL&quot;) +
+                     &quot; &quot; + actual)
+
+    recall = sum(1 for fid in seed_flat if fid in found_sev) / len(seed_flat)
+    cases.append({&quot;id&quot;: &quot;recall&gt;=90%&quot;, &quot;actual&quot;: &quot;pass&quot; if recall &gt;= 0.9 else &quot;fail&quot;,
+                  &quot;expected&quot;: &quot;pass&quot;})
+    lines.append((&quot;ok &quot; if recall &gt;= 0.9 else &quot;FAIL&quot;) +
+                 f&quot; recall {recall:.0%} of seeded issues found (target &gt;=90%)&quot;)
+
+    false_criticals = sorted(
+        f[&quot;id&quot;] for r in results.values() for f in r[&quot;findings&quot;]
+        if f[&quot;severity&quot;] == &quot;critical&quot; and seed_flat.get(f[&quot;id&quot;], {}).get(&quot;severity&quot;) != &quot;critical&quot;)
+    precision_ok = not false_criticals
+    cases.append({&quot;id&quot;: &quot;critical-precision&gt;=95%&quot;,
+                  &quot;actual&quot;: &quot;pass&quot; if precision_ok else &quot;fail:&quot; + &quot;,&quot;.join(false_criticals),
+                  &quot;expected&quot;: &quot;pass&quot;})
+    lines.append((&quot;ok &quot; if precision_ok else &quot;FAIL&quot;) +
+                 &quot; no false criticals (critical precision 100%)&quot;)
+
+    over = [r[&quot;name&quot;] for r in results.values() if not r[&quot;cost&quot;][&quot;under_budget&quot;]]
+    cases.append({&quot;id&quot;: &quot;cost&lt;$0.05/analysis&quot;, &quot;actual&quot;: &quot;pass&quot; if not over else &quot;fail&quot;,
+                  &quot;expected&quot;: &quot;pass&quot;})
+    lines.append((&quot;ok &quot; if not over else &quot;FAIL&quot;) + &quot; cost under budget for every file&quot;)
+
+    for name in sorted(seed_all):                      # determinism via vote()
+        verdicts = [
+            _run_exact(results[name], seed_all[name]),
+            _run_exact(reruns[name], seed_all[name]),
+            all(f[&quot;line&quot;] == seed_flat[f[&quot;id&quot;]][&quot;line&quot;]
+                for f in results[name][&quot;findings&quot;] if f[&quot;id&quot;] in seed_flat),
+        ]
+        ballot = analyzer.vote(verdicts, threshold=3)
+        stable = &quot;stable&quot; if ballot[&quot;flagged&quot;] else &quot;unstable&quot;
+        cases.append({&quot;id&quot;: f&quot;stability:{name}&quot;, &quot;actual&quot;: stable, &quot;expected&quot;: &quot;stable&quot;})
+        lines.append((&quot;ok &quot; if stable == &quot;stable&quot; else &quot;FAIL&quot;) +
+                     f&quot; {name}: identical across reruns (vote {sum(verdicts)}/{ballot[&#x27;votes&#x27;]})&quot;)
+
+    print(&quot;\n&quot;.join(lines))
+    summary = run_suite(cases)
+    print(f&quot;\nsuite: {summary}&quot;)
+    if summary[&quot;failures&quot;]:
+        sys.exit(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog=&quot;insight&quot;, description=&quot;Insight — the starter-kit code analyzer&quot;)
+    sub = parser.add_subparsers(dest=&quot;command&quot;, required=True)
+
+    p_analyze = sub.add_parser(&quot;analyze&quot;, help=&quot;analyze a file or directory&quot;)
+    p_analyze.add_argument(&quot;paths&quot;, nargs=&quot;+&quot;, help=&quot;file or directory to analyze&quot;)
+    p_analyze.add_argument(&quot;--real&quot;, action=&quot;store_true&quot;,
+                           help=&quot;use the live API (needs ANTHROPIC_API_KEY)&quot;)
+    p_analyze.add_argument(&quot;--json&quot;, action=&quot;store_true&quot;, help=&quot;also print raw JSON&quot;)
+    p_analyze.set_defaults(fn=cmd_analyze)
+
+    p_report = sub.add_parser(&quot;report&quot;, help=&quot;summary of the last run&quot;)
+    p_report.set_defaults(fn=cmd_report)
+
+    p_eval = sub.add_parser(&quot;eval&quot;, help=&quot;run the eval suite against the fixtures&quot;)
+    p_eval.set_defaults(fn=cmd_eval)
+
+    p_cost = sub.add_parser(&quot;cost&quot;, help=&quot;cost breakdown of the last run&quot;)
+    p_cost.set_defaults(fn=cmd_cost)
+
+    args = parser.parse_args()
+    args.fn(args)
+
+
+if __name__ == &quot;__main__&quot;:
+    main()
 </code></pre>
 </div>
 </div>

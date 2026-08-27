@@ -12,14 +12,15 @@
 <p class="subtitle">All code in the lab, one page — click any file to read it; clone the repo to run it.</p>
 
 <div class="meta">
-  <span class="accent">Worked example</span><span>Starter kit</span><span>Apex milestones</span><span>Verifiers</span>
+  <span class="accent">Worked example</span><span>Starter kit</span><span>Apex milestones</span><span>Portfolio capstone</span><span>Verifiers</span>
 </div>
 
 <div class="callout note">
   <span class="callout-title">How to run anything</span>
   Clone or download this repo, then: Tracker — <code>python3 tracker/check.py</code> ·
   Starter — <code>python3 starter/selfcheck.py</code> · Apex — <code>python3 project/verify.py</code> ·
-  First real API call — <code>python3 starter/real_example.py</code>. Zero dependencies, Python 3 stdlib only.
+  First real API call — <code>python3 starter/real_example.py</code> ·
+  Insight — <code>python3 portfolio/insight.py analyze portfolio/fixtures/code_samples/</code>. Zero dependencies, Python 3 stdlib only.
 </div>
 
 <h2>1 · Tracker — the worked example (the story's answer key)</h2>
@@ -67,6 +68,23 @@
     <tr><td><a href="../project/milestones/m8_evals_and_cost/evalcost.py"><code>M8 evalcost.py</code></a></td><td>Judges, suites, the real cost arithmetic</td></tr>
     <tr><td><a href="../project/milestones/m9_workflow_lifecycle/workflow.py"><code>M9 workflow.py</code></a></td><td>Escalation handoff, filters, degradation ladder, MCP review</td></tr>
     <tr><td><a href="../project/milestones/m10_capstone/capstone.py"><code>M10 capstone.py</code></a> · <a href="../project/milestones/m10_capstone/cli.py"><code>cli.py</code></a></td><td>The whole checklist wired; the Apex Assistant CLI</td></tr>
+  </tbody>
+</table>
+
+<h2>4 · Portfolio — Insight, the capstone that uses everything</h2>
+<p>Insight is a working CLI code analyzer that composes <em>all five starter modules</em> and demonstrates
+all ten laws of Claude in one codebase. Offline-first (scripted fixtures, no API key);
+<code>--real</code> swaps in the live Messages API. Start at its README for the architecture
+diagram and the interview script.</p>
+<table>
+  <tbody>
+    <tr><td><a href="../portfolio/README.md"><code>README.md</code></a> · <a href="../portfolio/REQUIREMENTS.md"><code>REQUIREMENTS.md</code></a></td><td>Architecture + interview script; success criteria (playbook phase 1)</td></tr>
+    <tr><td><a href="../portfolio/insight.py"><code>insight.py</code></a></td><td>The CLI: analyze · report · eval · cost (+ <code>--real</code> via stdlib urllib)</td></tr>
+    <tr><td><a href="../portfolio/analyzer.py"><code>analyzer.py</code></a></td><td>The engine — routing, tool loop, validation layers, context budget, cost</td></tr>
+    <tr><td><a href="../portfolio/fixtures/responses.py"><code>fixtures/responses.py</code></a></td><td>Scripted model responses + SEED_ISSUES ground truth (the spec — never edit to pass)</td></tr>
+    <tr><td><a href="../portfolio/fixtures/code_samples/auth.py"><code>fixtures/code_samples/</code></a></td><td>auth.py, api_handler.py, utils.py — 8 seeded issues to find</td></tr>
+    <tr><td><a href="../portfolio/tests/test_insight.py"><code>tests/test_insight.py</code></a></td><td>26 tests: evidence, routing, tool discipline, validation layers, context budget</td></tr>
+    <tr><td><a href="../portfolio/.claude/CLAUDE.md"><code>.claude/CLAUDE.md</code></a> · <a href="../portfolio/.claude/settings.json"><code>.claude/settings.json</code></a></td><td>Agent policy (law 3) + deny-list guardrails (law 8)</td></tr>
   </tbody>
 </table>
 

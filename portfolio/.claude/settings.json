@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 portfolio/insight.py *)",
+      "Bash(python3 portfolio/tests/test_insight.py*)",
+      "Bash(python3 publish.py *)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Read(./**/.env*)",
+      "Read(./**/*.key)",
+      "Read(./**/*.pem)",
+      "Read(./**/secrets/**)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(curl * | sh*)",
+      "Bash(git push --force*)"
+    ]
+  }
+}
