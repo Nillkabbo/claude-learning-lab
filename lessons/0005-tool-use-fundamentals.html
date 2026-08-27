@@ -26,21 +26,7 @@ both are true <em>because</em> of tools.</p>
 
 <h2>The loop</h2>
 
-<pre class="diagram">
-  ┌──────────┐  1. request: tools + user msg    ┌─────────┐
-  │          │ ───────────────────────────────► │         │
-  │  YOUR    │                                  │ CLAUDE  │
-  │  CODE    │  2. stop_reason: "tool_use"      │         │
-  │          │ ◄─────────────────────────────── │         │
-  │          │     content: [ tool_use block ]  └─────────┘
-  │          │        (id, name, input)
-  │          │  3. execute the tool yourself
-  │          │  4. next request: user msg + FULL assistant
-  │          │     turn + user msg containing tool_result
-  │          │ ───────────────────────────────► ┌─────────┐
-  │          │  5. final answer, citing result  │ CLAUDE  │
-  └──────────┘ ◄─────────────────────────────── └─────────┘
-</pre>
+<div class="svgbox"><svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><circle cx="340" cy="58" r="24" fill="#f6e9e9" stroke="#8a2323" stroke-width="1.5"/><text x="340" y="63" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#8a2323" font-weight="bold">1</text><text x="340" y="98" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">send request</text><circle cx="560" cy="150" r="24" fill="#f6e9e9" stroke="#8a2323" stroke-width="1.5"/><text x="560" y="155" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#8a2323" font-weight="bold">2</text><text x="560" y="190" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">stop_reason: tool_use</text><circle cx="450" cy="272" r="24" fill="#f6e9e9" stroke="#8a2323" stroke-width="1.5"/><text x="450" y="277" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#8a2323" font-weight="bold">3</text><text x="450" y="240" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">execute the tool</text><circle cx="230" cy="272" r="24" fill="#f6e9e9" stroke="#8a2323" stroke-width="1.5"/><text x="230" y="277" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#8a2323" font-weight="bold">4</text><text x="230" y="240" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">tool_result (user msg)</text><circle cx="120" cy="150" r="24" fill="#f6e9e9" stroke="#8a2323" stroke-width="1.5"/><text x="120" y="155" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#8a2323" font-weight="bold">5</text><text x="120" y="190" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">final answer</text><line x1="340" y1="58" x2="560" y2="150" stroke="#8a2323" stroke-width="1.6" marker-end="url(#ah)"/><line x1="560" y1="150" x2="450" y2="272" stroke="#8a2323" stroke-width="1.6" marker-end="url(#ah)"/><line x1="450" y1="272" x2="230" y2="272" stroke="#8a2323" stroke-width="1.6" marker-end="url(#ah)"/><line x1="230" y1="272" x2="120" y2="150" stroke="#8a2323" stroke-width="1.6" marker-end="url(#ah)"/><line x1="120" y1="150" x2="340" y2="58" stroke="#8a2323" stroke-width="1.6" marker-end="url(#ah)"/><text x="340" y="165" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#6b675e" font-style="italic">the loop</text></svg><div class="caption">Lesson 0005 — the tool loop: the model requests, you execute, results ride back in a user message — until end_turn.</div></div>
 
 <p>Step by step:</p>
 <ol>

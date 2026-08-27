@@ -123,13 +123,7 @@ unprompted; anything mutating goes through the normal permission flow. The archi
 value: decisions about <em>what to change</em> get made with full context and zero risk —
 the same explore-first discipline this course's roadmap models before each lesson.</p>
 
-<pre class="diagram">
-  DEFENSE IN DEPTH (which layer guarantees what?)
-
-  CLAUDE.md ──────── guidance ──────── "context, not enforced configuration"
-  permissions ────── rules ─────────── deny/ask/allow, first match wins
-  hooks ──────────── code ──────────── PreToolUse exit 2: blocks before rules run
-</pre>
+<div class="svgbox"><svg viewBox="0 0 680 225" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><rect x="150" y="30" width="380" height="52" rx="8" fill="#eef1f7" stroke="#1c1b18" stroke-width="1.5"/><text x="340.0" y="54.0" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#1c1b18">CLAUDE.md — guidance</text><text x="340.0" y="70.0" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">context, not enforcement</text><rect x="150" y="96" width="380" height="52" rx="8" fill="#faf3e3" stroke="#1c1b18" stroke-width="1.5"/><text x="340.0" y="120.0" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#1c1b18">permissions — rules</text><text x="340.0" y="136.0" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">deny → ask → allow: the guarantee layer</text><rect x="150" y="162" width="380" height="52" rx="8" fill="#eaf3ec" stroke="#1c1b18" stroke-width="1.5"/><text x="340.0" y="186.0" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#1c1b18">hooks — code</text><text x="340.0" y="202.0" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">exit 2 blocks; fails open</text><line x1="60" y1="40" x2="60" y2="180" stroke="#1c1b18" stroke-width="1.8" marker-end="url(#ah)"/><text x="60" y="205" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#1c1b18">a dangerous action</text><text x="560" y="60" font-family="Georgia,serif" font-size="11" fill="#6b675e">guides</text><text x="560" y="126" font-family="Georgia,serif" font-size="11" fill="#8a2323">stops it here</text><text x="560" y="192" font-family="Georgia,serif" font-size="11" fill="#6b675e">records</text><text x="89" y="118" font-family="Georgia,serif" font-size="16" fill="#8a2323" font-weight="bold">✕</text></svg><div class="caption">Lessons 0009–0010 — defense in depth: guidance guides, rules guarantee, hooks record. Put the ✕ where the guarantee lives.</div></div>
 
 <div class="callout win">
   <span class="callout-title">The win</span>

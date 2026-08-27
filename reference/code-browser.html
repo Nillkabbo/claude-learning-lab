@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code browser — every runnable file</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Reference · Browse the code</p>
+<h1>Code browser: every runnable file</h1>
+<p class="subtitle">All code in the lab, one page — click any file to read it; clone the repo to run it.</p>
+
+<div class="meta">
+  <span class="accent">Worked example</span><span>Starter kit</span><span>Apex milestones</span><span>Verifiers</span>
+</div>
+
+<div class="callout note">
+  <span class="callout-title">How to run anything</span>
+  Clone or download this repo, then: Tracker — <code>python3 tracker/check.py</code> ·
+  Starter — <code>python3 starter/selfcheck.py</code> · Apex — <code>python3 project/verify.py</code> ·
+  First real API call — <code>python3 starter/real_example.py</code>. Zero dependencies, Python 3 stdlib only.
+</div>
+
+<h2>1 · Tracker — the worked example (the story's answer key)</h2>
+<table>
+  <tbody>
+    <tr><td><a href="../tracker/tracker.py"><code>tracker.py</code></a></td><td>The CLI itself: add/list/close/tag/search, atomic writes, corrupt-backup</td></tr>
+    <tr><td><a href="../tracker/tests/test_tracker.py"><code>tests/test_tracker.py</code></a></td><td>13 tests — incl. "failed save never truncates" and corrupt-isolation</td></tr>
+    <tr><td><a href="../tracker/check.py"><code>check.py</code></a></td><td>The completion gate (suite + artifacts + demo)</td></tr>
+    <tr><td><a href="../tracker/CLAUDE.md"><code>CLAUDE.md</code></a></td><td>Memory craft, MCP trust review, honest enforcement note</td></tr>
+    <tr><td><a href="../tracker/.claude/settings.json"><code>.claude/settings.json</code></a></td><td>Guardrails: deny→ask→allow with closed push denials</td></tr>
+    <tr><td><a href="../tracker/.claude/hooks/audit.py"><code>hooks/audit.py</code></a></td><td>PreToolUse tripwire: logs every Bash, blocks destructive rm</td></tr>
+    <tr><td><a href="../tracker/.claude/skills/release/SKILL.md"><code>skills/release</code></a> · <a href="../tracker/.claude/skills/sync/SKILL.md"><code>sync</code></a></td><td>The Friday chore and the GitHub bridge</td></tr>
+    <tr><td><a href="../tracker/.claude/agents/detective.md"><code>agents/detective.md</code></a></td><td>Read-only investigator — description-driven delegation</td></tr>
+    <tr><td><a href="../tracker/.github/workflows/ci.yml"><code>ci.yml</code></a></td><td>Tests + the secret-gated fenced review job</td></tr>
+    <tr><td><a href="../tracker/scripts/nightly.py"><code>scripts/nightly.py</code></a></td><td>Night shift with real fences (one retry, page-a-human)</td></tr>
+    <tr><td><a href="../tracker/RUNBOOK.md"><code>RUNBOOK.md</code></a> · <a href="../tracker/COSTS.md"><code>COSTS.md</code></a></td><td>Failure playbooks; the bill with numbers</td></tr>
+    <tr><td><a href="../tracker/meridian-toolkit/marketplace.json"><code>meridian-toolkit/</code></a></td><td>The plugin: real skills/agents/hooks + marketplace</td></tr>
+  </tbody>
+</table>
+
+<h2>2 · The starter kit — fundamentals as correct-by-construction code</h2>
+<table>
+  <tbody>
+    <tr><td><a href="../starter/claude_starter/client.py"><code>client.py</code></a></td><td>The request contract enforced: builder, stop-reason switchboard, echo rules</td></tr>
+    <tr><td><a href="../starter/claude_starter/tools.py"><code>tools.py</code></a></td><td>Interface audit, tool runner, error taxonomy, idempotency ledger</td></tr>
+    <tr><td><a href="../starter/claude_starter/context.py"><code>context.py</code></a></td><td>Budget rules: the 400 check, compaction, cache-aware clearing</td></tr>
+    <tr><td><a href="../starter/claude_starter/patterns.py"><code>patterns.py</code></a></td><td>Route/chain/vote/orchestrate — the composition kit</td></tr>
+    <tr><td><a href="../starter/claude_starter/evals.py"><code>evals.py</code></a></td><td>Cross-model judging, outcome suites, cost multipliers</td></tr>
+    <tr><td><a href="../starter/example.py"><code>example.py</code></a> · <a href="../starter/selfcheck.py"><code>selfcheck.py</code></a></td><td>End-to-end demo; the gate that proves all ten fundamentals</td></tr>
+    <tr><td><a href="../starter/real_example.py"><code>real_example.py</code></a></td><td>Your first REAL API call (~$0.01, stdlib urllib)</td></tr>
+  </tbody>
+</table>
+
+<h2>3 · The Apex Project — the curriculum as 10 milestones</h2>
+<table>
+  <tbody>
+    <tr><td><a href="../project/verify.py"><code>verify.py</code></a></td><td>The 118-check scoreboard (paste its line to your coach)</td></tr>
+    <tr><td><a href="../project/milestones/m1_request_anatomy/conversation.py"><code>M1 conversation.py</code></a></td><td>TODOs: build_request, stop-reason handling, legacy migration</td></tr>
+    <tr><td><a href="../project/milestones/m2_structured_outputs/extractor.py"><code>M2 extractor.py</code></a></td><td>The three validation layers as code</td></tr>
+    <tr><td><a href="../project/milestones/m3_tool_loop/loop.py"><code>M3 loop.py</code></a></td><td>Hand-build the tool_use ↔ tool_result cycle</td></tr>
+    <tr><td><a href="../project/milestones/m4_tools_and_errors/tools.py"><code>M4 tools.py</code></a></td><td>Interface audit + error taxonomy + idempotency</td></tr>
+    <tr><td><a href="../project/milestones/m5_context_management/context.py"><code>M5 context.py</code></a></td><td>Budget, compaction, clearing rules, memory-before-clear</td></tr>
+    <tr><td><a href="../project/milestones/m6_claude_code_config/validate.py"><code>M6 validate.py</code></a></td><td>Permission evaluator + query()-shaped SDK wrapper</td></tr>
+    <tr><td><a href="../project/milestones/m7_patterns/patterns.py"><code>M7 patterns.py</code></a></td><td>Router with privacy lane, gates, voting, orchestrator</td></tr>
+    <tr><td><a href="../project/milestones/m8_evals_and_cost/evalcost.py"><code>M8 evalcost.py</code></a></td><td>Judges, suites, the real cost arithmetic</td></tr>
+    <tr><td><a href="../project/milestones/m9_workflow_lifecycle/workflow.py"><code>M9 workflow.py</code></a></td><td>Escalation handoff, filters, degradation ladder, MCP review</td></tr>
+    <tr><td><a href="../project/milestones/m10_capstone/capstone.py"><code>M10 capstone.py</code></a> · <a href="../project/milestones/m10_capstone/cli.py"><code>cli.py</code></a></td><td>The whole checklist wired; the Apex Assistant CLI</td></tr>
+  </tbody>
+</table>
+
+<footer class="course-footer">
+  Code browser · every file above is served by this site and runs offline from the clone ·
+  <a href="../index.html">front door</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

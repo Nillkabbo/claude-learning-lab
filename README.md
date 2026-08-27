@@ -19,6 +19,7 @@ workspace, every fact verified against official documentation (as of Aug 2026).
 - **[Cheat sheets](reference/cheatsheets.html)**, a **[drill bank](reference/drill-bank.html)**,
   a **[cross-index](reference/cross-index.html)**, and an Anki deck (`resources/glossary-anki.tsv`).
 
+Browse every runnable file via the **[code browser](reference/code-browser.html)**.
 Start at **[index.html](index.html)** (the front door). Everything runs as plain static
 HTML — quizzes included. Not affiliated with Anthropic; verify time-sensitive facts
 before relying on them.

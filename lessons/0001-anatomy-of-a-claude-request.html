@@ -35,16 +35,7 @@ exists, which turns are included, what gets summarized away, what gets retrieved
 elsewhere. Context management (15% of the exam) is precisely the craft of managing that
 ownership well.</p>
 
-<pre class="diagram">
-  STATELESS MODEL                          YOUR APPLICATION
-  ┌───────────────┐   full history    ┌─────────────────────┐
-  │               │ ◄───────────────  │  messages array     │
-  │    Claude     │                  │  (you build this)   │
-  │               │  ──────────────► │                     │
-  └───────────────┘   one reply      └─────────────────────┘
-        ▲                                   │
-        └──────── nothing remembered ───────┘
-</pre>
+<div class="svgbox"><svg viewBox="0 0 680 190" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><rect x="30" y="55" width="170" height="80" rx="8" fill="sub: you own the history" stroke="#1c1b18" stroke-width="1.5"/><text x="115.0" y="99.0" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#1c1b18">YOUR CODE</text><rect x="480" y="55" width="170" height="80" rx="8" fill="sub: the model" stroke="#1c1b18" stroke-width="1.5"/><text x="565.0" y="99.0" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#1c1b18">CLAUDE</text><line x1="205" y1="80" x2="475" y2="80" stroke="#8a2323" stroke-width="1.8" marker-end="url(#ah)"/><text x="340.0" y="70" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#8a2323">request: the FULL history (messages array)</text><line x1="475" y1="115" x2="205" y2="115" stroke="#1c1b18" stroke-width="1.8" marker-end="url(#ah)"/><text x="340.0" y="133" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#1c1b18">one reply: content blocks + stop_reason</text><text x="340" y="170" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#6b675e" font-style="italic"> remembers nothing between calls — every turn re-bills as input </text></svg><div class="caption">Lesson 0001 — statelessness: the conversation lives in your messages array, and you resend all of it, every time.</div></div>
 
 <h2>Anatomy of a request</h2>
 

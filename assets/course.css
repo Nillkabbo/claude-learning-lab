@@ -443,3 +443,20 @@ footer.course-footer {
   pre { border: 1px solid #ccc; }
   h2 { break-after: avoid; }
 }
+
+/* ---------- svg diagram boxes ---------- */
+.svgbox {
+  margin: 1.75rem 0;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: #fffef9;
+  padding: 1rem 1.1rem;
+}
+.svgbox svg { width: 100%; height: auto; display: block; }
+.svgbox .caption {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 0.5rem;
+}
