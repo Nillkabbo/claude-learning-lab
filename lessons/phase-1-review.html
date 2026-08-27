@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1 review — mixed retrieval</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Review · Phase 1 — The API core</p>
+<h1>Phase 1 review: mixed retrieval</h1>
+<p class="subtitle">Eight questions from all four lessons, deliberately out of order — the honest test of what stuck.</p>
+
+<div class="meta">
+  <span class="accent">≈ 8 minutes</span>
+  <span>Covers lessons 0001–0004</span>
+  <span>Interleaved on purpose</span>
+</div>
+
+<p>Blocked practice (all questions on one topic, right after its lesson) produces fluency
+that feels like mastery and fades by exam day. Mixed practice like this is harder and
+slower — and builds the retrieval strength that actually lasts. Expect to reach for the
+answer; the reaching is the point.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "You send a follow-up request after getting a reply. The request must include:",
+    "answers": [
+      "The full prior conversation",
+      "Just the new question",
+      "A stored session identifier",
+      "The previous response only"
+    ],
+    "correct": 0,
+    "why": "The API is stateless — your client owns and resends the entire history as the messages array. (Lesson 0001)"
+  },
+  {
+    "q": "A schema sets maxLength on a string field. What happens?",
+    "answers": [
+      "A 400 error",
+      "Silent constraint dropping",
+      "Validation happens afterward",
+      "Automatic schema rewriting"
+    ],
+    "correct": 0,
+    "why": "minLength/maxLength are unsupported by constrained decoding — like numerical constraints, they 400. Enforce lengths in your own code after parsing. (Lesson 0004)"
+  },
+  {
+    "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this risks:",
+    "answers": [
+      "calling the tool excessively",
+      "refusing to call tools",
+      "ignoring the system prompt",
+      "returning a 400 error"
+    ],
+    "correct": 0,
+    "why": "Newer Opus models are more responsive to the system prompt, so anti-laziness idioms over-trigger. Official fix: soften to plain phrasing. (Lesson 0002)"
+  },
+  {
+    "q": "On current models, reliable schema-valid JSON comes from:",
+    "answers": [
+      "structured outputs",
+      "temperature zero",
+      "stop sequences",
+      "longer thinking"
+    ],
+    "correct": 0,
+    "why": "output_config.format with a JSON schema guarantees compliance via constrained decoding — the replacement for prefill hacks and temperature rituals. (Lessons 0003–0004)"
+  },
+  {
+    "q": "A reply's text content arrives as:",
+    "answers": [
+      "A list of content blocks",
+      "One single plain text string",
+      "A dictionary keyed by role",
+      "An array of raw strings"
+    ],
+    "correct": 0,
+    "why": "content is an array of typed blocks — text, tool_use — which is exactly what makes tool calling representable. (Lesson 0001)"
+  },
+  {
+    "q": "A request ends with a partial assistant turn on Claude Sonnet 4.6 or later. What happens?",
+    "answers": [
+      "It returns a 400 error",
+      "It continues from that text",
+      "It ignores the final turn",
+      "It appends a user message"
+    ],
+    "correct": 0,
+    "why": "Prefilling is unsupported on Claude 4.6+ — requests must end with a user message. Earlier models still accept prefills. (Lesson 0002)"
+  },
+  {
+    "q": "temperature set to 0.2, sent to a model released after Claude Opus 4.6, yields:",
+    "answers": [
+      "A 400 error",
+      "Deterministic, consistent outputs",
+      "Faster, cheaper responses",
+      "A truncated response"
+    ],
+    "correct": 0,
+    "why": "Post-Opus-4.6 models accept only temperature 1.0 — any other value 400s. top_k is rejected likewise. (Lesson 0003)"
+  },
+  {
+    "q": "Structured-output schema compliance is guaranteed by:",
+    "answers": [
+      "constrained decoding",
+      "post-hoc validation",
+      "retry-based correction",
+      "prefill-based enforcement"
+    ],
+    "correct": 0,
+    "why": "The schema compiles into a grammar and generation is constrained to it during sampling — enforced, not checked after. (Lesson 0004)"
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Reading your score</h2>
+<table>
+  <thead><tr><th>If you missed…</th><th>Revisit</th></tr></thead>
+  <tbody>
+    <tr><td>Questions 1, 5</td><td><a href="0001-anatomy-of-a-claude-request.html">0001 · The anatomy of a Claude request</a></td></tr>
+    <tr><td>Questions 2, 4, 8</td><td><a href="0004-structured-outputs.html">0004 · Structured outputs</a></td></tr>
+    <tr><td>Questions 3, 6</td><td><a href="0002-system-prompts-and-prefilling.html">0002 · System prompts &amp; prefilling</a></td></tr>
+    <tr><td>Question 7</td><td><a href="0003-output-control.html">0003 · Output control</a></td></tr>
+  </tbody>
+</table>
+
+<p>Whatever you scored, tell the agent your result (for example: <em>"phase review: 6/8,
+missed the prefill and temperature ones"</em>). That report becomes a learning record, and
+the difficulty of everything after Phase 1 calibrates to it.</p>
+
+<div class="lesson-nav">
+  <a href="../reference/claude-architect-roadmap.html">◂ Course roadmap</a>
+  <a class="next" href="0005-tool-use-fundamentals.html">0005 · Tool use fundamentals ▸</a>
+</div>
+
+<footer class="course-footer">
+  Phase 1 review · Claude Architect course · interleaved retrieval practice over lessons 0001–0004
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-03 · Asking well: plan mode and the prompt library</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">CC-03 · Phase A — The first week</p>
+<h1>Asking well: plan mode and the prompt library</h1>
+<p class="subtitle">The difference between a magic demo and a mess is usually the prompt and the mode.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+
+<p><strong>Plan mode first for anything big.</strong> Shift+Tab into plan, let Claude
+  explore read-only, read the plan <em>before</em> a single edit (0009's pillar three).
+  For small, well-understood changes, straight to work; for risky areas, manual mode so
+  every action passes your eyes.</p>
+<p>The official <em>prompt library</em> and <em>best practices</em> pages are the pattern
+book. The habits that hold up:</p>
+<ul>
+  <li><strong>One task per prompt</strong> — compound asks produce compound messes.</li>
+  <li><strong>Point at files</strong> ("in <code>src/api/</code>") instead of describing
+  from memory.</li>
+  <li><strong>Show the goal, not the surgery</strong> ("make the tests pass" beats
+  step-by-step edit instructions).</li>
+  <li><strong>Iterate in the session</strong> — feedback beats restarts; checkpointing
+  has your back if an iteration goes wrong.</li>
+</ul>
+
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Before a large, vague refactor, first:",
+  "answers": [
+   "plan mode, read plan",
+   "auto mode, full speed",
+   "bypass mode, fastest possible",
+   "clearing all your settings"
+  ],
+  "correct": 0,
+  "why": "Plan mode explores read-only and produces a plan you approve before any mutation \u2014 decisions before changes."
+ },
+ {
+  "q": "The better prompt shape is:",
+  "answers": [
+   "point at files",
+   "describe from memory",
+   "paste whole repo",
+   "yell in capitals"
+  ],
+  "correct": 0,
+  "why": "Pointing at files and stating the goal beats reciting structure from memory \u2014 Claude reads better than it guesses."
+ },
+ {
+  "q": "A session iteration went wrong. Best recovery:",
+  "answers": [
+   "use checkpoint rewind",
+   "delete git folder",
+   "reinstall the CLI",
+   "never iterate again"
+  ],
+  "correct": 0,
+  "why": "Checkpointing rewinds file changes from the session \u2014 iterate boldly, recover cheaply."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Take one real task. Ask it three ways: vague compound ask; pointed single-task
+  ask; plan-mode-first ask. Note the difference in results and your confidence. Report
+  the winner.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/common-workflows">Best practices & the prompt library</a></strong> — the official page this
+lesson structures. Read it alongside the drill, and report what you did to your agent.</p>
+
+<div class="lesson-nav">
+  <a href="cc-02-daily-loop.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  CC-03 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

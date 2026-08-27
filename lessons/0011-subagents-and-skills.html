@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0011 · Subagents &amp; skills</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0011 · Phase 3 — Claude Code &amp; the Agent SDK</p>
+<h1>Subagents &amp; skills: teaching Claude Code new tricks</h1>
+<p class="subtitle">The description is the interface — for tools, for commands, and now for workers.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Claude Code Configuration · 20%</span>
+  <span>No install needed</span>
+</div>
+
+<p>Notice the through-line. <a href="0006-designing-tool-interfaces.html">Lesson 0006</a>:
+Claude picks tools by reading descriptions. <a href="0010-claude-code-in-the-team.html">Lesson 0010</a>:
+slash commands load by description. Today: <strong>Claude delegates to workers by reading
+their descriptions</strong>. Same craft, third surface — and this one solves the problem
+<a href="0008-context-management.html">0008</a> taught you to fear: side-task noise
+flooding a finite, rotting context.</p>
+
+<h2>The subagent contract</h2>
+
+<p>A subagent is a specialized assistant that <strong>"runs in its own context window with
+a custom system prompt, specific tool access, and independent permissions."</strong> When a
+side task would bury your conversation in logs, search results, and file contents, the
+subagent does that work separately and <strong>"returns only the summary."</strong></p>
+
+<pre class="diagram">
+  MAIN CONTEXT (clean, small, expensive-to-lose)
+      │  "audit auth for CVE-2026-1234"
+      ├──────────► [Explore subagent] ── 300 pages of grep noise
+      ├──────────► [reviewer subagent] ── 40 files read
+      └──────────► [reviewer subagent] ── ...
+                          │
+      ◄────── three summaries, synthesized ──────┘
+  (workers' contexts are disposable; yours isn't)
+</pre>
+
+<h2>Building one</h2>
+
+<p>A subagent is a Markdown file — frontmatter plus a body that becomes its system prompt
+(0002's craft, applied to a worker):</p>
+
+<pre><code>---
+name: code-reviewer
+description: Reviews diffs for security and style. Use proactively
+  after any multi-file change. Use for pull request feedback.
+tools: [Read, Grep, Glob, Bash]
+model: sonnet
+---
+You are a senior reviewer for Apex Airlines tooling. Flag: secrets in
+code, missing error handling, permission-relevant changes...        ← body = system prompt</code></pre>
+
+<ul>
+  <li><strong>Required frontmatter:</strong> <code>name</code> (lowercase-hyphens) and
+  <code>description</code> — the delegation trigger. Phrases like "use proactively"
+  encourage proactive delegation. This is 0006's four-question discipline again: when,
+  when-not, scope, limits.</li>
+  <li><strong>Optional powers:</strong> <code>tools</code> (allowlist; inherits all if
+  omitted), <code>model</code> (defaults to <code>inherit</code>), <code>permissionMode</code>,
+  <code>maxTurns</code>, <code>skills</code> (preloaded), <code>memory</code>,
+  <code>isolation: worktree</code>, <code>background</code>.</li>
+  <li><strong>Scopes and priority:</strong> managed settings &gt; <code>--agents</code> CLI
+  flag (session-only) &gt; <code>.claude/agents/</code> (project, committed) &gt;
+  <code>~/.claude/agents/</code> (user) &gt; plugin directories. Edits hot-reload within
+  seconds — no restart.</li>
+</ul>
+
+<h2>Delegation mechanics</h2>
+
+<p>Delegation is <strong>description-driven</strong>: Claude combines each subagent's
+description with your request and current context. A vague description is a subagent that
+never gets called — or gets called wrongly. You can also invoke explicitly (natural
+language, <code>@</code>-mention, or run a whole session as one via
+<code>claude --agent &lt;name&gt;</code>).</p>
+
+<p><strong>What a fresh (non-fork) subagent starts with:</strong> its own system prompt +
+environment details (not the full Claude Code prompt), the task message Claude writes for
+it, the CLAUDE.md hierarchy and a git status snapshot (the built-in <em>Explore</em> and
+<em>Plan</em> agents skip both), preloaded skills, and a sibling-agent roster. Nothing
+else — no parent conversation.</p>
+
+<div class="callout note">
+  <span class="callout-title">The fork exception</span>
+  A <strong>fork</strong> (0010's <code>context: fork</code>, or <code>/subtask</code>)
+  inherits the <em>entire</em> conversation — prompt cache included — making it cheaper
+  for tasks that need the same context. Either way, the worker's tool calls stay out of
+  your transcript; only the final result returns.
+</div>
+
+<h2>Parallelism &amp; the built-ins</h2>
+
+<ul>
+  <li><strong>Parallel spawns</strong> for independent work, with Claude synthesizing the
+  findings — the orchestrator-workers pattern, arriving in force in Phase 4. Background
+  subagents run while you keep working (their permission prompts surface in your session).</li>
+  <li><strong>Default limits:</strong> 20 concurrent subagents, nesting 3 layers deep
+  (both adjustable via environment variables — good trivia, better architecture
+  constraints).</li>
+  <li><strong>Built-ins:</strong> <em>Explore</em> (read-only, thoroughness levels, model
+  capped at Opus), <em>Plan</em> (read-only context gathering), <em>General-purpose</em>
+  (all tools, multi-step exploration + action). Built-ins inherit parent permissions;
+  custom subagents override with <code>permissionMode</code>.</li>
+  <li>Subagents are resumable via <code>SendMessage</code>, retaining their history.</li>
+</ul>
+
+<h2>The three-artifact division of labor</h2>
+
+<table>
+  <thead><tr><th>Artifact</th><th>Answers</th><th>Form</th></tr></thead>
+  <tbody>
+    <tr><td><strong>CLAUDE.md</strong></td><td><em>What's true here</em> — standing facts, conventions</td><td>Markdown, &lt;200 lines, every session</td></tr>
+    <tr><td><strong>Skill</strong></td><td><em>How we do X</em> — procedures, with supporting files</td><td><code>SKILL.md</code> + files; invoked or auto-loaded on relevance</td></tr>
+    <tr><td><strong>Subagent</strong></td><td><em>Who does X</em> — an isolated worker with its own prompt, tools, permissions</td><td><code>.claude/agents/*.md</code>, delegated by description</td></tr>
+  </tbody>
+</table>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now design a worker fleet: focused subagents with complete delegation
+  descriptions and minimal tool grants, skills carrying the procedures they preload,
+  forks where shared context pays, parallel spawns where independence pays — and a clean
+  main context as the organizing principle behind all of it.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Delegation to a subagent is primarily decided by:",
+    "answers": [
+      "the description field",
+      "the model parameter",
+      "the tools allowlist",
+      "the frontmatter name"
+    ],
+    "correct": 0,
+    "why": "Delegation is description-driven — Claude combines each subagent's description with your request and context. Same lesson as tool descriptions in 0006: the description is the interface."
+  },
+  {
+    "q": "A fresh, non-fork subagent's context starts with:",
+    "answers": [
+      "a fresh minimal context",
+      "the full parent conversation",
+      "cached prompts from main",
+      "team settings and hooks"
+    ],
+    "correct": 0,
+    "why": "Its own system prompt, the task message, CLAUDE.md + git status (built-in Explore/Plan skip those), preloaded skills, sibling roster. Only forks inherit the full conversation — with the prompt cache."
+  },
+  {
+    "q": "Default subagent limits: concurrency and nesting depth are:",
+    "answers": [
+      "20 running, 3 deep",
+      "10 running, 2 deep",
+      "5 running, 5 deep",
+      "20 running, 5 deep"
+    ],
+    "correct": 0,
+    "why": "20 concurrent subagents and 3 layers of spawn depth by default — both adjustable via environment variables, and both real constraints when designing multi-agent fleets."
+  },
+  {
+    "q": "A repeatable procedure with supporting reference files belongs in:",
+    "answers": [
+      "a skill folder",
+      "a subagent file",
+      "the CLAUDE.md file",
+      "the managed settings"
+    ],
+    "correct": 0,
+    "why": "Skills carry procedures plus supporting files (the recommended form over commands). Subagents are isolated workers; CLAUDE.md is standing facts; settings carry rules."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — design the release fleet</span>
+  <p>The Apex tooling team ships weekly. They want: (a) a release-notes drafter that reads
+  commits and PRs — read-only, and it should volunteer itself after merges; (b) a migration
+  runner that may edit files but must never run arbitrary shell commands; (c) a reusable
+  "how we tag releases" procedure with a reference table teammates keep updating;
+  (d) a weekly audit where three reviewers work in parallel and one summary comes back.</p>
+  <p><strong>On paper:</strong> for each, choose the artifact (subagent / skill / both),
+  give the file path, and write the delegation description or frontmatter — including
+  tool lists.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(a)</strong> Subagent: <code>.claude/agents/release-notes.md</code>,
+    <code>tools: [Read, Grep, Glob]</code>, description: "Drafts release notes from commits
+    and merged PRs. Use proactively after merges to main." (The "use proactively" phrase is
+    the official lever for volunteering.)</p>
+    <p><strong>(b)</strong> Subagent: <code>tools: [Read, Edit, Grep, Glob]</code> — the
+    point is the <em>omission</em> of Bash: the allowlist is the security boundary, and
+    inherited permissions still gate what remains.</p>
+    <p><strong>(c)</strong> Skill: <code>.claude/skills/release-tagging/SKILL.md</code> with
+    the reference table as a supporting file (skills' whole advantage over commands).
+    Optionally preload it into the release subagents via frontmatter <code>skills:</code>.</p>
+    <p><strong>(d)</strong> Three parallel subagent spawns — e.g., three reviewers with
+    focused scopes (security, perf, docs) — with the main agent synthesizing. Within
+    defaults: 3 ≪ 20 concurrent, depth 1 ≪ 3. If you also said "each gets a fresh context,
+    so the audit costs nothing in main-context rot" — that's the architect's answer.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/sub-agents">Subagents — official docs</a></strong>
+(frontmatter reference, delegation mechanics, built-ins table), plus the
+<a href="https://code.claude.com/docs/en/slash-commands">skills page</a> from 0010 for the procedure side.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  When is a fork cheaper than a fresh subagent — and when does inheriting the whole
+  conversation hurt more than the cache saves? Ask the agent; it's a genuine trade-off.
+  Next: <em>"next lesson"</em> for 0012 · Agent SDK — the loop you learned in 0005, as a
+  library: sessions, guards, and the machinery behind everything Claude Code does.
+</div>
+
+<div class="lesson-nav">
+  <a href="0010-claude-code-in-the-team.html">◂ 0010 · Claude Code in the team</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0011 · Claude Architect course · grounded in the official
+  <a href="https://code.claude.com/docs/en/sub-agents">subagents docs</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

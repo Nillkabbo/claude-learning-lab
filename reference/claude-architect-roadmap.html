@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap · Claude Architect — Beginner to Master</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Reference · The map</p>
+<h1>Claude Architect: the road from beginner to master</h1>
+<p class="subtitle">Twenty-four lessons, six phases, one credential — and the judgment behind it.</p>
+
+<div class="meta">
+  <span class="accent">Goal: pass CCAR-F, then CCAR-P</span>
+  <span>24 lessons</span>
+  <span>Updated 2026-08-26</span>
+</div>
+
+<p>You are preparing for Anthropic's <strong>Claude Certified Architect</strong> certification.
+The Foundations exam doesn't test recall — it tests whether you can <em>make informed
+trade-off decisions when implementing real-world solutions with Claude</em>. So this road
+alternates: learn one tightly-scoped thing, then use it, then later mix it back in under
+exam conditions.</p>
+
+<h2>The exam at a glance</h2>
+
+<div class="facts">
+  <div class="fact"><span class="fact-label">Questions</span><span class="fact-value">60</span></div>
+  <div class="fact"><span class="fact-label">Time</span><span class="fact-value">120 min</span></div>
+  <div class="fact"><span class="fact-label">Pass</span><span class="fact-value">720 <small>/ 1000</small></span></div>
+  <div class="fact"><span class="fact-label">Cost</span><span class="fact-value">$125</span></div>
+  <div class="fact"><span class="fact-label">Proctoring</span><span class="fact-value">Pearson VUE</span></div>
+  <div class="fact"><span class="fact-label">Prerequisites</span><span class="fact-value">None</span></div>
+  <div class="fact"><span class="fact-label">Validity</span><span class="fact-value">12 <small>months</small></span></div>
+  <div class="fact"><span class="fact-label">Structure</span><span class="fact-value">4 of 6 <small>scenarios</small></span></div>
+  <div class="fact"><span class="fact-label">Formats</span><span class="fact-value">MC + multi-select</span></div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Exam domain (official names, verified first-hand)</th><th>Weight</th><th>Phases that cover it</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Agentic Architecture &amp; Orchestration</td><td><strong>27%</strong></td><td>4, 6</td></tr>
+    <tr><td>Claude Code Configuration &amp; Workflows</td><td><strong>20%</strong></td><td>3</td></tr>
+    <tr><td>Prompt Engineering &amp; Structured Output</td><td><strong>20%</strong></td><td>1, 6</td></tr>
+    <tr><td>Tool Design &amp; MCP Integration</td><td><strong>18%</strong></td><td>2</td></tr>
+    <tr><td>Context Management &amp; Reliability</td><td><strong>15%</strong></td><td>1, 2</td></tr>
+  </tbody>
+</table>
+
+<div class="callout note">
+  <span class="callout-title">The six scenarios (from the official Exam Guide, parsed 2026-08-27)</span>
+  Your exam draws <strong>4 of 6</strong>: customer support agent · code generation with Claude Code ·
+  multi-agent research · developer productivity · Claude Code in CI · structured data extraction.
+  The course's scenarios (Apex support, the digest, the extractor) rehearse all six shapes. The
+  full guide lives in <code>resources/ccar-f-exam-guide.pdf</code> — read its task statements and
+  the four official prep exercises before exam day.
+</div>
+
+<div class="callout note">
+  <span class="callout-title">Logistics to settle early</span>
+  Registration runs through the Anthropic Partner Academy and needs a <strong>work email tied
+  to an organization in the Claude Partner Network</strong> — personal addresses like Gmail are
+  rejected. Sort this out before you're ready to book, not after. Official page:
+  <a href="https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification">Anthropic Academy — CCAR-F</a>.
+</div>
+
+<h2>The phases</h2>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">Phase 1</span>
+    <h2>The API core</h2>
+    <span class="phase-map">Prompt Engineering · Context Management</span>
+  </div>
+  <ul class="lesson-list">
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0001-anatomy-of-a-claude-request.html">0001 · The anatomy of a Claude request</a> — statelessness, the messages array, your first mental model</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0002-system-prompts-and-prefilling.html">0002 · System prompts &amp; prefilling</a> — policy vs conversation, and why prefilling retired on Claude 4.6+</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0003-output-control.html">0003 · Output control</a> — stop reasons, max tokens, thinking &amp; effort (temperature retired)</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0004-structured-outputs.html">0004 · Structured outputs</a> — constrained decoding, schema limits, the validation layers</span></li>
+    <li><span class="lesson-status current">★</span><span><a href="../lessons/phase-1-review.html">Phase 1 review</a> — mixed interleaved quiz over 0001–0004; report your score to calibrate Phase 2</span></li>
+  </ul>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">Phase 2</span>
+    <h2>Tools &amp; context</h2>
+    <span class="phase-map">Tool Design &amp; MCP · Context Management</span>
+  </div>
+  <ul class="lesson-list">
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0005-tool-use-fundamentals.html">0005 · Tool use fundamentals</a> — the <code>tool_use</code> ↔ <code>tool_result</code> loop</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0006-designing-tool-interfaces.html">0006 · Designing tool interfaces</a> — descriptions, enums, consolidation, high-signal results</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0007-error-handling-in-agent-tools.html">0007 · Error handling in agent tools</a> — transient/permanent/uncertain, <code>is_error</code>, MCP error lanes</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0008-context-management.html">0008 · Context management</a> — windows, rot, compaction, clearing, memory tool</span></li>
+    <li><span class="lesson-status review">★</span><span><a href="../lessons/phase-2-5-review.html">Phase 2–5 review</a> — mixed quiz over 0005–0021 (with Phase 2's material)</span></li>
+  </ul>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">Phase 3</span>
+    <h2>Claude Code &amp; the Agent SDK</h2>
+    <span class="phase-map">Claude Code Configuration · 20%</span>
+  </div>
+  <ul class="lesson-list">
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0009-claude-code-essentials.html">0009 · Claude Code essentials</a> — CLAUDE.md, plan mode, permissions</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0010-claude-code-in-the-team.html">0010 · Claude Code in the team</a> — hooks, slash commands/skills, artifact map</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0011-subagents-and-skills.html">0011 · Subagents &amp; skills</a> — isolated workers, delegation by description, the artifact trio</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0012-agent-sdk.html">0012 · Agent SDK</a> — the loop as a library, the product chooser, guardrails in code</span></li>
+    <li><span class="lesson-status review">★</span><span>Phases 3–5 reviewed in the same <a href="../lessons/phase-2-5-review.html">Phase 2–5 review</a></span></li>
+  </ul>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">Phase 4</span>
+    <h2>Agentic architecture</h2>
+    <span class="phase-map">Agentic Architecture · 27% — the heavyweight</span>
+  </div>
+  <ul class="lesson-list">
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0013-workflows-vs-agents.html">0013 · Workflows vs agents</a> — the decision ladder, the five patterns previewed, ACI</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0014-composition-patterns.html">0014 · Composition patterns</a> — chaining w/ gates, routing (focus/cost/privacy), sectioning vs voting, evaluator-optimizer</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0015-orchestrator-workers.html">0015 · Orchestrator-workers &amp; multi-agent design</a> — the economics, delegation craft, provenance, production realities</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0016-evaluation-and-feedback-loops.html">0016 · Evaluation &amp; feedback loops</a> — success criteria, grader spectrum, agent-grade evals</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0017-batches-cost-latency.html">0017 · Batches, cost &amp; latency</a> — the lever map, 50% batch, 0.1× cache reads, invalidation hierarchy</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0018-workflow-design.html">0018 · Workflow design</a> — escalation ≥95%, the compliance stack, degradation ladder, handoff</span></li>
+    <li><span class="lesson-status review">★</span><span>Covered by the <a href="../lessons/phase-2-5-review.html">Phase 2–5 review</a></span></li>
+  </ul>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">Phase 5</span>
+    <h2>Professional depth</h2>
+    <span class="phase-map">CCAR-P · $175 · 63 questions</span>
+  </div>
+  <ul class="lesson-list">
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0019-discovery-and-scoping.html">0019 · Discovery &amp; scoping</a> — the six artifacts, stakeholder-owner matrix, lifecycle: discovery → design → handoff → monitoring</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0020-lifecycle-management.html">0020 · Lifecycle management</a> — handoff packages, three-plane observation, rainbow deploys, the iteration gate</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0021-trust-security-mcp.html">0021 · Trust, security &amp; MCP</a> — the seven-attack catalog, spec mitigations, injection containment</span></li>
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0022-capstone.html">0022 · Capstone</a> — the master checklist + the blank-page brief (Compass for Meridian Bank)</span></li>
+    <li><span class="lesson-status review">★</span><span>Covered by the <a href="../lessons/phase-2-5-review.html">Phase 2–5 review</a></span></li>
+  </ul>
+</div>
+
+<div class="phase">
+  <div class="phase-head">
+    <span class="phase-num">Phase 6</span>
+    <h2>Exam mastery</h2>
+    <span class="phase-map">All domains · retrieval under pressure</span>
+  </div>
+  <ul class="lesson-list">
+    <li><span class="lesson-status sent">◐</span><span><a href="../lessons/0023-mock-exam-1.html">0023 · Mock exam I</a> — 20 mixed questions, exam-weighted, pass bar 17/20</span></li>
+    <li><span class="lesson-status current">▶</span><span><a href="../lessons/0024-mock-exam-2.html">0024 · Mock exam II</a> — 12 timed scenario trade-offs, clear bar ≥11, booking checklist</span></li>
+  </ul>
+</div>
+
+<h2>How this works</h2>
+<p>This is a living workspace, not a book you passively read:</p>
+<ul>
+  <li><strong>The foundation layer</strong> — <a href="foundations-of-claude.html">the ten laws of Claude</a>, the <a href="build-anything-playbook.html">build-anything playbook</a> (any project, blank page → owned production), and the <a href="../starter/README.md">starter kit</a> (the fundamentals as working code). Your permanent toolkit.</li>
+  <li><strong>The Apex Project</strong> — build the whole roadmap with your hands: ten coded milestones, one per phase, offline-first with tests. <a href="../project/README.md">Start here</a> (the primary track since 2026-08-27).</li>
+  <li><strong>Ask your agent for the next lesson</strong> — say <em>"next lesson"</em>. It reads your
+    learning records and picks what fits your current level.</li>
+  <li><strong>Each lesson is small</strong> — one idea, one win, a quiz with instant feedback, and a primary source to read.</li>
+  <li><strong>Quiz answers are equal length</strong> — no guessing from formatting. Retrieval effort is the point.</li>
+  <li><strong>Ask questions anytime</strong> — the agent is your teacher. Confusion left unresolved compounds.</li>
+  <li><strong>The <a href="glossary.html">glossary</a> is shared vocabulary</strong> — every lesson uses these terms the same way.</li>
+</ul>
+
+<footer class="course-footer">
+  Claude Architect course · reference/claude-architect-roadmap.html ·
+  exam facts per <a href="https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification">official Anthropic Academy</a> and
+  <a href="https://www.pearsonvue.com/us/en/anthropic.html">Pearson VUE</a> (verify against the official Exam Guide PDF before booking).
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

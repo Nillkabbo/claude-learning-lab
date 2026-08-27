@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 8 · Two features, one Friday</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 8 of 12</p>
+<h1>Two features, one Friday</h1>
+<p class="subtitle">In which tags and search land together, and nobody's merge conflict survives the weekend.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: worktrees · parallel sessions · clean merges</span>
+  <span>Project gains: tags + search, merged without tears</span>
+</div>
+
+<h2>The collision</h2>
+
+<p>Two features, both due Monday, both touching <code>tracker.py</code>: you're
+building <code>search</code> (find tasks by text), Marco is building <code>tag</code>
+(labels like <code>#infra</code>). Last time two people edited the same file all week,
+Friday ended in a merge conflict so biblical that Priya still refers to it as "the
+incident."</p>
+
+<p>This time you know the move. <strong>Worktrees</strong>: the same repo, multiple
+working copies, each on its own branch — parallel sessions that <em>structurally
+cannot</em> trample each other's files.</p>
+
+<pre><code>git worktree add ../tracker-search -b feat/search
+git worktree add ../tracker-tags   -b feat/tag
+cd ../tracker-search && claude      # your session, its own checkout
+cd ../tracker-tags   && claude      # Marco's session, its own checkout</code></pre>
+
+<h2>Two Claudes, two rooms</h2>
+
+<p>And here is the quiet revelation of the chapter: in each worktree, your session's
+context is <em>yours</em>. Your search session never sees Marco's half-finished tag
+code; his never sees yours. Each Claude works a clean, complete world. Your context
+stays small (the budget law, working for you), and your diffs stay pure.</p>
+
+<p>You build <code>search</code> the way you now always build: plan mode first
+("how should search match — substring, case-insensitive, across tags later?"), amend
+the plan once, then small asks, read diffs, tests alongside. Across the hall, Marco —
+coaching his session with embarrassing competence now — does the same with tags.
+The one thing you both respect: <strong>merge order is decided by design, not
+seniority</strong> — you merge search first because tag matching will <em>use</em>
+search.</p>
+
+<h2>Friday, 3 p.m. — the merge</h2>
+
+<p>Search merges clean (small diffs, single-purpose commits — your habits paying
+out). Tags rebases onto it, and the one overlap — both touched the command dispatch —
+resolves in four lines, because both sides had kept their edits <em>narrow on
+purpose</em>. CI runs the suite. Green. v0.3 ships via <code>/release</code>, which
+refuses nothing this time, almost disappointingly.</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  Worktrees give every parallel effort its own checkout and its own clean context;
+  isolation makes merges boring — and boring merges are the goal. The pattern scales
+  up to agent fleets later (same law: isolation before parallelism).
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Create two worktrees on two feature branches (<code>feat/search</code>,
+    <code>feat/tag</code>); open a Claude session in each.</li>
+    <li>Build search in one (plan first: matching semantics; then implement +
+    tests). Build tags in the other (<code>tracker tag 3 infra</code>,
+    <code>list</code> shows tags; search can match them).</li>
+    <li>Merge in dependency order; keep each conflict resolution under ten lines.</li>
+    <li>Run the full suite in the main checkout; <code>/release v0.3</code>.</li>
+    <li>Clean up: <code>git worktree remove</code> both.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> search + tag shipped, merged with (at most) one tiny
+  conflict, v0.3 tagged. Report it — next chapter, the review queue fills up, and
+  Tracker's PRs start reviewing themselves.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-07-the-near-miss.html">◂ Chapter 7</a>
+  <a class="next" href="story-09-the-review-bottleneck.html">Chapter 9 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 8 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-11</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

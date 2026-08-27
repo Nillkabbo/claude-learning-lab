@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The build-anything playbook</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Reference · The universal plan</p>
+<h1>The build-anything playbook</h1>
+<p class="subtitle">From blank page to owned production, for any Claude project. Nine phases, each with a decision, an artifact, and a ready-when checkpoint.</p>
+
+<div class="meta">
+  <span class="accent">Works for any product</span>
+  <span>Grounded in the <a href="foundations-of-claude.html">ten laws</a></span>
+  <span>Code foundation: <a href="../starter/">the starter kit</a></span>
+</div>
+
+<table>
+  <thead><tr><th>Phase</th><th>Decide</th><th>Produce</th><th>Consult</th></tr></thead>
+  <tbody>
+    <tr><td><strong>0 · Mindset</strong></td><td>—</td><td>Nothing; walk the ten laws against your idea</td><td><a href="foundations-of-claude.html">Foundations</a></td></tr>
+    <tr><td><strong>1 · Success</strong></td><td>What does "right" mean, numerically?</td><td>Criteria w/ numbers, constraint inventory, failure catalog w/ costs</td><td><a href="../lessons/0019-discovery-and-scoping.html">0019</a> · <a href="../lessons/0016-evaluation-and-feedback-loops.html">0016</a></td></tr>
+    <tr><td><strong>2 · Posture</strong></td><td>Who runs the loop, and how much agent do you need?</td><td>Product-chooser quadrant + ladder position, losing reasons recorded</td><td><a href="../lessons/0012-agent-sdk.html">0012</a> · <a href="../lessons/0013-workflows-vs-agents.html">0013</a></td></tr>
+    <tr><td><strong>3 · Core loop</strong></td><td>The request contract</td><td>Client wrapper: full history, ends-with-user, stop-reason branching</td><td><a href="../lessons/0001-anatomy-of-a-claude-request.html">0001</a> · <a href="../lessons/0003-output-control.html">0003</a> · <a href="../starter/claude_starter/client.py">starter/client</a></td></tr>
+    <tr><td><strong>4 · Shape &amp; tools</strong></td><td>What's schema'd; what tools exist</td><td>Schemas + semantic validators; four-question tool descriptions, enums, consolidation</td><td><a href="../lessons/0004-structured-outputs.html">0004</a> · <a href="../lessons/0006-designing-tool-interfaces.html">0006</a> · <a href="../starter/claude_starter/tools.py">starter/tools</a></td></tr>
+    <tr><td><strong>5 · Context</strong></td><td>What stays in the window</td><td>Budget strategy: compaction trigger, clearing config, memory plan</td><td><a href="../lessons/0008-context-management.html">0008</a> · <a href="../starter/claude_starter/context.py">starter/context</a></td></tr>
+    <tr><td><strong>6 · Guardrails</strong></td><td>What's enforced, where</td><td>Permission/gate config, deterministic filters, escalation triggers + handoff</td><td><a href="../lessons/0009-claude-code-essentials.html">0009</a> · <a href="../lessons/0018-workflow-design.html">0018</a> · <a href="../lessons/0021-trust-security-mcp.html">0021</a></td></tr>
+    <tr><td><strong>7 · Composition</strong></td><td>Which patterns, if any</td><td>Route table, chain w/ gates, votes, orchestrator — each justified by phase 1</td><td><a href="../lessons/0014-composition-patterns.html">0014</a> · <a href="../lessons/0015-orchestrator-workers.html">0015</a> · <a href="../starter/claude_starter/patterns.py">starter/patterns</a></td></tr>
+    <tr><td><strong>8 · Prove &amp; price</strong></td><td>Is it good, and what does it cost?</td><td>Eval suite (cross-model judges, outcomes) + cost model with real multipliers</td><td><a href="../lessons/0016-evaluation-and-feedback-loops.html">0016</a> · <a href="../lessons/0017-batches-cost-latency.html">0017</a> · <a href="../starter/claude_starter/evals.py">starter/evals</a></td></tr>
+    <tr><td><strong>9 · Ship &amp; own</strong></td><td>How it fails, hands off, and changes</td><td>Degradation ladder, runbook, observation planes, iteration gate</td><td><a href="../lessons/0018-workflow-design.html">0018</a> · <a href="../lessons/0020-lifecycle-management.html">0020</a></td></tr>
+  </tbody>
+</table>
+
+<h2>The checkpoints</h2>
+<ul>
+  <li><strong>Ready to leave phase 1 when</strong>: every criterion has a number and an owner; every failure has a cost.</li>
+  <li><strong>Phase 2</strong>: you can say in one sentence why the losing postures lost.</li>
+  <li><strong>Phases 3–5</strong>: the starter kit's modules run your scenarios green — the contract, the tools, the budget hold.</li>
+  <li><strong>Phase 6</strong>: every "never" in your design has an enforced layer named after it.</li>
+  <li><strong>Phase 7</strong>: every pattern maps to a phase-1 criterion; the multi-agent rung (if bought) has its 15× justification written down.</li>
+  <li><strong>Phase 8</strong>: a change that doesn't pass the suite doesn't ship; the bill has arithmetic, not adjectives.</li>
+  <li><strong>Phase 9</strong>: a stranger could take the handoff package and operate it.</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">What this is</span>
+  The Apex Project (in <code>project/</code>) is the gym where you build these muscles;
+  this playbook is how you use them on YOUR next project. Copy
+  <a href="../starter/">the starter kit</a>, walk the phases, and check yourself against
+  the ten laws at every gate.
+</div>
+
+<footer class="course-footer">
+  The build-anything playbook · distilled from lessons 0001–0022 ·
+  <a href="foundations-of-claude.html">Foundations</a> · <a href="claude-architect-roadmap.html">Roadmap</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

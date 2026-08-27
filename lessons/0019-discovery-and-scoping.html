@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0019 · Discovery &amp; scoping with stakeholders</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0019 · Phase 5 — Professional depth (CCAR-P)</p>
+<h1>Discovery &amp; scoping with stakeholders</h1>
+<p class="subtitle">Foundations tested whether you can build it. Professional tests whether you can own it.</p>
+
+<div class="meta">
+  <span class="accent">≈ 14 minutes</span>
+  <span>Exam: CCAR-P · Stakeholder Comm. &amp; Lifecycle · 14%</span>
+  <span>Sourcing note inside</span>
+</div>
+
+<p>Phase 5 begins CCAR-P territory. Where Foundations (your CCAR-F) tested building
+judgment, Professional "extends the Foundations blueprint with stakeholder communication
+and lifecycle management — skills for owning a solution from discovery through production
+and iteration," aimed at senior/principal architects. Per the exam study guides,
+<strong>Stakeholder Communication &amp; Lifecycle Management is 14% of CCAR-P</strong>, with
+structured discovery and requirement gathering as a named subdomain, and the lifecycle
+running <strong>discovery → design → handoff → monitoring</strong>. (Sourcing honesty: the
+official CCAR-P blueprint is still thin, so the weighting is from corroborated study
+guides; every <em>method</em> below is from official Anthropic docs you've already
+verified.)</p>
+
+<h2>What discovery must produce</h2>
+
+<p>Discovery isn't meetings — it's <strong>artifacts</strong>. Done well, it hands design
+a complete input set, and every item is something this course already taught you to build:</p>
+
+<table>
+  <thead><tr><th>Deliverable</th><th>Form</th><th>From</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Success criteria</strong></td><td>Numbers with owners — deflection 70–80% paired w/ CSAT ≥4/5; accuracy 100%</td><td>0016 · 0018</td></tr>
+    <tr><td><strong>Constraint inventory</strong></td><td>Data sensitivity (→ routing/compliance), latency budgets (→ model tiers), volume (→ batch vs realtime), integration surface (→ tools/MCP)</td><td>0014 · 0017</td></tr>
+    <tr><td><strong>Capability scope</strong></td><td>The complexity-ladder position: single call / workflow / agent — with what each step costs and buys</td><td>0013</td></tr>
+    <tr><td><strong>Build-vs-buy posture</strong></td><td>Product-chooser quadrant: Messages API / Agent SDK / CLI / Managed Agents</td><td>0012</td></tr>
+    <tr><td><strong>Failure catalog</strong></td><td>Escalation triggers, degradation ladder, uncertain-state cases — with what failure costs the business</td><td>0018 · 0007</td></tr>
+    <tr><td><strong>Ideal-interaction scripts</strong></td><td>Task-level walkthroughs written with domain experts</td><td>0018 (official method)</td></tr>
+  </tbody>
+</table>
+
+<h2>The stakeholder map — who owns what</h2>
+
+<ul>
+  <li><strong>Business owner</strong> — value framing: deflection, CSAT, handle time, the
+  15×-token question ("is this task valuable enough for an agent?").</li>
+  <li><strong>Domain experts</strong> — the official pattern: "work with your support
+  team to define success criteria" and script ideal interactions. They own the
+  <em>definition of right</em>; you own making it measurable.</li>
+  <li><strong>Security &amp; compliance</strong> — which layers are enforced (PII
+  stripping, regulated-data routing, gates). Discovery output: the list of rules that
+  must live in code, not prompts.</li>
+  <li><strong>Engineering/ops</strong> — who inherits handoff and monitoring (0020's
+  stakeholders); they set the deployability constraints (rainbow deploys, checkpoints).</li>
+  <li><strong>Finance</strong> — the lever map (0017) is your conversation artifact:
+  batch 50%, cache reads 0.1×, effort dials, per-tier routing.</li>
+</ul>
+
+<p>The architect's job in one sentence: <strong>translate each stakeholder's requirement
+into an artifact from an earlier lesson</strong> — so nothing stays a vibe.</p>
+
+<h2>The structured method</h2>
+
+<ol>
+  <li><strong>Script ideal interactions with the experts</strong> — the official
+  first step before any building. Tasks fall out (greeting, lookup, action, escalation).</li>
+  <li><strong>Criteria before prompts</strong> — specific, measurable, achievable,
+  relevant; numeric thresholds anchored to benchmarks. "This cycle is central" applies to
+  projects, not just prompts.</li>
+  <li><strong>Walk the failure catalog in advance</strong> — what happens when the EHR
+  integration dies mid-write? Who gets paged? What does the customer see? Stakeholders
+  define failure costs; you design the degradation ladder to match.</li>
+  <li><strong>Scope to the simplest solution</strong> — the 0013 ladder as a
+  communication tool: "here's what one more rung of complexity buys, and here's the
+  latency/cost/risk bill." Scope creep becomes arithmetic instead of argument.</li>
+  <li><strong>Decide the posture</strong> — run the product chooser against the
+  constraints; record why the losing options lost. That record is your defense in
+  design review.</li>
+</ol>
+
+<h2>Communicating decisions</h2>
+
+<p>CCAR-P explicitly tests "communicating architectural decisions." The formats that work:</p>
+<ul>
+  <li><strong>Trade-off tables</strong> — capability × latency × cost per option, with
+  the verified numbers doing the persuading.</li>
+  <li><strong>The one-page design doc</strong> — every requirement → its artifact → its
+  owner. If a requirement has no artifact, it's not yet a requirement; if an artifact has
+  no owner, it's a risk.</li>
+</ul>
+
+<pre class="diagram">
+  DISCOVERY                          DESIGN (0020)
+  stakeholders ──► artifacts ──►     architecture
+    business ──► criteria + cost       │
+    experts ────► scripts + evals      ▼
+    security ───► enforced rules    handoff → monitoring
+    ops ─────────► deployability   (0020's half of the lifecycle)
+    finance ────► the lever map
+</pre>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can run a discovery engagement that ends with six artifacts instead of a slide of
+  adjectives: numeric criteria, the constraint inventory, a ladder-scoped capability, a
+  justified product posture, a failure catalog with costs, and expert-written scripts —
+  each traceable to an owner. That is the CCAR-P discovery subdomain, operationalized.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "In CCAR-P, Stakeholder Communication & Lifecycle Management weighs:",
+    "answers": [
+      "14%",
+      "7%",
+      "27%",
+      "20%"
+    ],
+    "correct": 0,
+    "why": "14% of CCAR-P per the corroborated study guides (7% is Developer Productivity & Operational Enablement; 27% is Foundations' Agentic Architecture). The official blueprint is still thin — verify before your exam."
+  },
+  {
+    "q": "The official first planning step with domain experts is to:",
+    "answers": [
+      "script the ideal interaction",
+      "choose the strongest model",
+      "draft the system prompt",
+      "estimate the token budget"
+    ],
+    "correct": 0,
+    "why": "Plan before building: script the ideal interaction, break it into discrete tasks, draw the flowchart — with the experts who own the definition of right."
+  },
+  {
+    "q": "Success criteria should be defined:",
+    "answers": [
+      "numerically before any building",
+      "qualitatively after the launch",
+      "by the model itself",
+      "by executives alone annually"
+    ],
+    "correct": 0,
+    "why": "Specific, measurable (numbers: F1 ≥ 0.85, deflection 70–80%, accuracy 100%), achievable, relevant — set before prompts and architecture, with the domain experts."
+  },
+  {
+    "q": "The CCAR-P solution lifecycle runs:",
+    "answers": [
+      "discovery, design, handoff, monitoring",
+      "design, build, test, decommission",
+      "prompt, eval, deploy, forget",
+      "sales, delivery, invoice, closure"
+    ],
+    "correct": 0,
+    "why": "Discovery → design → handoff → monitoring: owning a solution across its whole life is exactly what separates Professional from Foundations. 0020 takes the back half."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — run the hospital discovery (exam-style)</span>
+  <p>A hospital wants an intake assistant: PHI everywhere, nurses as domain experts, an
+  existing EHR integration (real-time reads, gated writes), 30s-max first response,
+  and a CFO who's seen the token bill of a previous AI project.</p>
+  <p><strong>On paper:</strong> (1) produce all six discovery deliverables (compact form);
+  (2) the stakeholder-owner matrix; (3) one trade-off table for the "how much agent"
+  decision; (4) name what 0014's routing and 0018's compliance stack each absorb.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> Criteria: e.g. intake-field accuracy 100% (medical!),
+  nurse-approval escalation accuracy ≥95%, first-token p95 &lt; 2s, PHI leakage 0.
+  Constraints: PHI (regulated routing + certified models + PII stripping), 30s budget
+  (tiered models + streaming), EHR (client tools w/ confirmation gates; idempotency on
+  writes). Capability: workflow first — routing + chained retrieval, an agent loop only
+  for the free-text symptom intake if criteria demand it. Posture: Agent SDK embedded in
+  the intake app (or Managed Agents if the hospital refuses to run anything) — recorded
+  reasons. Failure catalog: EHR down → structured fallback + nurse queue, never invented
+  data; mid-write timeout → verify-don't-retry. Scripts: written with nurses, per task.</p>
+    <p><strong>(2)</strong> Business/CFO → criteria + lever map; nurses → scripts + eval
+  labels; security → enforced-rules list (PII/routing/gates); ops → handoff + deployability;
+  you → the artifact set itself.</p>
+    <p><strong>(3)</strong> Rows: single retrieval call / routed workflow / intake agent.
+  Columns: accuracy ceiling, PHI exposure surface, latency, token cost (single ≪ workflow
+  ≪ agent; multi-agent 15× noted as out of scope), failure blast radius. Recommendation
+  marked, losing options' reasons recorded.</p>
+    <p><strong>(4)</strong> Routing absorbs: PHI-only lane to certified models, easy/
+  hard tiering. Compliance stack absorbs: deterministic PII stripping, gates + idempotency
+  on EHR writes, harmlessness screens on intake text. If your matrix shows security owning
+  the <em>enforced</em> rows while nurses own the <em>criteria</em> — you've got the
+  translation job right.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ The <a href="https://claudecertificationguide.com/ccar-p">CCAR-P exam guide</a>
+(domain structure; corroborate against the official Exam Guide PDF when it's published),
+and officially: <a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">success-criteria-first</a> +
+the <a href="https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat">plan-before-building pattern</a>.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Want to workshop a real discovery conversation — your own project, real stakeholders?
+  That's exactly what the agent is for. Next: <em>"next lesson"</em> for 0020 · Lifecycle
+  management — handoff, monitoring, iteration: the back half of the lifecycle.
+</div>
+
+<div class="lesson-nav">
+  <a href="0018-workflow-design.html">◂ 0018 · Workflow design</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0019 · Claude Architect course · CCAR-P scope per corroborated study guides; methods per official
+  <a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">evals</a> and
+  <a href="https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat">use-case</a> docs
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

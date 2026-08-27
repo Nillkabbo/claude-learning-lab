@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0004 · Structured outputs</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0004 · Phase 1 — The API core (final lesson of the phase)</p>
+<h1>Structured outputs: forcing shape on the answer</h1>
+<p class="subtitle">A guarantee, not a hope — the API mathematically cannot emit schema-invalid JSON.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes</span>
+  <span>Exam: Prompt Engineering · extraction &amp; validation</span>
+  <span>No coding needed</span>
+</div>
+
+<p>For three lessons, every dead end has pointed here. "Output JSON only" as a system-prompt
+sentence? Advisory. Prefilling <code>{</code>? Retired — 400 error on modern models.
+<code>temperature: 0</code> for consistency? Also a 400. Today you learn the thing that
+replaced them all — and why it's stronger than any of them ever were.</p>
+
+<h2>The mechanism: constrained decoding</h2>
+
+<p>Structured outputs work by <strong>grammar-constrained sampling</strong>: your JSON schema
+is compiled into a grammar, and the model's token choices are constrained to that grammar
+while it generates. Compliance isn't checked afterward — it's enforced during. The result:
+responses are <em>always valid</em>, type-safe, and need <em>no retries</em> for schema violations.</p>
+
+<pre class="diagram">
+  THE RELIABILITY LADDER (weaker → stronger)
+
+  "Please output JSON."        prompt instruction      advisory — the model can still drift
+  prefill "{"                  legacy hack             retired — 400 on Claude 4.6+
+  temperature: 0               consistency ritual      deprecated — 400 on new models
+  ──────────────────────────────────────────────────────────────────────────────────
+  output_config.format         constrained decoding    guaranteed — cannot be invalid
+</pre>
+
+<h2>The two dials</h2>
+
+<p>Structured outputs are actually two independent, combinable features:</p>
+
+<ul>
+  <li><strong>JSON outputs</strong> — constrain what Claude <em>says</em>: set
+  <code>output_config.format</code> to <code>{"type": "json_schema", "schema": {…}}</code>.</li>
+  <li><strong>Strict tool use</strong> — constrain how Claude <em>calls functions</em>: set
+  <code>"strict": true</code> on a tool definition to guarantee schema validation on tool
+  names and inputs (this pays off big in Lesson 0005).</li>
+</ul>
+
+<p>Here's the proper fix for <a href="0003-output-control.html">Lesson 0003's</a> broken
+report generator:</p>
+
+<pre><code>{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 2048,
+  "output_config": {
+    "format": {
+      "type": "json_schema",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "report_date":  { "type": "string", "format": "date" },
+          "flights_delayed": { "type": "integer" },
+          "top_reason":    { "enum": ["weather", "crew", "mechanical", "air_traffic"] }
+        },
+        "required": ["report_date", "flights_delayed", "top_reason"]
+      }
+    }
+  },
+  "messages": [ { "role": "user", "content": "Generate today's daily ops report." } ]
+}</code></pre>
+
+<p>The raw response contains valid JSON in its text content block — extract and
+<code>json.loads</code> it yourself — or use an SDK helper (<code>client.messages.parse()</code>)
+to get a <code>parsed_output</code> that's already a typed object (Pydantic in Python, zod in
+TypeScript).</p>
+
+<div class="callout warn">
+  <span class="callout-title">Migration trap (the exam loves these)</span>
+  The parameter moved: old code's <code>output_format</code> is now
+  <strong><code>output_config.format</code></strong>, and beta headers are no longer required.
+  The old shape is still accepted on the wire, but the Python SDK v1.0+ raises a
+  <code>TypeError</code> if you pass <code>output_format</code> to the beta endpoint. When you
+  see <code>output_format</code> in legacy code, that's your cue.
+</div>
+
+<h2>What the schema can — and cannot — say</h2>
+
+<p>The grammar enforces <em>structure</em>, not <em>meaning</em>. Know both columns cold:</p>
+
+<table>
+  <thead><tr><th>Supported by constrained decoding</th><th>NOT supported → 400 error</th></tr></thead>
+  <tbody>
+    <tr><td>Basic types; nested objects &amp; arrays</td><td><strong>Numerical constraints</strong> (<code>minimum</code>, <code>maximum</code>, <code>multipleOf</code>)</td></tr>
+    <tr><td><code>enum</code> (scalars only), <code>const</code>, <code>default</code></td><td><code>minLength</code> / <code>maxLength</code> on strings</td></tr>
+    <tr><td><code>anyOf</code>; internal <code>$ref</code> / <code>$defs</code></td><td>Recursive schemas; external <code>$ref</code>; <code>allOf</code> with <code>$ref</code></td></tr>
+    <tr><td>String formats: <code>date</code>, <code>date-time</code>, <code>email</code>, <code>uri</code>, <code>uuid</code>, …</td><td><code>enum</code> with complex types</td></tr>
+    <tr><td><code>minItems</code> — only values <code>0</code> and <code>1</code></td><td>Array constraints beyond that; <code>additionalProperties</code> ≠ <code>false</code></td></tr>
+  </tbody>
+</table>
+
+<p>So who enforces "delay minutes must be under 300" or "airport code is exactly three
+letters"? <strong>Your code, after parsing</strong> — that's <em>semantic validation</em>, and
+it's a named competency in the architect exam's extraction-and-validation area: schema shape
+(guaranteed by the grammar), semantic rules (your code), and human review for high-stakes or
+low-confidence cases. Three layers, three different owners.</p>
+
+<h2>The bill: latency and cost trade-offs</h2>
+
+<ul>
+  <li><strong>First use of a schema is slower</strong> — the grammar compiles. Compiled
+  grammars are cached for <strong>24 hours from last use</strong>.</li>
+  <li><strong>Cache invalidation rules:</strong> changing schema structure or the tool set
+  invalidates it; changing only <code>name</code> or <code>description</code> fields does not.</li>
+  <li><strong>Slightly more input tokens</strong> — Claude receives an injected system prompt
+  describing the format; and changing <code>output_config.format</code> invalidates your
+  prompt cache.</li>
+  <li><strong>Streaming works</strong>, but accumulate the full response before deserializing —
+  partial JSON isn't parseable.</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">The win — Phase 1 complete</span>
+  You can now replace every "hope it returns JSON" pattern with a <strong>guarantee</strong>,
+  explain <em>why</em> it's guaranteed (constrained decoding, not checking), route each
+  validation concern to its proper owner (grammar / your code / human review), and predict
+  the latency and cache behavior of the change. That's the full API core: request anatomy,
+  system prompts, output control, and enforced shape.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory — and after this quiz, see the phase note below.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "How does the API guarantee schema-compliant JSON?",
+    "answers": [
+      "constrained decoding",
+      "post-hoc validation",
+      "retry-based correction",
+      "prefill-based enforcement"
+    ],
+    "correct": 0,
+    "why": "The schema compiles into a grammar and token generation is constrained to it — compliance is enforced during sampling, so no retries or post-hoc checks are needed."
+  },
+  {
+    "q": "Your schema includes \"maximum\": 100 on a number field. What happens?",
+    "answers": [
+      "A 400 error",
+      "Silent constraint dropping",
+      "Validation happens afterward",
+      "Automatic schema rewriting"
+    ],
+    "correct": 0,
+    "why": "Numerical constraints (minimum, maximum, multipleOf) are unsupported — using them returns a 400 with details. Enforce value ranges in your own code after parsing (semantic validation)."
+  },
+  {
+    "q": "The first request using a brand-new schema is slower because:",
+    "answers": [
+      "its grammar compiles",
+      "the prompt re-caches",
+      "thinking budget doubles",
+      "schemas stream slower"
+    ],
+    "correct": 0,
+    "why": "First use compiles the schema into a grammar; compiled grammars are cached for 24 hours from last use. Structure or tool-set changes invalidate the cache; name/description changes don't."
+  },
+  {
+    "q": "In current SDKs, the parameter for schema-constrained JSON is:",
+    "answers": [
+      "output_config.format",
+      "output_format",
+      "response_format",
+      "json_prefill"
+    ],
+    "correct": 0,
+    "why": "output_format moved to output_config.format and beta headers are gone. The old name still works on the wire, but Python SDK v1.0+ raises a TypeError for it on the beta endpoint."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — schema the delay extractor (exam-style)</span>
+  <p>Apex Airlines wants to extract structured data from delay reports. Required output per
+  report: flight number, departure airport code (<em>exactly three letters</em>), delay in
+  minutes (<em>must be 0–300</em>), reason, and the extractor's confidence.</p>
+  <p><strong>On paper:</strong> (1) write the schema using only what constrained decoding
+  supports (reason is one of: weather, crew, mechanical, air_traffic); (2) list which of the
+  italicized rules the grammar <em>cannot</em> enforce and who owns them instead;
+  (3) decide what should trigger human review.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> Types + enum + required are all grammar-supported:
+    flight_number (string), airport_code (string), delay_minutes (integer),
+    reason (enum of the four values), confidence (number). Everything <code>required</code>.</p>
+    <p><strong>(2)</strong> "Exactly three letters" needs <code>minLength</code>/<code>maxLength</code>
+    — unsupported (400). "0–300" needs <code>minimum</code>/<code>maximum</code> — also
+    unsupported. Both are <strong>semantic validation</strong>: enforce them in your code
+    after parsing, and reject or flag violations rather than retrying (the grammar already
+    guaranteed the shape).</p>
+    <p><strong>(3)</strong> Human review belongs where stakes are high and confidence is low —
+    e.g. confidence below a threshold, or extractions feeding compensation payouts. If you
+    also said "keep the original text alongside the extraction for provenance," that's
+    exactly the exam's provenance concept: outputs should be traceable to their source.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs">Structured outputs — official docs</a></strong>.
+Read the supported-features table twice; it's the densest exam-relevant paragraph in Phase 1.</p>
+
+<div class="callout note">
+  <span class="callout-title">Phase 1 complete — two ways forward</span>
+  Say <em>"phase review"</em> for a mixed quiz across all four Phase-1 lessons (interleaved
+  retrieval — the best time to find out what actually stuck), or <em>"next lesson"</em> to
+  enter Phase 2 with 0005 · Tool use fundamentals. Questions about schemas, grammars, or
+  the validation layers? Ask the agent — that's what it's here for.
+</div>
+
+<div class="lesson-nav">
+  <a href="0003-output-control.html">◂ 0003 · Output control</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0004 · Claude Architect course · grounded in
+  <a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs">Structured outputs docs</a>
+  (constrained decoding, feature support, grammar caching, SDK migration)
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

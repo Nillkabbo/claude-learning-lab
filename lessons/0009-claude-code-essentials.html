@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0009 · Claude Code essentials</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0009 · Phase 3 — Claude Code &amp; the Agent SDK</p>
+<h1>Claude Code essentials: CLAUDE.md, plan mode, permissions</h1>
+<p class="subtitle">Policy, exploration, and guardrails — three ideas you already know, productized.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Claude Code Configuration · 20%</span>
+  <span>No install needed</span>
+</div>
+
+<p>Phase 3 opens the 20% domain that assumes you've internalized Phases 1–2 — because
+Claude Code <em>is</em> those mechanics, productized. Its memory is a system prompt you
+maintain (<a href="0002-system-prompts-and-prefilling.html">0002</a>). Its permission
+system is Lesson 0006's confirmation gate with real teeth. Its plan mode is read-only
+exploration before mutation. Three pillars, one lesson each — starting with all three
+essentials today.</p>
+
+<h2>Pillar 1: CLAUDE.md — context, not enforcement</h2>
+
+<p>Claude Code has two memory systems: <strong>CLAUDE.md</strong> (instructions you write)
+and <strong>auto memory</strong> (notes Claude writes itself, indexed in a
+<code>MEMORY.md</code>). The sentence to memorize — it's an exam question wearing a
+trenchcoat — is the official one:</p>
+
+<div class="callout warn">
+  <span class="callout-title">The line that separates the layers</span>
+  Memory files are <strong>"context, not enforced configuration."</strong> Instructions
+  guide; they don't guarantee. Hard enforcement lives in permission rules and hooks —
+  never in CLAUDE.md.
+</div>
+
+<p><strong>The scope ladder</strong> (broadest → most specific):</p>
+<table>
+  <thead><tr><th>Scope</th><th>Location</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td>Managed policy</td><td>org-managed path (e.g., <code>/Library/Application Support/ClaudeCode/</code>)</td><td>Org-wide rules</td></tr>
+    <tr><td>User</td><td><code>~/.claude/CLAUDE.md</code></td><td>Your preferences, every project</td></tr>
+    <tr><td>Project</td><td><code>./CLAUDE.md</code> (or <code>./.claude/CLAUDE.md</code>)</td><td>Team-shared, version-controlled</td></tr>
+    <tr><td>Local</td><td><code>./CLAUDE.local.md</code></td><td>Personal, gitignored</td></tr>
+  </tbody>
+</table>
+
+<p>Loading is <strong>recursive upward</strong> from the directory you launch in —
+concatenated root-down, so "instructions closer to where you launched are read last"
+(last = loudest). Subdirectory files load on demand. Imports use
+<code>@path</code> syntax (e.g., <code>@AGENTS.md</code> for agent-file compatibility),
+nest up to <strong>four hops</strong>, and resolve relative to the importing file.</p>
+
+<p><strong>The craft</strong> (official best practices): target <strong>under 200 lines</strong>;
+add an instruction when <em>Claude makes the same mistake a second time</em>; be specific
+("Run <code>npm test</code> before committing" beats "test your changes"); avoid
+contradictions — they make Claude pick arbitrarily; move multi-step procedures to skills;
+note that the project-root file is re-injected after <code>/compact</code>, surviving
+Lesson 0008's context churn. Bootstrap with <code>/init</code>; audit what actually loaded
+with <code>/context</code>.</p>
+
+<h2>Pillar 2: Permissions — where guarantees live</h2>
+
+<p>Permission rules name a tool and what it may do: <code>Tool</code> or
+<code>Tool(specifier)</code>.</p>
+
+<pre><code>{ "permissions": {
+    "allow": [ "Bash(npm run lint)", "Bash(npm run test *)" ],
+    "deny":  [ "Read(./.env)", "Read(./.env.*)" ]
+} }</code></pre>
+
+<p>Wildcards have teeth-geometry: put <code>*</code> after the subcommand
+(<code>Bash(git log *)</code>, not <code>Bash(git * main)</code>); a trailing
+<code>&nbsp;*</code> matches the bare command too — the space matters
+(<code>Bash(ls *)</code> skips <code>lsof</code>). Compound commands are matched
+<em>per subcommand</em> across separators like <code>&amp;&amp;</code> and <code>|</code>.</p>
+
+<p><strong>The evaluation law:</strong> rules run <strong>deny, then ask, then allow — the
+first match determines the outcome.</strong> Consequences the exam probes:</p>
+<ul>
+  <li>A broad <code>deny: Bash(aws *)</code> <strong>beats</strong> a narrow
+  <code>allow: Bash(aws s3 ls)</code> — "a deny rule can't carry allowlist exceptions."</li>
+  <li>An <code>allow</code> from one scope never outranks an <code>ask</code> from another.</li>
+  <li>A bare-tool deny (<code>WebFetch</code>) <em>removes the tool from Claude's context
+  entirely</em> — Claude never even sees it.</li>
+</ul>
+
+<p><strong>Where rules live</strong> matters as much as what they say. Precedence for the
+same key: <strong>managed (org) &gt; command line &gt; project local &gt; shared project
+&gt; user</strong> — but permission <em>lists merge across scopes</em> rather than override.
+And there's trust gating: allow rules from a <em>committed</em> repo file apply only after
+each teammate trusts the folder, while <strong>deny and ask rules apply immediately</strong>.
+The "don't ask again" button writes an allow rule to <code>.claude/settings.local.json</code>.</p>
+
+<p><strong>Permission modes</strong> frame every session:</p>
+<table>
+  <thead><tr><th>Mode</th><th>Behavior</th></tr></thead>
+  <tbody>
+    <tr><td><code>default</code> (a.k.a. <code>manual</code>)</td><td>Prompts on first use of each tool</td></tr>
+    <tr><td><code>acceptEdits</code></td><td>Auto-accepts file edits + common filesystem commands (<code>mkdir</code>, <code>mv</code>…)</td></tr>
+    <tr><td><code>plan</code></td><td>Read-only exploration — see pillar 3</td></tr>
+    <tr><td><code>auto</code></td><td>Auto-approves with background safety checks</td></tr>
+    <tr><td><code>dontAsk</code></td><td><strong>Auto-DENIES anything not pre-approved</strong> — the name means "stop asking," and the answer is no</td></tr>
+    <tr><td><code>bypassPermissions</code></td><td>Skips prompts — "only in isolated environments like containers or VMs"; orgs can disable it</td></tr>
+  </tbody>
+</table>
+
+<p>One more layer above rules: a <strong>PreToolUse hook</strong> with exit code 2 blocks a
+call <em>before</em> rules even evaluate — hooks beat rules. (Lesson 0006's confirmation
+gate, in its final form.)</p>
+
+<h2>Pillar 3: Plan mode — explore before you act</h2>
+
+<p>In <code>plan</code> mode, Claude <strong>reads files and runs read-only shell commands
+to explore, but doesn't edit your source files</strong>. Read-only forms
+(<code>ls</code>, <code>cat</code>, <code>grep</code>, read-only <code>git</code>) run
+unprompted; anything mutating goes through the normal permission flow. The architectural
+value: decisions about <em>what to change</em> get made with full context and zero risk —
+the same explore-first discipline this course's roadmap models before each lesson.</p>
+
+<pre class="diagram">
+  DEFENSE IN DEPTH (which layer guarantees what?)
+
+  CLAUDE.md ──────── guidance ──────── "context, not enforced configuration"
+  permissions ────── rules ─────────── deny/ask/allow, first match wins
+  hooks ──────────── code ──────────── PreToolUse exit 2: blocks before rules run
+</pre>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can configure a team's Claude Code from scratch: the right file for each concern
+  (managed/user/shared/local), the right content for each (context vs rules vs code),
+  rule syntax with correct wildcard geometry, and the precedence-and-merge model that
+  decides who wins. That's the core of the 20% domain.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Per the official docs, CLAUDE.md and auto memory are:",
+    "answers": [
+      "context, not enforcement",
+      "hard security policy",
+      "strict configuration files",
+      "immutable team policy"
+    ],
+    "correct": 0,
+    "why": "\"Context, not enforced configuration.\" Guidance lives in memory files; guarantees live in permission rules and PreToolUse hooks. Asking how to make Claude *never* do X? The answer is never CLAUDE.md."
+  },
+  {
+    "q": "Permission rules are evaluated in which order?",
+    "answers": [
+      "deny, ask, allow",
+      "allow, ask, deny",
+      "ask, allow, deny",
+      "allow, deny, ask"
+    ],
+    "correct": 0,
+    "why": "Deny, then ask, then allow — the first match determines the outcome. That's why a broad deny beats a narrow allow, and why allow can never outrank ask."
+  },
+  {
+    "q": "A broad deny Bash(aws *) meets a narrow allow Bash(aws s3 ls). Outcome:",
+    "answers": [
+      "the deny always wins",
+      "the allow wins narrowly",
+      "you get asked instead",
+      "the rules simply merge"
+    ],
+    "correct": 0,
+    "why": "Deny evaluates first and \"a deny rule can't carry allowlist exceptions\" — if you need exceptions, deny the specific dangers instead of the family."
+  },
+  {
+    "q": "In plan mode, Claude can:",
+    "answers": [
+      "explore read-only, never edit",
+      "edit files when confirmed",
+      "execute everything without prompts",
+      "bypass permissions in containers"
+    ],
+    "correct": 0,
+    "why": "Plan mode reads files and runs read-only commands to explore, but doesn't edit source files — decisions before mutations. bypassPermissions is a different mode, for isolated environments only."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — configure the team repo (exam-style)</span>
+  <p>A five-person team wants, in their own words: (a) "nobody's Claude may ever read
+  <code>.env</code>, company-wide"; (b) "lint and test should just run without prompting
+  for everyone who joins the repo"; (c) "I keep getting prompted for
+  <code>npm run test</code>" (one dev's complaint); (d) "new teammates shouldn't get
+  auto-run powers the moment they clone"; (e) "Claude must <strong>never</strong> push
+  directly to <code>main</code> — guaranteed."</p>
+  <p><strong>On paper:</strong> for each item, name the exact file it belongs in, the rule
+  or content to write, and — for (e) — which layer does the guaranteeing and why CLAUDE.md
+  is the wrong answer.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(a)</strong> Managed (enterprise) settings — <code>deny:
+    ["Read(./.env)", "Read(./.env.*)"]</code>. Org-wide, nothing overrides it, and deny
+    rules need no trust gating.</p>
+    <p><strong>(b)</strong> Committed <code>.claude/settings.json</code> —
+    <code>allow: ["Bash(npm run lint)", "Bash(npm run test *)"]</code>. Shared with the
+    repo.</p>
+    <p><strong>(c)</strong> That dev should click "don't ask again" once — it writes the
+    allow rule to their <code>.claude/settings.local.json</code> — or add the rule there
+    by hand.</p>
+    <p><strong>(d)</strong> Already handled: allow rules from committed files apply
+    <em>only after each teammate trusts the folder</em>. Deny and ask would have applied
+    immediately — the asymmetry is the feature.</p>
+    <p><strong>(e)</strong> Not CLAUDE.md ("context, not enforced configuration"). The
+    guarantee is a <strong>deny rule</strong> (e.g., <code>Bash(git push origin main)</code>
+    and variants) or — strongest — a <strong>PreToolUse hook exiting 2</strong>, which
+    blocks before rules even evaluate. If you noticed (e) is really 0006's confirmation
+    gate question in work clothes, you're seeing the course's through-line.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/memory">Memory (CLAUDE.md)</a></strong>,
+<a href="https://code.claude.com/docs/en/settings">Settings</a>, and
+<a href="https://code.claude.com/docs/en/permissions">Permissions</a> — the three official
+pages this lesson compresses. Read them in that order.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Have Claude Code installed? Try the exercise for real: <code>/init</code>, then
+  <code>/permissions</code>, then plan mode on a scratch repo. No install? The paper
+  version carries the exam weight. Next: <em>"next lesson"</em> for 0010 · Claude Code in
+  the team — settings scopes deep-dive, hooks, and slash commands.
+</div>
+
+<div class="lesson-nav">
+  <a href="0008-context-management.html">◂ 0008 · Context management</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0009 · Claude Architect course · grounded in the official
+  <a href="https://code.claude.com/docs/en/memory">memory</a>,
+  <a href="https://code.claude.com/docs/en/settings">settings</a>, and
+  <a href="https://code.claude.com/docs/en/permissions">permissions</a> docs
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

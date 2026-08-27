@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0005 · Tool use fundamentals</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0005 · Phase 2 — Tools &amp; context</p>
+<h1>Tool use fundamentals: the loop</h1>
+<p class="subtitle">Phase 1 gave Claude a guaranteed voice. Tools give it hands.</p>
+
+<div class="meta">
+  <span class="accent">≈ 14 minutes</span>
+  <span>Exam: Tool Design &amp; MCP · 18%</span>
+  <span>No coding needed</span>
+</div>
+
+<p>Welcome to Phase 2 — the 18% of the exam where "Tool Design &amp; MCP" lives, and the
+foundation of the 27% agentic-architecture domain after it. Everything today builds on two
+Phase-1 facts: responses are <strong>lists of typed content blocks</strong> (0001) and
+<strong>requests must end with a user message</strong> (0002). By the end you'll see why
+both are true <em>because</em> of tools.</p>
+
+<h2>The loop</h2>
+
+<pre class="diagram">
+  ┌──────────┐  1. request: tools + user msg    ┌─────────┐
+  │          │ ───────────────────────────────► │         │
+  │  YOUR    │                                  │ CLAUDE  │
+  │  CODE    │  2. stop_reason: "tool_use"      │         │
+  │          │ ◄─────────────────────────────── │         │
+  │          │     content: [ tool_use block ]  └─────────┘
+  │          │        (id, name, input)
+  │          │  3. execute the tool yourself
+  │          │  4. next request: user msg + FULL assistant
+  │          │     turn + user msg containing tool_result
+  │          │ ───────────────────────────────► ┌─────────┐
+  │          │  5. final answer, citing result  │ CLAUDE  │
+  └──────────┘ ◄─────────────────────────────── └─────────┘
+</pre>
+
+<p>Step by step:</p>
+<ol>
+  <li>You send a request whose <code>tools</code> array defines each tool's <code>name</code>,
+  <code>description</code>, and <code>input_schema</code> (a JSON Schema — the same shape
+  Lesson 0004 taught you to reason about).</li>
+  <li>Claude replies with <code>stop_reason: "tool_use"</code> and one or more
+  <code>tool_use</code> content blocks — each with a unique <code>id</code>, the tool
+  <code>name</code>, and structured <code>input</code>.</li>
+  <li><strong>Your code executes</strong> the operation. Claude never runs your tools; it
+  requests them.</li>
+  <li>You send the next request with the conversation extended: the user message, the
+  assistant's full previous turn (including the <code>tool_use</code> blocks), and a
+  <strong>user message containing a <code>tool_result</code> block</strong> matched by
+  <code>tool_use_id</code>.</li>
+  <li>Claude replies with the final answer, citing the result <em>you</em> supplied.</li>
+</ol>
+
+<pre><code>// Step 4's messages array — the shape that makes or breaks the loop
+"messages": [
+  { "role": "user", "content": "What's the weather in Austin?" },
+  { "role": "assistant", "content": [
+      { "type": "tool_use", "id": "toolu_01A", "name": "get_weather",
+        "input": { "location": "Austin, TX" } }
+  ]},
+  { "role": "user", "content": [
+      { "type": "tool_result", "tool_use_id": "toolu_01A",
+        "content": "34 degrees Celsius, sunny" }
+  ]}
+]</code></pre>
+
+<p>Now two Phase-1 facts click into place. The <code>tool_result</code> rides in a
+<strong>user message</strong> — that's why requests end with one. And because the API is
+stateless, the assistant's <code>tool_use</code> turn must be echoed back in full: Claude
+doesn't "remember" requesting the tool; it re-reads the transcript you send. (Notice also:
+without content blocks being a <em>typed list</em>, a reply couldn't contain text and a
+tool call at once.)</p>
+
+<h2>Steering the decision: tool_choice</h2>
+
+<table>
+  <thead><tr><th><code>tool_choice</code></th><th>Effect</th><th>Architect's use</th></tr></thead>
+  <tbody>
+    <tr><td><code>auto</code> <small>(default)</small></td><td>Claude decides per turn: call a tool or answer directly</td><td>The normal case — judgment stays with the model</td></tr>
+    <tr><td><code>any</code></td><td>Some tool must be called</td><td>Force action when plain text would be wrong</td></tr>
+    <tr><td><code>tool</code></td><td>A specific named tool must be called</td><td>Guaranteed invocation — no prompting reliance</td></tr>
+    <tr><td><code>none</code></td><td>No tools this request</td><td>Costs zero extra system-prompt tokens when no tools are sent</td></tr>
+  </tbody>
+</table>
+
+<p><code>auto</code> also takes <code>disable_parallel_tool_use: true</code> when you want
+at most one call per turn — because by default, a response may contain <strong>multiple
+<code>tool_use</code> blocks</strong> (parallel tool calls). Handle each one, and return
+one <code>tool_result</code> per <code>tool_use_id</code>.</p>
+
+<p>When should you force a tool vs use structured outputs? Forcing a tool was the classic
+extraction trick, and <code>strict: true</code> on the definition now guarantees the call's
+schema — but when the deliverable is <em>data</em>, Lesson 0004's
+<code>output_config.format</code> is the cleaner tool. Reach for forced tools when the
+deliverable is an <em>action</em> the model must take.</p>
+
+<div class="callout note">
+  <span class="callout-title">Scope note — the tool ecosystem</span>
+  Everything above is <strong>client tools</strong>: your code executes them. The API also
+  has <strong>server tools</strong> (<code>web_search</code>, <code>web_fetch</code>,
+  <code>code_execution</code>) that run on Anthropic's infrastructure — you see results
+  without executing anything. SDKs add a <strong>Tool Runner</strong> that executes your
+  tools automatically, and an <strong>MCP connector</strong> for remote tool servers. All
+  of these reuse the same loop; they just move who runs step 3. MCP gets its own lesson
+  later in this phase.
+</div>
+
+<h2>The bill, and a model-behavior nuance</h2>
+
+<ul>
+  <li><strong>Tools cost tokens on every request</strong>: the <code>tools</code> definitions
+  themselves, the <code>tool_use</code>/<code>tool_result</code> blocks, plus an automatic
+  tool-use system prompt — roughly <strong>264–804 tokens</strong> depending on model and
+  tool_choice. Every tool you add bills every request, whether used or not. That's the
+  economic pressure behind keeping tool sets small and descriptions tight.</li>
+  <li><strong>Missing required parameters behave differently by model</strong>: Opus tends
+  to <em>ask</em> for them; Sonnet <em>may infer</em> a plausible value. Design schemas so
+  that neither behavior breaks you — unambiguous descriptions, and required truly meaning
+  required.</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can trace and hand-write the entire loop: read a <code>tool_use</code> response,
+  execute, and construct the follow-up <code>messages</code> array correctly — including
+  the two mistakes everyone makes (dropping the assistant turn, losing the
+  <code>tool_use_id</code>). That trace is the atom from which every agentic pattern in
+  Phase 4 is built.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "A response contains a tool_use block. What is its stop_reason?",
+    "answers": [
+      "tool_use",
+      "end_turn",
+      "refusal",
+      "max_tokens"
+    ],
+    "correct": 0,
+    "why": "stop_reason: \"tool_use\" is your code's signal to execute and continue the loop — one of the five values from Lesson 0003's switchboard."
+  },
+  {
+    "q": "The tool_result block travels inside which message?",
+    "answers": [
+      "a user message",
+      "the system prompt",
+      "an assistant turn",
+      "the tools parameter"
+    ],
+    "correct": 0,
+    "why": "tool_result is a content block in a user message, matched to the request by tool_use_id — which is also why requests must end with a user message."
+  },
+  {
+    "q": "Which tool_choice forces one specific named tool?",
+    "answers": [
+      "tool",
+      "any",
+      "auto",
+      "none"
+    ],
+    "correct": 0,
+    "why": "type: \"tool\" (with the tool's name) guarantees that tool is called — no prompting reliance. any forces some tool; auto leaves the choice to Claude; none disables."
+  },
+  {
+    "q": "One response carries two tool_use blocks. This means:",
+    "answers": [
+      "parallel calls are wanted",
+      "the schema was violated",
+      "strict mode has failed",
+      "the request retried itself"
+    ],
+    "correct": 0,
+    "why": "Multiple tool_use blocks are Claude requesting independent calls in parallel. Execute each and return one tool_result per tool_use_id — or set disable_parallel_tool_use to prevent it."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — repair the broken loop</span>
+  <p>A junior dev's weather bot dies after step 2. The API rejects their follow-up request.
+  Here's what they sent as the complete <code>messages</code> array:</p>
+  <pre><code>"messages": [
+  { "role": "user", "content": "What's the weather in Austin?" },
+  { "role": "user", "content": [
+      { "type": "tool_result", "content": "34 degrees, sunny" }
+  ]}
+]</code></pre>
+  <p>The original response's <code>tool_use</code> block was:</p>
+  <pre><code>{ "type": "tool_use", "id": "toolu_01A", "name": "get_weather",
+  "input": { "location": "Austin, TX" } }</code></pre>
+  <p><strong>On paper:</strong> (1) name both mistakes, (2) write the corrected
+  <code>messages</code> array.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> Mistake one: the assistant's <code>tool_use</code> turn is
+    missing — the transcript jumps from user to user, and the request ends with history
+    the model can't reconcile (and on modern models a trailing oddity like this reads as a
+    malformed prefill attempt). Mistake two: the <code>tool_result</code> has no
+    <code>tool_use_id</code>, so nothing links the result to the request that produced it.</p>
+    <p><strong>(2)</strong></p>
+    <pre><code>"messages": [
+  { "role": "user", "content": "What's the weather in Austin?" },
+  { "role": "assistant", "content": [
+      { "type": "tool_use", "id": "toolu_01A", "name": "get_weather",
+        "input": { "location": "Austin, TX" } }
+  ]},
+  { "role": "user", "content": [
+      { "type": "tool_result", "tool_use_id": "toolu_01A",
+        "content": "34 degrees, sunny" }
+  ]}
+]</code></pre>
+    <p>If you got both without peeking, you've internalized the loop — and you can now debug
+    roughly half of all real-world tool-integration bugs on sight.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/build-with-claude/tool-use/overview">Tool use — official overview</a></strong>.
+It's the canonical reference for the loop, tool_choice, and the client/server split.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Struggling to picture the two-user-messages-in-a-row problem, or why tools bill tokens
+  even when unused? Ask the agent. Next up, say <em>"next lesson"</em> for 0006 · Designing
+  tool interfaces — what separates tools models use correctly from tools they fumble. And
+  if you haven't taken the <a href="phase-1-review.html">Phase 1 review</a> yet, it's
+  waiting — your score calibrates everything in Phase 2.
+</div>
+
+<div class="lesson-nav">
+  <a href="phase-1-review.html">◂ Phase 1 review</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0005 · Claude Architect course · grounded in the
+  <a href="https://platform.claude.com/docs/en/build-with-claude/tool-use/overview">official tool use docs</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

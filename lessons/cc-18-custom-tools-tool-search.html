@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-18 · Custom tools & tool search at scale</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-18 · Phase E — Master</p>
+<h1>Custom tools & tool search at scale</h1>
+<p class="subtitle">Give the engine your own hands — and keep the tool bill sane when tools multiply.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p><strong>Custom tools in the SDK</strong> (official page): your functions join the
+loop with the same interface discipline you already own — names, four-question
+descriptions, schemas, <code>strict: true</code>. Law 5 hasn't changed; you're just the
+author now.</p>
+<p><strong>Tool search</strong> (official SDK page): when definitions outnumber sense,
+the tool-search tool <em>defers</em> them — loading definitions on demand instead of up
+front. Why it matters, from Track 1's economics:</p>
+<ul>
+  <li>Every shipped tool definition bills tokens <strong>every request</strong>
+  (~264–804 overhead) whether used or not.</li>
+  <li>Big static registries also invite selection ambiguity — fewer, well-described
+  tools beat many vague ones (0006's consolidation).</li>
+  <li>Namespacing matters <em>especially</em> under tool search (official
+  define-tools guidance).</li>
+</ul>
+<p>The design ladder: consolidate → describe properly → only then defer via tool
+search.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Unused tool definitions still:",
+  "answers": [
+   "bill tokens per request",
+   "cost nothing at all",
+   "improve overall model accuracy",
+   "get cached completely free"
+  ],
+  "correct": 0,
+  "why": "The tools parameter bills every request (~264\u2013804 tokens overhead) \u2014 the pressure behind consolidation and search."
+ },
+ {
+  "q": "Tool search solves:",
+  "answers": [
+   "too many definitions",
+   "slow tokenizer throughput",
+   "weak underlying models",
+   "the cache invalidation"
+  ],
+  "correct": 0,
+  "why": "It defers definitions \u2014 loaded on demand instead of up front."
+ },
+ {
+  "q": "The first move for a bloated tool set:",
+  "answers": [
+   "consolidate and describe",
+   "defer everything immediately",
+   "delete all descriptions",
+   "just raise max_tokens"
+  ],
+  "correct": 0,
+  "why": "The ladder: consolidate \u2192 describe properly \u2192 only then defer. Search is the last rung, not the first."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Take the Apex M4 audit mindset to a real system: list its tools (or design five
+  for your workflow), run the four-question audit on paper, consolidate what merges.
+  Report the before/after counts.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/agent-sdk/custom-tools">Give Claude custom tools — official SDK docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-17-agent-sdk-depth.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-18 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

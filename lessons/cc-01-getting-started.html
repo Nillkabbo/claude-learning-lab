@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-01 · Getting started with Claude Code</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">CC-01 · Phase A — The first week</p>
+<h1>Getting started: install, first session, the permission dance</h1>
+<p class="subtitle">From zero to your first agent-assisted change — on your machine, today.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes + the drill</span>
+  <span>Source: official quickstart</span>
+  <span>Hands-on required</span>
+</div>
+
+<p>Welcome to the Claude Code track. This lesson is deliberately practical: by the end
+of the drill you'll have installed Claude Code, run your first session, approved your
+first file change, and learned the one habit that separates beginners from operators
+(<code>Shift+Tab</code>).</p>
+
+<h2>Install (native, not npm)</h2>
+
+<pre><code># macOS / Linux / WSL
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Windows PowerShell
+irm https://claude.ai/install.ps1 | iex
+
+# or Homebrew (stable channel)
+brew install --cask claude-code</code></pre>
+
+<p>Verify with <code>claude --version</code>. Native installs <strong>auto-update</strong>;
+Homebrew/WinGet need manual upgrades. On Windows, install Git for Windows so the Bash
+tool works properly (it falls back to PowerShell otherwise).</p>
+
+<h2>First run: authentication</h2>
+
+<p>Run <code>claude</code> inside a project directory. First use prompts a browser login.
+What you can authenticate with — know the menu:</p>
+
+<ul>
+  <li><strong>Claude Pro/Max/Team/Enterprise subscription</strong> (recommended — usage
+  included in the plan)</li>
+  <li><strong>Console credits</strong> (pay-as-you-go; a "Claude Code" workspace is
+  auto-created for cost tracking)</li>
+  <li><strong>Bedrock / Vertex / Foundry</strong> (enterprise clouds)</li>
+  <li>A corporate <strong>gateway with SSO</strong></li>
+</ul>
+
+<p>If <code>ANTHROPIC_API_KEY</code> is set, login is skipped in favor of the key.
+<code>/login</code> switches accounts later; credentials persist.</p>
+
+<h2>The interactive loop and the permission dance</h2>
+
+<p>Type natural language; Claude reads files and proposes changes. Your <em>first</em>
+session asks before each change — approve with <strong>Yes</strong> and watch what it
+does. After that, on Pro/Max/Team, sessions start in <strong>auto mode</strong>: a
+classifier reviews actions instead of you. Other plans start in Manual.</p>
+
+<div class="callout warn">
+  <span class="callout-title">The habit that matters: Shift+Tab</span>
+  Press <strong>Shift+Tab</strong> anytime to cycle permission modes. Beginner sessions
+  drift into either rubber-stamping everything or drowning in prompts — cycling modes
+  deliberately (manual for risky areas, plan for exploration, auto for the boring
+  stretch) is the operator's move. This extends 0009's mode table with the muscle
+  memory.
+</div>
+
+<h2>Your first commands (the quickstart's own list)</h2>
+
+<pre><code>"what does this project do?"          # understanding
+"explain the folder structure"
+"add a hello world function to the main file"   # your first change
+"what files have I changed?"
+"commit my changes with a descriptive message"  # git, through Claude
+
+/help    /clear    /exit        # session commands (Ctrl+D twice also exits)
+claude -p "explain this function"   # one-shot, non-interactive
+claude -c                           # continue the most recent session
+claude -r                           # resume a listed session</code></pre>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  Claude Code installed and verified, authenticated with the right account type,
+  one real change approved with eyes open, modes cycled on purpose, and the
+  <code>-p / -c / -r</code> trio in your fingers. You are no longer a beginner at
+  the door — you've walked through it.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "The recommended install method is:",
+    "answers": [
+      "the native install script",
+      "npm install it globally",
+      "cloning the GitHub repo",
+      "Docker containers only, always"
+    ],
+    "correct": 0,
+    "why": "Native install (curl | bash on macOS/Linux/WSL, irm | iex on PowerShell) — and it auto-updates. Homebrew/WinGet exist but need manual upgrades; npm isn't the recommended path."
+  },
+  {
+    "q": "After your first session, Pro/Max/Team sessions start in:",
+    "answers": [
+      "auto mode, classifier-reviewed",
+      "manual, always prompting",
+      "plan, read-only mode",
+      "bypass, never prompting"
+    ],
+    "correct": 0,
+    "why": "Auto mode: a classifier reviews actions instead of you. Other plans start Manual — and Shift+Tab cycles modes whenever you want the other behavior."
+  },
+  {
+    "q": "Shift+Tab in a session:",
+    "answers": [
+      "cycles permission modes",
+      "force-quits the session",
+      "toggles streaming output",
+      "switches the model"
+    ],
+    "correct": 0,
+    "why": "The one habit to build on day one: cycle manual/plan/auto deliberately per task instead of drifting into rubber-stamping or prompt fatigue."
+  },
+  {
+    "q": "To run one command without an interactive session:",
+    "answers": [
+      "claude -p \"your prompt\"",
+      "claude --batch-mode and wait",
+      "claude -r \"your prompt\"",
+      "claude headless mode --now"
+    ],
+    "correct": 0,
+    "why": "-p is the one-shot flag (CC-12 builds real automation on it); -c continues the latest session; -r resumes from a list."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn — the day-one drill (on your machine)</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — first contact</span>
+  <p>Pick any small real project (or <code>mkdir ~/cc-first && cd ~/cc-first</code> with
+  a couple of files). Then:</p>
+  <ol>
+    <li>Install, verify <code>claude --version</code>, authenticate.</li>
+    <li>Ask "what does this project do?" — read the answer critically.</li>
+    <li>Ask for one small change; approve it in <strong>manual</strong>; inspect the diff.</li>
+    <li><code>Shift+Tab</code> into plan mode; ask for a bigger change; read the plan
+    before any edit.</li>
+    <li>Exit; then <code>claude -c</code> to continue and <code>claude -p "summarize
+    what we did"</code> to go one-shot.</li>
+  </ol>
+  <p><strong>Report to your agent:</strong> which mode felt right for step 3 vs step 4,
+  and one thing Claude did that surprised you. That report is the drill's answer key —
+  it calibrates every CC lesson after this.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/quickstart">Quickstart — official docs</a></strong>.
+Next: say <em>"next CC lesson"</em> for CC-02 · The daily loop — sessions, /commands,
+and the common workflows that make Claude Code a habit.</p>
+
+<div class="lesson-nav">
+  <a href="../reference/claude-code-guide-roadmap.html">◂ CC Guide roadmap</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">Track 1 roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  CC-01 · Claude Code Guide · grounded in the official
+  <a href="https://code.claude.com/docs/en/quickstart">quickstart</a> ·
+  concepts extended from <a href="0009-claude-code-essentials.html">0009</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

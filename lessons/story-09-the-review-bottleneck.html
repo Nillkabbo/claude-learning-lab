@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 9 · The review bottleneck</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 9 of 12</p>
+<h1>The review bottleneck</h1>
+<p class="subtitle">In which the team grows, the queue grows faster, and the PRs start reviewing themselves.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: CI · automated code review · ultrareview</span>
+  <span>Project gains: a pipeline that tests and reviews every PR</span>
+</div>
+
+<h2>The queue</h2>
+
+<p>Two more developers joined, and now Tracker — the little tool from your first
+Monday — has nine open PRs and one bottleneck: humans who review after lunch, if
+there's lunch. Priya's own PR has been waiting two days. "Fix the queue," she says,
+"you broke us into this situation, unbreak it."</p>
+
+<h2>Machines first</h2>
+
+<p>The boring half of the fix is the most valuable: <strong>CI</strong>. A GitHub
+Action — one file, <code>.github/workflows/ci.yml</code> — runs on every PR: install
+Python, run the suite. Suddenly the review queue has a bouncer: red PRs don't even
+reach a human. You didn't add discipline; you moved it from memory to machinery —
+the same move as CLAUDE.md-to-permission-rules, one layer up.</p>
+
+<h2>The reviewer that doesn't sleep</h2>
+
+<p>The second half is Claude Code's own: <strong>code review in the pipeline</strong>.
+The Action runs Claude against the diff — headless, JSON out, permission-contained
+(read-only, strict allow-list, a spend cap — automation gets fences, always) — and
+posts findings as PR comments: real ones, mostly. It flags a swallowed exception in
+Dana's PR and an untested edge case in Marco's, and both fixes land before any human
+looks. The queue's average wait drops from "tomorrow" to "forty minutes."</p>
+
+<p>For the big one — Dana's storage refactor, four hundred lines touching the atomic
+writes you built in Chapter 2 — you reach for the heavy artillery:
+<strong>ultrareview</strong>, the cloud fleet: <code>/code-review ultra</code> spawns
+a fleet of reviewer agents in remote sandboxes, each auditing the branch in parallel —
+security, correctness, data-safety. It comes back with two findings. One is wrong. One
+saves your atomic-write guarantees from a subtle regression that would have haunted
+Chapter 10's nights. You take the good with the bad and say the thing you now believe:
+<em>automated review is a first pass, not a verdict</em> — humans read the findings,
+not just the checkmark.</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  CI moves "does it work" from opinion to gate. Claude review moves "what does a human
+  notice first" earlier and cheaper. Ultrareview parallelizes deep audits. The human
+  role shifts — from reading diffs to <em>judging findings</em>. That's the whole
+  modern review stack, lived.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Add <code>.github/workflows/ci.yml</code>: on PR, run the test suite. Verify
+    with one deliberately red PR.</li>
+    <li>Add a Claude review step (headless, read-only allow-list, cost-capped) posting
+    a comment; verify on a real PR.</li>
+    <li>Introduce one small bug deliberately; confirm the reviewer catches it — then
+    revert.</li>
+    <li>If on a paid plan: run <code>/code-review ultra</code> on your biggest recent
+    branch; grade its findings — keep the true, dismiss the false, note the ratio.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> red PRs blocked by CI, review comments appearing
+  automatically, one caught bug as evidence. Report it — next chapter, something
+  breaks at 2 a.m. while everyone sleeps, and Tracker is the only one awake.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-08-two-features.html">◂ Chapter 8</a>
+  <a class="next" href="story-10-the-2am-page.html">Chapter 10 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 9 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-15, CC-22</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

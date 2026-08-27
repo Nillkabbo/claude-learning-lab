@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0014 · Composition patterns</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0014 · Phase 4 — Agentic architecture · 27%</p>
+<h1>Composition patterns: the workflow cookbook</h1>
+<p class="subtitle">Chaining, routing, parallelization, evaluator-optimizer — four ways your code owns the flow.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Agentic Architecture · 27%</span>
+  <span>Orchestrator-workers deferred to 0015</span>
+</div>
+
+<p><a href="0013-workflows-vs-agents.html">0013</a> gave you the ladder and the preview
+table. Today those four patterns become machinery — each with its shape, its
+<em>when</em>, its <em>when-not</em>, and the hooks back into everything you already know:
+0004's structured outputs as gate technology, 0003's stop reasons as control signals,
+0005's loop discipline as the runtime. The fifth pattern, orchestrator-workers, is the
+bridge to multi-agent design and gets <a href="../reference/claude-architect-roadmap.html">0015</a> to itself.</p>
+
+<h2>Pattern 1: Prompt chaining</h2>
+
+<pre class="diagram">
+  task ──► [LLM 1] ──► gate ──► [LLM 2] ──► gate ──► ... ──► result
+             step           check            check
+</pre>
+
+<p>Decompose the task into a fixed sequence; each call does one focused thing. The craft
+is in the <strong>gates</strong> — "programmatic checks… between steps to ensure that
+intermediate results are on spec" before the chain continues. That's Lesson 0004 doing
+assembly-line duty: gate = schema-validate the intermediate output, check what the
+grammar can't (semantic rules), and stop or re-run when a step fails spec.</p>
+
+<ul>
+  <li><strong>Use when:</strong> the task decomposes cleanly into fixed subtasks;
+  you're trading latency for accuracy; each step benefits from a smaller, focused prompt.</li>
+  <li><strong>Known win:</strong> it "works better for inducing context" — e.g. generate
+  a document, <em>then</em> generate its title with the document in context; or generate
+  few-shot examples, then run the real task with them.</li>
+  <li><strong>When-not:</strong> steps can't be fixed in advance (that's 0015, or an
+  agent); a single call already meets spec.</li>
+</ul>
+
+<h2>Pattern 2: Routing</h2>
+
+<pre class="diagram">
+            ┌──► [easy tier: Haiku handler]        cheaper
+  input ─► classifier ──► [hard tier: Sonnet handler]     stronger
+            └──► [sensitive tier: certified model only]   compliant
+</pre>
+
+<p>Classify the input, dispatch to a specialized handler with its own prompt. Three
+distinct wins — the exam likes all three named:</p>
+<ul>
+  <li><strong>Focus:</strong> separate prompts per category — "cleaner prompts," isolated
+  concerns, less cross-category bias.</li>
+  <li><strong>Cost:</strong> tiered models — Haiku for easy inputs, Sonnet for harder ones.</li>
+  <li><strong>Privacy:</strong> enforce where data may go — sensitive inputs routed
+  <em>only</em> to approved, certified models. Routing as a policy enforcement point.</li>
+</ul>
+<p>Implementation: the classifier is a structured-output call (0004) over a fixed label
+set — enums close the world; the router is your code, not the model's judgment. Use when
+"a complex task has distinct categories that are better handled separately"; when-not:
+when categories blur and misroutes dominate.</p>
+
+<h2>Pattern 3: Parallelization</h2>
+
+<pre class="diagram">
+  SECTIONING (split work)          VOTING (same work, N lenses)
+  task ─┬► [LLM A] ─┐              task ─┬► [LLM 1: flag issues] ─┐
+        ├► [LLM B] ─┼► merge              ├► [LLM 2: flag issues] ─┼► threshold
+        └► [LLM C] ─┘                     └► [LLM 3: flag issues] ─┘
+</pre>
+
+<p>Two flavors: <strong>sectioning</strong> — independent subtasks run concurrently and
+merge; <strong>voting</strong> — the <em>same</em> task runs multiple times, with a
+threshold deciding. Use for speed (parallel subtasks), or when "you need multiple
+perspectives and high success rate on the first try." Two canonical examples:</p>
+<ul>
+  <li><strong>Guardrails:</strong> one instance answers the user while another screens
+  the same content for harm <em>concurrently</em> — latency of safety ≈ zero.</li>
+  <li><strong>Vulnerability review:</strong> "multiple prompts flagging different issues,
+  with a threshold to balance false positives and negatives." The threshold is a
+  business decision (precision vs recall), and you own it.</li>
+</ul>
+<p>Don't confuse this with 0005's parallel <em>tool calls</em> (one model, one turn) or
+0011's parallel subagents (workers in an agent harness) — though the sectioning idea
+unifies them all.</p>
+
+<h2>Pattern 4: Evaluator-optimizer</h2>
+
+<pre class="diagram">
+  task ──► [generator LLM] ──draft──► [evaluator LLM] ──feedback──┐
+     ▲                                                            │
+     └────────────────── loop ◄───────────────────────────────────┘
+</pre>
+
+<p>One call generates; another "provides evaluation and feedback in a loop." The essay's
+analogy: "a clear-eyed human with specialized knowledge… going back and forth with a
+gifted writer iterating on a rough draft." Examples: literary translation with a
+bilingual critic; web research needing multiple rounds.</p>
+<ul>
+  <li><strong>Use when:</strong> clear evaluation criteria exist <em>and</em> iterative
+  refinement demonstrably improves results — both conditions, or it's just paying twice.</li>
+  <li><strong>When-not:</strong> "when a clear LLM judge can't be formulated" or
+  judgment criteria are unfalsifiable vibes. No judge, no loop.</li>
+</ul>
+
+<h2>Patterns compose</h2>
+
+<div class="callout note">
+  <span class="callout-title">"These building blocks aren't prescriptive"</span>
+  The essay's closing word on patterns: they "aren't prescriptive… successful
+  implementations will often be <strong>customized and combined</strong>." Route first,
+  then chain within a route; vote on sensitive steps, chain the rest; add complexity
+  "only when it demonstrably improves outcomes" — the same rule as the ladder.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  Four patterns, each with shape, use-when, when-not, and implementation hooks — plus the
+  license to compose them. Roughly half of the 27% domain's scenario questions are one of
+  these four wearing a business costume.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Gates between chained steps are best implemented as:",
+    "answers": [
+      "programmatic checks on outputs",
+      "a stronger reviewing model",
+      "human review at gates",
+      "retrying with higher temperature"
+    ],
+    "correct": 0,
+    "why": "Gates are programmatic checks ensuring intermediate results are on spec — structured outputs (0004) plus your semantic rules. Not another model, not humans, and certainly not the retired temperature dial."
+  },
+  {
+    "q": "In parallelization, voting means:",
+    "answers": [
+      "the same task runs repeatedly",
+      "subtasks split and run concurrently",
+      "one prompt fans out sections",
+      "results stream as they finish"
+    ],
+    "correct": 0,
+    "why": "Voting runs the same task multiple times for diverse perspectives, decided by a threshold (balancing false positives and negatives). Splitting independent subtasks is sectioning — the other flavor."
+  },
+  {
+    "q": "A privacy-driven routing setup sends:",
+    "answers": [
+      "sensitive data to approved models",
+      "all data to cheap models",
+      "sensitive data to human reviewers",
+      "nothing without explicit encryption keys"
+    ],
+    "correct": 0,
+    "why": "Routing is a policy enforcement point: sensitive inputs flow only to approved, certified models — alongside its other wins of cleaner per-category prompts and cost tiering."
+  },
+  {
+    "q": "Evaluator-optimizer loops pay off when:",
+    "answers": [
+      "criteria are clear, refinement helps",
+      "outputs cannot be evaluated reliably",
+      "single calls already work fine",
+      "latency matters above everything else"
+    ],
+    "correct": 0,
+    "why": "Both conditions: a clear evaluation criteria must be formulable AND iterative refinement must demonstrably improve results. No LLM-judgeable criteria, no loop — it's just paying twice."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — compose the Q&amp;A pipeline</span>
+  <p>A support Q&amp;A product over product docs, with these constraints: easy questions
+  outnumber hard 10:1 and finance watches cost; a privacy policy forbids regulated data
+  on non-certified models; harmful content needs screening without added latency; a
+  premium tier promises polished, citation-grounded answers.</p>
+  <p><strong>On paper:</strong> design the full pipeline naming each pattern, where it
+  applies, and the technology at each seam (classifier? gate? threshold? judge?).</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>Route first:</strong> a structured-output classifier over {easy, hard,
+    regulated, abusive}. Easy → Haiku handler (cost tiering). Hard → Sonnet handler
+    (capability tiering). <em>Regulated → certified-model handler only</em> (privacy
+    enforcement). Abusive → canned safe response.</p>
+    <p><strong>Chain inside the answer routes:</strong> retrieve docs → draft with
+    citations → <strong>gate</strong> (schema: citations present? claim-span grounding?
+    — programmatic, 0004) → emit. Easy tier may skip the polishing chain.</p>
+    <p><strong>Vote on safety:</strong> three screeners over the draft, threshold 2/3 —
+    an explicit precision/recall decision. Runs concurrent with drafting, so safety adds
+    ~zero latency (the essay's guardrails arrangement).</p>
+    <p><strong>Evaluator-optimizer for premium only:</strong> draft → critic (clarity,
+    citation fit) → revise loop, capped — clear criteria, demonstrable value, contained
+    latency. If your sketch routed <em>before</em> everything else and gated
+    <em>between</em> every step, you've internalized why order matters: policy outermost,
+    quality innermost.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a></strong> — the Workflows section, pattern by pattern.
+Re-read <a href="0004-structured-outputs.html">0004 (gates)</a> and
+<a href="0005-tool-use-fundamentals.html">0005 (loop runtime)</a> alongside.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Want to pressure-test a composition from your own work? Bring it. Next: <em>"next
+  lesson"</em> for 0015 · Orchestrator-workers &amp; multi-agent design — the fifth
+  pattern, where workflows start borrowing the agent's best trick.
+</div>
+
+<div class="lesson-nav">
+  <a href="0013-workflows-vs-agents.html">◂ 0013 · Workflows vs agents</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0014 · Claude Architect course · grounded in
+  <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a> (pattern sections, verbatim guidance)
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

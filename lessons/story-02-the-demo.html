@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 2 · The Thursday demo</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 2 of 12</p>
+<h1>The Thursday demo</h1>
+<p class="subtitle">In which the demo goes well, a quote character ruins Friday, and plan mode saves you from yourself.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: plan mode · reading diffs · iterating · checkpointing</span>
+  <span>Project gains: a fixed bug, a <code>list</code> command, v0.1 tagged</span>
+</div>
+
+<h2>Thursday, 2:00 p.m.</h2>
+
+<p>The demo works. Priya adds three tasks live, watches the ids increment, and says
+"acceptable," which you will learn is her highest praise before "good." She wants
+<code>list</code> by Monday. Marco claps, once, for the ids.</p>
+
+<h2>Friday, 10:15 a.m. — the bug</h2>
+
+<p>You're adding <code>list</code> yourself when Marco shouts across the desk: "It
+breaks on quotes!"</p>
+
+<pre><code>$ python tracker.py add fix the "login" bug
+… json.decoder.JSONDecodeError … tasks.json is now empty</pre></pre>
+
+<p>Two bugs in one: the shell ate the quotes into separate arguments, and — far worse —
+a failed write <strong>wiped the tasks file</strong>. Your data survived because you
+backed up before the demo. Priya appears behind you, reading the traceback over your
+shoulder.</p>
+
+<p>"So fix it. Use plan mode — this touches file writes."</p>
+
+<h2>Plan first, then hands</h2>
+
+<p>Shift+Tab into <strong>plan</strong>. Claude explores read-only — reads
+<code>tracker.py</code>, checks the JSON handling — and returns a plan instead of an
+edit:</p>
+
+<blockquote><p><strong>Plan:</strong> (1) join argv fragments so multi-word tasks stay
+one task; (2) make writes atomic — write to a temp file, move into place — so a failed
+write can never truncate the real file; (3) add <code>list</code>: print id + status +
+text.</p></blockquote>
+
+<p>And here is the moment the chapter is secretly about: you read the plan and catch a
+problem. "Number two — also <em>validate</em> before replacing. If the existing JSON is
+corrupt, don't destroy it; back it up as <code>tasks.corrupt.json</code> first." Claude
+amends the plan. <em>That</em> is plan mode's whole value: you corrected the thinking
+for free, before a single line was edited.</p>
+
+<p>You approve. Diffs appear — small, readable, one concern each. You read them,
+actually read them, because Monday's Priya question will be "what did you change and
+why," and "the AI did it" is not an answer.</p>
+
+<h2>The save file saves you</h2>
+
+<p>Then Claude's second edit accidentally renames the wrong function. Before you can
+swear, you remember — <strong>checkpoints</strong>. You rewind the session's file
+changes, re-ask with the plan amended, and the fixed edit lands clean. The whole
+detour costs ninety seconds.</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  Plan mode = decisions before mutations. Reading diffs = your name on every change.
+  Checkpointing = iterate boldly, recover cheaply. Together they are the difference
+  between "an AI did stuff in my repo" and "I ship with confidence."
+</div>
+
+<h2>Monday, 9:30 a.m. — v0.1</h2>
+
+<p><code>list</code> works. Quotes are just characters again. The atomic-write fix
+survives Marco's best attempts to break it (he tries; he's an intern, it's his job).
+You tag it:</p>
+
+<pre><code>git tag -a v0.1 -m "add + list, atomic writes"
+git push --tags</code></pre>
+
+<p>Priya looks at the log — small commits, each one explainable — and says "good."
+Recorded: the first "good."</p>
+
+<div class="callout win">
+  <span class="callout-title">What Chapter 2 taught</span>
+  Plan mode as the pre-edit contract (and amending the plan as the real skill); atomic
+  writes — an error-handling lesson wearing a story's clothes; reading diffs as
+  authorship; checkpointing as your undo.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Reproduce the quote bug: <code>python tracker.py add fix the "login" bug</code>
+    — watch it fail (safely, this time).</li>
+    <li>Shift+Tab to plan; ask for the fix <em>plus</em> atomic writes <em>plus</em>
+    list; read the plan; amend it once on purpose.</li>
+    <li>Approve; read every diff; if anything lands wrong, rewind via checkpoint and
+    re-ask.</li>
+    <li>Verify: add a quoted task, list tasks, hand-break tasks.json and confirm the
+    corrupt-backup behavior.</li>
+    <li>Commit small; tag <code>v0.1</code>.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> add + list working, atomic writes proven by a
+  deliberate corruption test, v0.1 tagged. Report it — next week, in
+  <a href="story-03-claude-md.html">Chapter 3</a>, Marco keeps asking the same
+  questions, and you discover why CLAUDE.md exists.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-01-first-day.html">◂ Chapter 1</a>
+  <a class="next" href="story-03-claude-md.html">Chapter 3 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 2 · concepts grounded in CC-02/CC-03 ·
+  <a href="../reference/claude-code-guide-roadmap.html">the manual</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

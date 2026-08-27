@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 6 · The outside world</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 6 of 12</p>
+<h1>The outside world</h1>
+<p class="subtitle">In which Tracker learns to read GitHub, and you learn what a trust boundary costs.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: MCP servers · consent · scopes · the trust review</span>
+  <span>Project gains: a GitHub MCP integration, an issue-sync skill</span>
+</div>
+
+<h2>The request from above</h2>
+
+<p>Meridian's actual issue tracker is GitHub — Tracker is becoming the team's
+<em>local</em> scratchpad, and Priya wants one bridge: "When I say sync, pull the open
+issues assigned to me into Tracker. Don't make it a project."</p>
+
+<p>Claude can't read GitHub. Not yet. The protocol that changes that is <strong>MCP</strong> —
+Model Context Protocol: servers that expose <em>tools</em> (actions), <em>resources</em>
+(data), and <em>prompts</em> (templates) to your session. You add the GitHub MCP
+server, and its tools join yours.</p>
+
+<h2>The consent moment</h2>
+
+<p>And here the story slows down, because something important happens: connecting a
+server, Claude Code <em>shows you what it will run</em> — the exact command, untruncated
+— and asks permission. Not a formality. A local MCP server is code running with your
+privileges; the consent screen is the moment you decide what you're inviting in.</p>
+
+<p>You do in ten minutes what sloppy teams skip forever — a <strong>trust review</strong>,
+straight from your future certification's security chapter:</p>
+
+<ul>
+  <li><strong>Tokens</strong>: the server holds <em>its own</em> GitHub token. Never
+  yours passed through. (Token passthrough is a forbidden anti-pattern for exactly the
+  audit reasons you can now feel.)</li>
+  <li><strong>Scopes</strong>: read-only on issues. When it later asks for write
+  access, that's a <em>separate</em>, explicit elevation — minimal first, escalate
+  deliberately.</li>
+  <li><strong>Surface</strong>: you note what its tools can touch, in writing, in the
+  repo's CLAUDE.md. Reviewers after you will want that note.</li>
+</ul>
+
+<h2>The bridge</h2>
+
+<p>With the server connected, the sync itself is almost an anticlimax — a skill,
+because the procedure deserves the same treatment as releases:</p>
+
+<pre><code>---
+description: Pulls my open GitHub issues into Tracker as tasks. Use when asked to sync.
+allowed-tools: mcp__github__list_issues, Read, Write
+---
+Fetch open issues assigned to me. For each: if no Tracker task mentions the issue
+number, add one formatted "[gh-42] title". Report added and skipped counts.</code></pre>
+
+<p><code>/sync</code>. Eleven issues arrive as tasks, each tagged with its source —
+provenance, so a task always traces back to where it was born. Priya runs it once,
+nods, and says the thing she says instead of thank you: "Ship it to the others."</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  MCP extends your session with external capabilities under a trust model:
+  consent at the boundary, least-privilege scopes, no token passthrough, and — the
+  habit that outlives this chapter — writing the review down.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Connect one real MCP server (GitHub if you have a token, or any server you
+    actually need). Read the consent screen like you mean it.</li>
+    <li>Run the ten-minute trust review: tokens / scopes / surface — write three lines
+    into your CLAUDE.md.</li>
+    <li>Run <code>/context</code> and note the token cost of the server's tool
+    definitions. Is each tool earning it?</li>
+    <li>If GitHub: build the <code>/sync</code> skill and run it. If not: build one
+    small skill against your server's most useful tool.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> one MCP server connected with a written trust review,
+  one skill using it, costs noted. Report it — next chapter, a near-miss at 5:58 p.m.
+  teaches you the difference between guidance and guardrails.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-05-the-flaky-test-hunt.html">◂ Chapter 5</a>
+  <a class="next" href="story-07-the-near-miss.html">Chapter 7 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 6 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-08</a> · the law: 0021
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

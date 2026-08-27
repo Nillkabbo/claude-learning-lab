@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 5 · The flaky test hunt</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 5 of 12</p>
+<h1>The flaky test hunt</h1>
+<p class="subtitle">In which a test fails only on Tuesdays, and you learn to be in two places at once.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: subagents · delegation · built-ins · tool grants</span>
+  <span>Project gains: a reviewer subagent, a green-and-stable suite</span>
+</div>
+
+<h2>The test that hated Tuesdays</h2>
+
+<p>It fails maybe one run in five. Never when you're watching. Priya's rule — releases
+abort on red — means your Fridays now contain a dice roll. "Flaky tests," says Marco,
+with the serene confidence of someone who has never fixed one, "are haunted."</p>
+
+<p>Here's your actual problem, and the chapter's real subject: fixing the flake requires
+<em>hunting</em> — reading test history, checking for ordering, time, and randomness
+— and that hunt would flood your session with forty files of context you'll never need
+again. Meanwhile you have a real feature to finish.</p>
+
+<h2>Send a worker</h2>
+
+<p>You've met the built-ins by now — <em>Explore</em> (read-only, fast, thorough) and
+<em>Plan</em> (read-only context gathering). Today you use one without ceremony:</p>
+
+<blockquote><p><strong>You:</strong> Use Explore to find why test_list intermittently
+fails. Suspect ordering or time dependence. Report back the cause and the two files
+involved — don't fix anything.</p></blockquote>
+
+<p>Explore churns through the test suite in its own context window. Your session stays
+clean; your feature keeps moving. Nine minutes later, a summary lands: the test sorts by
+timestamp, and two tasks created in the same second can arrive in either order.
+Deterministic fix: sort by id. You approve one small diff. Haunted house, exorcised.</p>
+
+<h2>The worker becomes permanent</h2>
+
+<p>But the deeper move — the one Priya actually wanted — is institutional. This week
+it's a flaky test; every week it's <em>something</em> worth investigating before
+touching. You formalize the pattern as a custom subagent,
+<code>.claude/agents/detective.md</code>:</p>
+
+<pre><code>---
+name: detective
+description: Investigates bugs and flaky tests read-only before any fix is
+  attempted. Use proactively when a test fails intermittently or a bug's cause
+  is unclear. Returns the suspected cause and the files involved.
+tools: [Read, Grep, Glob]
+---
+You are a careful investigator. Find the smallest reproducible cause. Cite file
+and line. Never edit — investigation only.</pre></pre>
+
+<p>Three choices, each load-bearing: the <strong>description</strong> (delegation is
+description-driven — "use proactively" is what makes it volunteer); the
+<strong>tool list</strong> (Read, Grep, Glob — investigation can't edit, structurally);
+and the <strong>body</strong>, which is the agent's entire system prompt.</p>
+
+<p>Next Tuesday, the test hiccups. Before you've finished reading the notification, the
+detective is already on it. Marco watches the session list. "It's like you have
+staff."</p>
+
+<p>"I have <em>one</em>," you say. "Me. The rest are specialists."</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  Subagents = disposable context windows that return summaries. Built-ins (Explore,
+  Plan, General-purpose) cover the common shapes; custom agents encode your team's
+  recurring investigations. Delegation fires on the description — write it like a tool
+  description: when, when-not, and "use proactively."
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Write a test that's genuinely flaky (e.g., iterating a set, or sorting
+    same-second timestamps) — confirm it fails sometimes.</li>
+    <li>Ask Explore (or Plan) to find the cause — no fixing. Read its summary.</li>
+    <li>Apply the fix yourself; run the suite ten times; green every time.</li>
+    <li>Create <code>.claude/agents/detective.md</code> (adapt the frontmatter above;
+    description ≥ 2 sentences with "use proactively").</li>
+    <li>In a fresh session, describe a vague problem and watch whether the detective
+    volunteers — if it doesn't, sharpen the description until it does.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> stable suite (10/10 runs green), a committed
+  detective agent that volunteers on vague bug reports. Report it — next chapter
+  Tracker meets the outside world, and gets its first trust review.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-04-the-friday-chore.html">◂ Chapter 4</a>
+  <a class="next" href="story-06-the-outside-world.html">Chapter 6 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 5 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-07</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

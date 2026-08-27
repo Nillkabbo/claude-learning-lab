@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0018 · Workflow design</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0018 · Phase 4 — Agentic architecture · 27% (final lesson of the phase)</p>
+<h1>Workflow design: escalation, compliance, degradation, handoff</h1>
+<p class="subtitle">The customer-service scenario — and the whole course assembled into one product.</p>
+
+<div class="meta">
+  <span class="accent">≈ 16 minutes</span>
+  <span>Exam: customer service workflow design</span>
+  <span>Everything from 0001–0017 applies</span>
+</div>
+
+<p>The exam guide names this area precisely: <em>escalation, compliance enforcement,
+graceful degradation, handoff design</em>. It's the capstone of the 27% domain because
+every lesson converges here — the tool loop (0005), confirmation gates (0006), uncertain
+state (0007), context budgets (0008), permission thinking (0009), routing and voting
+(0014), agent judgment (0013), evaluation (0016), cost (0017). Today they become one
+workflow, grounded in Anthropic's official customer-support guide.</p>
+
+<h2>Design before building</h2>
+
+<p>The official first step isn't a model call — it's a script: <strong>write the ideal
+interaction, break it into discrete tasks</strong> (greeting, product info, conversation
+management, quote/order actions), and draw the flowchart <em>before</em> building. Then:</p>
+
+<ul>
+  <li><strong>Prompt structure, per the guide:</strong> keep <strong>only role and
+  identity in the system prompt</strong> — "Claude actually works best with the bulk of
+  its prompt content written inside the first user turn." (A deliberate contrast with
+  your instinct from 0002 — scope and task content ride in user turns; policy still
+  belongs above.)</li>
+  <li><strong>Model per tier:</strong> Opus-class to "balance intelligence, latency, and
+  cost"; Haiku-class for latency-sensitive multi-step flows. Stream responses — visible
+  progress buys patience, which can justify the better model.</li>
+  <li><strong>Retrieval vs tools:</strong> RAG for large static knowledge ("can improve
+  performance and efficiency"); tools when answers need <em>real-time</em> data —
+  embedding retrieval "is not sufficient" there.</li>
+  <li><strong>Routing last:</strong> a separate intent classifier routing to specialized
+  conversations works at scale, but adds a latency-paying call — "exhaust prompt
+  engineering and added tools first."</li>
+</ul>
+
+<h2>Escalation: a measurable capability</h2>
+
+<p>The guide's reframe: escalation isn't failure, it's a <strong>skill with a target —
+"escalation accuracy of 95% or higher"</strong>, the ability "to recognize when a query
+needs human intervention and escalate appropriately." Triggers you already own: low
+confidence (0004's human-review layer), policy-mandated topics, high stakes (0006's
+confirmation gate), or the customer asking.</p>
+
+<p><strong>Handoff design</strong> is context transfer: the human receives the
+conversation summary, the state (account, actions taken, 0008's summary discipline), and
+provenance — 0015's filesystem-artifact pattern is exactly the anti-telephone handoff.
+The business balance: <strong>deflection of 70–80%</strong> (inquiries resolved without
+humans) against <strong>CSAT ≥ 4/5</strong> — over-escalation wastes money,
+under-escalation burns customers, and only paired metrics keep you honest.</p>
+
+<h2>Compliance enforcement: the layered defense</h2>
+
+<table>
+  <thead><tr><th>Layer</th><th>What it enforces</th><th>From</th></tr></thead>
+  <tbody>
+    <tr><td>Prompt scope rules</td><td>Only offered products; politely decline unavailable ones; no speculation; "no unauthorized promises"; never mention competitors</td><td>official guide</td></tr>
+    <tr><td>Grounding</td><td>"Fact-checking mechanisms and citations" against company policy and known facts</td><td>guide + 0016 judges</td></tr>
+    <tr><td>Screens &amp; validation</td><td>Harmlessness screens and input validation against jailbreaks; character consistency in long interactions</td><td>guide + 0014 voting</td></tr>
+    <tr><td><strong>Deterministic filters</strong></td><td>Competitor-mention filter; <strong>"unless explicitly required and authorized, strip out any PII from responses"</strong></td><td>guide — code, not prompts</td></tr>
+    <tr><td>Action gates</td><td>Confirmation before irreversible acts; idempotency keys on charges; privacy routing for regulated data</td><td>0006 · 0007 · 0014</td></tr>
+  </tbody>
+</table>
+
+<p>The compliance lesson is 0009's inversion: prompts are "context, not enforced
+configuration" — so compliance lives in the layers that <em>are</em> enforced: filters,
+gates, routes, and the evals (0016) that watch them. The guide's own targets:
+comprehension ≥95%, relevance ≥90%, <strong>informational accuracy 100%</strong>,
+citations in 80% of relevant interactions, topic adherence ≥95%.</p>
+
+<h2>Graceful degradation: the ladder</h2>
+
+<pre class="diagram">
+  failure                    degraded mode                     never
+  ─────────────────────────  ────────────────────────────────  ─────────────
+  refunds tool down          polite decline + alternatives     fabrication
+  search index stale         say so, offer cached answers      confident lies
+  tool times out mid-charge  verify outcome before retry       double charge
+  model overload             queue, stream notice, retry       silence
+  whole agent stack down     static FAQ + human queue          dead air
+</pre>
+
+<p>Notice the scope rules <em>are</em> degradation design: "politely decline unavailable
+ones" is the refunds-tool-down behavior, decided in advance. The principles you've
+earned: instructive errors the model can adapt to ("works surprisingly well" — 0015),
+verify-don't-retry on uncertain state (0007), checkpoints and resume (0015), and RAG
+fallbacks for static knowledge. The cardinal rule: <strong>the failure mode must never
+be silence or fabrication</strong> — every break has a designed exit.</p>
+
+<div class="callout win">
+  <span class="callout-title">The win — Phase 4 complete</span>
+  You can now design the full workflow: scripted tasks and flowchart, tiered models with
+  streaming, an escalation path with a 95% accuracy target and real context handoff,
+  a five-layer compliance stack with deterministic teeth, a degradation ladder with no
+  silent failures, and the paired metrics (deflection ↔ CSAT) that keep the business
+  honest. That's the 27% domain, end to end — with all of Phases 1–3 underneath it.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "The official target for escalation accuracy is:",
+    "answers": [
+      "95% or higher",
+      "70–80% or higher",
+      "50% with retries",
+      "100% always required"
+    ],
+    "correct": 0,
+    "why": "\"Aim for an escalation accuracy of 95% or higher\" — escalation is a measurable skill, not a failure state. 70–80% is the deflection rate target; 100% targets are reserved for informational accuracy."
+  },
+  {
+    "q": "Per the official guide, the system prompt should contain:",
+    "answers": [
+      "role and identity only",
+      "the full knowledge base",
+      "every company policy verbatim",
+      "all few-shot examples permanently"
+    ],
+    "correct": 0,
+    "why": "\"Claude actually works best with the bulk of its prompt content written inside the first user turn\" — role and identity stay in the system prompt; task content rides in user turns."
+  },
+  {
+    "q": "PII in responses should be:",
+    "answers": [
+      "stripped unless explicitly authorized",
+      "included to improve personalization",
+      "encrypted then stored indefinitely",
+      "logged for compliance training"
+    ],
+    "correct": 0,
+    "why": "\"Unless explicitly required and authorized, strip out any PII from responses\" — and it belongs in the deterministic-filter layer, enforced by code, not requested by prompt."
+  },
+  {
+    "q": "A refunds tool times out mid-charge. The workflow should:",
+    "answers": [
+      "verify outcome before retrying",
+      "retry immediately with backoff",
+      "apologize and close chat",
+      "escalate every similar transaction"
+    ],
+    "correct": 0,
+    "why": "Uncertain state: the side effect may have fired — verify the charge status before any retry (idempotency keys make future retries safe by construction), then continue or escalate with real state."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — design Apex Support end-to-end (the capstone)</span>
+  <p>Apex Airlines' support agent handles: flight status (real-time), rebooking
+  (irreversible), compensation claims (regulated), and general questions (static FAQ).
+  Design:</p>
+  <p><strong>On paper:</strong> (1) the task script and which capability serves each task
+  (RAG / tool / routed tier); (2) the escalation triggers and what the human receives;
+  (3) the compliance stack, naming the enforcement layer for each rule; (4) the
+  degradation ladder for: status API down, claim tool mid-charge timeout, model overload;
+  (5) four paired metrics with numbers.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> Status → client tool (real-time; RAG insufficient). Rebooking
+  → tool behind a confirmation gate. Claims → routed to the certified/regulated tier
+  (0014's privacy routing). FAQ → RAG over static knowledge. Tiered models: Haiku for
+  simple flows, Opus-class where judgment pays; stream everywhere.</p>
+    <p><strong>(2)</strong> Escalate on: low confidence, regulated edge cases, customer
+  request, failed compensation policy match. The human receives: conversation summary,
+  account + actions-taken state, and the claim artifacts (filesystem references — no
+  telephone game), targeting ≥95% escalation accuracy.</p>
+    <p><strong>(3)</strong> Scope rules in prompts (context); citations + fact-checking
+  (grounding + cross-model judges); harmlessness screens; <strong>deterministic
+  filters</strong> — PII stripping, competitor filter; confirmation gates + idempotency
+  keys on rebooking/compensation; privacy route as enforcement. Each rule has a named
+  <em>enforced</em> layer — prompts alone enforce nothing.</p>
+    <p><strong>(4)</strong> Status down → say so, offer rebooking alternatives and the
+  static schedule, never invent a status. Mid-charge timeout → verify-before-retry with
+  the idempotency key, escalate with state if unverifiable. Model overload → queue with
+  streamed notice, FAQ fallback + human queue as the floor. No silence, no fabrication,
+  anywhere.</p>
+    <p><strong>(5)</strong> e.g. deflection 70–80% <em>paired with</em> CSAT ≥ 4/5;
+  escalation accuracy ≥95%; informational accuracy 100% with citations in 80% of relevant
+  interactions; p95 first-token latency fit to tier. If you paired every efficiency
+  metric with an experience metric — you've internalized why single-number targets
+  produce bad agents.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat">Customer support agent — official use-case guide</a></strong>,
+with 0013–0017 for the pattern, eval, and cost machinery behind it.</p>
+
+<div class="callout note">
+  <span class="callout-title">Phase 4 complete — the professional tier awaits</span>
+  Five of six phases done: say <em>"phase review"</em> for a mixed Phase 4 quiz (or
+  Phase 2/3), or <em>"next lesson"</em> to open Phase 5 — professional depth: discovery
+  &amp; stakeholders, lifecycle management, trust &amp; the MCP trust model, and the
+  capstone (CCAR-P territory).
+</div>
+
+<div class="lesson-nav">
+  <a href="0017-batches-cost-latency.html">◂ 0017 · Batches, cost &amp; latency</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0018 · Claude Architect course · grounded in the official
+  <a href="https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat">customer support use-case guide</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

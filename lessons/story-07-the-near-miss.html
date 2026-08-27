@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 7 · The near-miss</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 7 of 12</p>
+<h1>The near-miss</h1>
+<p class="subtitle">In which nobody deletes the tasks file, and that non-event is the whole chapter.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: permission rules · hooks · enforcement layers</span>
+  <span>Project gains: guardrails that fail safe</span>
+</div>
+
+<h2>5:58 p.m.</h2>
+
+<p>Marco is cleaning up a scratch directory. His session, trying to be helpful,
+proposes: <code>rm -rf .</code> — from inside <code>tracker/</code>. He clicks
+approve. The terminal doesn't move.</p>
+
+<p>Because at 5:58 p.m., nothing happens. <em>That</em> — the non-event — is this
+chapter. Something you built earlier this afternoon refused the command.</p>
+
+<h2>From note to law</h2>
+
+<p>Rewind to lunch. Your CLAUDE.md has said <em>"Do not commit tasks.json"</em> since
+Chapter 3, and this morning it finally happened anyway — Claude, mid-refactor,
+helpfully staged everything. The note was guidance, and guidance can be forgotten.
+You'd remembered the law from your own notes: <strong>memory is context, not
+enforcement.</strong> So you spent lunch making it law, in two layers:</p>
+
+<p><strong>Layer one — permission rules.</strong> In
+<code>.claude/settings.json</code>, committed for the whole team:</p>
+
+<pre><code>{ "permissions": {
+    "allow": ["Bash(python *)", "Bash(git status)", "Bash(git diff *)"],
+    "ask":   ["Bash(git push *)"],
+    "deny":  ["Bash(rm -rf *)", "Bash(git push * main)", "Read(./tasks.json)"]
+} }</code></pre>
+
+<p>Evaluated in a strict order you now know by heart: <strong>deny, then ask, then
+allow — first match wins.</strong> A broad deny can't be rescued by a narrow allow.
+Pushes to main simply cannot happen. And when Marco's fresh clone pulls the repo, the
+allow rules wait until he trusts the folder — while deny rules apply the instant the
+settings load. New machines are safe on arrival.</p>
+
+<p><strong>Layer two — a hook.</strong> Rules say what's forbidden; hooks react to
+what's happening. A ten-line <code>PreToolUse</code> script logs every Bash command to
+<code>.audit.log</code> and blocks anything matching destructive patterns the rules
+don't cover. At 5:58, it's the hook that catches the <code>rm -rf</code> variant and
+logs the refusal.</p>
+
+<div class="callout warn">
+  <span class="callout-title">The honesty box</span>
+  You also learned hooks' weakness this week: <strong>they fail open</strong>. You
+  typo'd the hook's path in one settings file and it just… didn't run. Silently. So
+  the architecture is deliberate: <em>permissions are the guarantee; hooks are the
+  tripwire and the recorder; CLAUDE.md is the culture.</em> Each layer catches what
+  the others can't.
+</div>
+
+<h2>The aftermath</h2>
+
+<p>Priya reads <code>.audit.log</code> over your shoulder — the near-miss, refused and
+recorded — and for the first time all story says more than one word: "Make this the
+template for every repo we have."</p>
+
+<p>Marco, to his credit, takes it well. "So the file protected me from myself?"
+"No," you say. "The <em>rules</em> did. The file just told you they existed."</p>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Write <code>.claude/settings.json</code> with allow / ask / deny layers;
+    include the push-to-main deny and something protecting your data file.</li>
+    <li>Prove the evaluation order: add a narrow allow under a broad deny for the same
+    tool; confirm deny wins.</li>
+    <li>Add a PreToolUse audit hook (log every Bash command; exit 0). Deliberately
+    break its path once and observe the <em>silence</em> — fail-open, witnessed.</li>
+    <li>Fix the path; attempt a forbidden command; confirm refusal + log entry.</li>
+    <li>Commit settings and hook; clone fresh elsewhere; verify denies apply before
+    trust, allows after.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> three-layer defense committed and <em>proven by
+  attempted violation</em> (a refused command, a log entry, a witnessed fail-open).
+  Report it — next chapter, two features land on the same Friday, and Tracker learns
+  to be in two places at once.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-06-the-outside-world.html">◂ Chapter 6</a>
+  <a class="next" href="story-08-two-features.html">Chapter 8 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 7 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-09, CC-13</a> · the law: 0009
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

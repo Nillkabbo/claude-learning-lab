@@ -1,0 +1,11 @@
+{
+  "name": "meridian",
+  "owner": "meridian-labs",
+  "plugins": [
+    {
+      "name": "meridian-toolkit",
+      "source": "./",
+      "description": "The Story's toolkit: release + sync skills, detective agent, audit hook."
+    }
+  ]
+}

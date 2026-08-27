@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-09 · Hooks in anger: lifecycle automation that fails safe</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-09 · Phase C — Power user</p>
+<h1>Hooks in anger: lifecycle automation that fails safe</h1>
+<p class="subtitle">React to the lifecycle — and know exactly what hooks must never be trusted with.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>0010's verified contract, operationalized. Three cadences (session / turn / tool
+call); config nests <em>event → matcher → handlers</em>; handlers can be
+<code>command</code>, <code>http</code>, <code>mcp_tool</code>, or <code>prompt</code>.</p>
+<ul>
+  <li><strong>Exit 0</strong>: stdout as JSON decisions — <code>permissionDecision</code>,
+  <code>additionalContext</code>, <code>systemMessage</code>; plain text on
+  <code>UserPromptSubmit</code>/<code>SessionStart</code> becomes context.</li>
+  <li><strong>Exit 2 blocks</strong> — regardless of any JSON "allow". A
+  <code>Stop</code> hook exiting 2 <em>prevents stopping</em>.</li>
+  <li><strong>Hard rules still belong to permissions</strong>: hook <code>if</code>
+  matching fails open, and a mistyped path silently disables the gate. Hooks shine at
+  context injection, formatting, notifications, audit.</li>
+  <li>Lists <strong>merge</strong> across settings scopes; repo hooks need workspace
+  trust; <code>allowManagedHooksOnly</code> exists for orgs.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "PreToolUse exit 2:",
+  "answers": [
+   "blocks, all JSON irrelevant",
+   "allows if JSON allows",
+   "defers to deny rules",
+   "logs it and continues"
+  ],
+  "correct": 0,
+  "why": "Exit 2 is a blocking error whether or not JSON is printed \u2014 even a JSON allow can't override it."
+ },
+ {
+  "q": "For hard allow/deny enforcement use:",
+  "answers": [
+   "the permission system",
+   "hooks using exit-two",
+   "strict CLAUDE.md rules",
+   "the system messages"
+  ],
+  "correct": 0,
+  "why": "Hooks fail open (if-matching is best-effort; mistyped paths disable gates). Permissions are the guarantee layer."
+ },
+ {
+  "q": "A Stop hook exiting 2:",
+  "answers": [
+   "it prevents stopping",
+   "ends the session",
+   "crashes the CLI",
+   "it compacts context"
+  ],
+  "correct": 0,
+  "why": "The clever one: exit 2 on Stop forces Claude to continue working."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Write two hooks in a scratch repo: a <code>UserPromptSubmit</code> that injects a
+  one-line reminder as context, and a <code>PostToolUse</code> logger (exit 0, appends to
+  a file). Then deliberately break the logger's path and confirm it fails <em>silently</em>
+  — the lesson of fail-open, experienced. Report both results.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/hooks">Automate actions with hooks — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-08-mcp-in-cc.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-09 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

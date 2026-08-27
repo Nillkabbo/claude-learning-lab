@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 1 · First day at Meridian</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 1 of 12</p>
+<h1>First day at Meridian</h1>
+<p class="subtitle">In which you get a desk, a deadline, and a tool that changes how you work.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + setup</span>
+  <span>Concepts: install · auth · the session · asking · modes</span>
+  <span>Project gains: the repo, the skeleton, first commit</span>
+</div>
+
+<h2>Monday, 9:04 a.m.</h2>
+
+<p>The desk has someone else's coffee rings on it. Priya — your lead, you learned her
+name forty minutes ago — drops a laptop on the table and doesn't sit down.</p>
+
+<p>"So. We keep losing track of small tasks. Tickets live in three places, none of them
+real. I want a tiny command-line tracker. <code>tracker add</code>, <code>tracker
+list</code>, <code>tracker close</code>. That's the whole product."</p>
+
+<p>"By when?"</p>
+
+<p>"Demo Thursday. It doesn't have to be pretty. It has to <em>work</em>." She points at
+the laptop. "Also — install Claude Code. If you're not twice as fast as the last person
+by month two, we hired wrong." And she's gone.</p>
+
+<p>You look at the empty repository. Then at the install command.</p>
+
+<h2>The tool arrives</h2>
+
+<pre><code>curl -fsSL https://claude.ai/install.sh | bash
+claude --version</code></pre>
+
+<p>Native install — it'll keep itself updated. You run <code>claude</code> in a fresh
+folder called <code>tracker</code>, and a browser opens: you sign in with your account
+(a subscription, if you have one — or pay-as-you-go Console credits; the quickstart
+lists the options). Credentials persist. You're in.</p>
+
+<p>A prompt blinks. This is the moment most beginners waste: they type something like
+<em>"make me a tracker"</em> and get an avalanche. You've read enough to know better —
+the skill is in the asking:</p>
+
+<blockquote><p><strong>You:</strong> We're building a tiny issue-tracker CLI in Python.
+Create the repo skeleton: git init, a README saying what this is, and an empty
+<code>tracker.py</code>. Don't write features yet.</p></blockquote>
+
+<p>Claude works. And then — the first surprise of the day — it <em>asks</em>: a
+permission prompt, wanting to run <code>git init</code>. You press Yes. It asks again
+for the file writes. Yes. Yes. On your first session it asks before each change; you
+approve with your eyes open, watching exactly what it touches.</p>
+
+<h2>The mode dial</h2>
+
+<p>Mid-morning, you try the one hotkey worth memorizing: <strong>Shift+Tab</strong>.
+A little indicator cycles — manual, plan, auto. You learn what the modes mean by
+feeling them:</p>
+
+<ul>
+  <li><strong>Manual</strong>: Claude asks before acting. Slow, safe — for the risky
+  parts.</li>
+  <li><strong>Plan</strong>: Claude explores read-only and brings you a plan. You
+  approve the <em>thinking</em> before any editing happens.</li>
+  <li><strong>Auto</strong>: a classifier reviews actions instead of you. For the
+  boring stretch.</li>
+</ul>
+
+<p>Beginners drift — rubber-stamping everything, or drowning in prompts. You decide,
+right there, to choose the mode on purpose, every session.</p>
+
+<h2>Afternoon: the skeleton gets bones</h2>
+
+<blockquote><p><strong>You:</strong> Good. Now add a minimal <code>add</code> command:
+<code>python tracker.py add "text"</code> appends the task to a JSON file with an
+auto-incrementing id, then prints the id. Keep it under 30 lines.</p></blockquote>
+
+<p>Small asks. Pointed asks. One behavior at a time — and each time, you read the diff
+before approving. By 4 p.m. you have: a repo, a README, a working <code>add</code>,
+and a first commit you actually understand, because you watched every line land.</p>
+
+<p>Marco the intern leans over. "Is that the AI thing? Does it just… do your job?"</p>
+
+<p>"No," you say, and mean it. "It does the <em>typing</em>. The job is still mine."</p>
+
+<div class="callout win">
+  <span class="callout-title">What Chapter 1 taught (through the story)</span>
+  Install and auth; the interactive loop; permission prompts as a feature; the three
+  modes and the discipline of choosing; and the habit that separates operators from
+  tourists — <strong>small, pointed asks, and read every diff</strong>.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Install Claude Code; verify <code>claude --version</code>; authenticate.</li>
+    <li><code>mkdir tracker && cd tracker && claude</code></li>
+    <li>Ask for the skeleton (repo, README, empty tracker.py) — approve each action,
+    reading each one.</li>
+    <li>Shift+Tab through all three modes deliberately.</li>
+    <li>Ask for the <code>add</code> command as one small pointed request. Read the
+    diff. Approve.</li>
+    <li><code>python tracker.py add "survive week one"</code> — see id 1 come back.</li>
+    <li>Commit (ask Claude for a good message).</li>
+  </ol>
+  <p><strong>Checkpoint (your save file):</strong> a git repo with README +
+  tracker.py + a working <code>add</code>, one commit, and you can name the three
+  modes without looking. Report this to your agent — the story continues from
+  <a href="story-02-the-demo.html">Chapter 2: The Thursday demo</a>.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="../reference/story-roadmap.html">◂ The Story</a>
+  <a class="next" href="story-02-the-demo.html">Chapter 2 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 1 · concepts grounded in the official quickstart ·
+  manual behind the story: <a href="../reference/claude-code-guide-roadmap.html">CC-01</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

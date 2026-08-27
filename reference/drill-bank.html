@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drill bank — 24 mixed, spaced by habit</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Drill bank · spaced by habit</p>
+<h1>The drill bank: 24 mixed questions</h1>
+<p class="subtitle">One fundamental question from every architect lesson, interleaved. Retake every few days — spacing is what makes it stick.</p>
+
+<div class="meta">
+  <span class="accent">24 questions · all lessons</span>
+  <span>Every option parity-verified (drawn from the lessons' own quizzes)</span>
+  <span>Cards: <a href="cheatsheets.html">cheat sheets</a> · Terms: <a href="../resources/glossary-anki.tsv">Anki deck</a></span>
+</div>
+
+<div class="callout note">
+  <span class="callout-title">The schedule that works</span>
+  Take it today; retake after 2 days, then 5, then 10. Below ~85% (20/24): reopen the
+  lessons named in the explanations. Each question here was the <em>first</em> — the most
+  fundamental — of its lesson's quiz; the lesson holds the rest.
+</div>
+
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this now risks:",
+  "answers": [
+   "calling the tool excessively",
+   "refusing to call tools",
+   "ignoring the system prompt",
+   "returning a 400 error"
+  ],
+  "correct": 0,
+  "why": "Newer Opus models are more responsive to the system prompt, so aggressive anti-laziness idioms over-trigger. The official migration advice is to soften to plain phrasing like 'Use this tool when\u2026'.",
+  "_src": "0002-system-prompts-and-prefilling"
+ },
+ {
+  "q": "How does the API guarantee schema-compliant JSON?",
+  "answers": [
+   "constrained decoding",
+   "post-hoc validation",
+   "retry-based correction",
+   "prefill-based enforcement"
+  ],
+  "correct": 0,
+  "why": "The schema compiles into a grammar and token generation is constrained to it \u2014 compliance is enforced during sampling, so no retries or post-hoc checks are needed.",
+  "_src": "0004-structured-outputs"
+ },
+ {
+  "q": "Per official docs, the single most important factor in tool performance is:",
+  "answers": [
+   "the description quality",
+   "the model's intelligence",
+   "the schema's strictness",
+   "the namespacing prefix"
+  ],
+  "correct": 0,
+  "why": "\"Provide extremely detailed descriptions. This is by far the most important factor in tool performance.\" Model choice and strictness matter, but they can't rescue an interface the model can't understand.",
+  "_src": "0006-designing-tool-interfaces"
+ },
+ {
+  "q": "Input alone exceeds the context window. What happens?",
+  "answers": [
+   "A 400 error",
+   "Silent context truncation",
+   "Automatic server-side compaction",
+   "Stops at max_tokens"
+  ],
+  "correct": 0,
+  "why": "\"Prompt is too long\" \u2014 a 400, on all models. The graceful stop_reason model_context_window_exceeded only applies when input + max_tokens overflows on Claude 4.5+; compaction is a strategy you enable, not an automatic rescue.",
+  "_src": "0008-context-management"
+ },
+ {
+  "q": "A PreToolUse hook exits with code 2. What happens?",
+  "answers": [
+   "blocks regardless of JSON",
+   "allows if JSON allows",
+   "prompts the user instead",
+   "defers to permission rules"
+  ],
+  "correct": 0,
+  "why": "Exit 2 is a blocking error whether or not JSON is printed \u2014 even a JSON \"allow\" can't override it. PreToolUse blocks the call; Stop prevents stopping; PreCompact blocks compaction.",
+  "_src": "0010-claude-code-in-the-team"
+ },
+ {
+  "q": "The Agent SDK's core promise is:",
+  "answers": [
+   "Claude Code as a library",
+   "Anthropic hosts and runs agents",
+   "raw API with manual loops",
+   "an interactive terminal agent harness"
+  ],
+  "correct": 0,
+  "why": "\"Build production AI agents with Claude Code as a library\" \u2014 same tools, agent loop, and context management as Claude Code, running in your process. Hosting is Managed Agents; manual loops are the Client SDK; the terminal is the CLI.",
+  "_src": "0012-agent-sdk"
+ },
+ {
+  "q": "Gates between chained steps are best implemented as:",
+  "answers": [
+   "programmatic checks on outputs",
+   "a stronger reviewing model",
+   "human review at gates",
+   "retrying with higher temperature"
+  ],
+  "correct": 0,
+  "why": "Gates are programmatic checks ensuring intermediate results are on spec \u2014 structured outputs (0004) plus your semantic rules. Not another model, not humans, and certainly not the retired temperature dial.",
+  "_src": "0014-composition-patterns"
+ },
+ {
+  "q": "LLM-graded evaluations should use:",
+  "answers": [
+   "a different model than generation",
+   "the same model for consistency",
+   "the cheapest available model always",
+   "human graders exclusively every time"
+  ],
+  "correct": 0,
+  "why": "Best practice from every official example: judge with a different model than the generator \u2014 same-model judging inherits the very blind spots you're testing for.",
+  "_src": "0016-evaluation-and-feedback-loops"
+ },
+ {
+  "q": "The official target for escalation accuracy is:",
+  "answers": [
+   "95% or higher",
+   "70\u201380% or higher",
+   "50% with retries",
+   "100% always required"
+  ],
+  "correct": 0,
+  "why": "\"Aim for an escalation accuracy of 95% or higher\" \u2014 escalation is a measurable skill, not a failure state. 70\u201380% is the deflection rate target; 100% targets are reserved for informational accuracy.",
+  "_src": "0018-workflow-design"
+ },
+ {
+  "q": "Anthropic's production lesson about shipping agent systems:",
+  "answers": [
+   "the last mile dominates",
+   "prototypes usually ship directly",
+   "code beats prompts always",
+   "monitoring is optional initially"
+  ],
+  "correct": 0,
+  "why": "\"The last mile often becomes most of the journey\" \u2014 the prototype-to-production gap is wider than anticipated because minor changes cascade into large behavioral changes.",
+  "_src": "0020-lifecycle-management"
+ },
+ {
+  "q": "The first artifact of any engagement is:",
+  "answers": [
+   "numeric success criteria first",
+   "the system prompt draft",
+   "a model tier selection",
+   "an MCP server inventory"
+  ],
+  "correct": 0,
+  "why": "Criteria before architecture: paired, numeric, achievable \u2014 they decide the ladder position, the eval suite, and every later trade-off. Prompts and tools come after the target exists.",
+  "_src": "0022-capstone"
+ },
+ {
+  "q": "1. Nightly job: 50,000 invoices sorted into three fixed categories. The best design is:",
+  "answers": [
+   "batched workflow, no agent",
+   "an autonomous agent loop",
+   "orchestrator with many workers",
+   "a single interactive call"
+  ],
+  "correct": 0,
+  "why": "[Agentic \u00b7 0013/0014/0017] Predictable steps = workflow, not agent; patient scale = Batch API's flat 50%; fixed categories = structured-output classification. Simplicity first.",
+  "_src": "0024-mock-exam-2"
+ },
+ {
+  "q": "You send a request, get a reply, then send a follow-up question. What must the second request include?",
+  "answers": [
+   "The full prior conversation",
+   "Just the new question",
+   "A stored session identifier",
+   "The previous response only"
+  ],
+  "correct": 0,
+  "why": "The API is stateless: no server-side conversation or session token exists. Your client resends the entire history \u2014 that's what the messages array is for.",
+  "_src": "0001-anatomy-of-a-claude-request"
+ },
+ {
+  "q": "A nightly report comes back cut off mid-sentence. Which stop_reason do you expect?",
+  "answers": [
+   "max_tokens",
+   "end_turn",
+   "refusal",
+   "tool_use"
+  ],
+  "correct": 0,
+  "why": "Truncation means the cap fired, not that the model finished (end_turn) or declined (refusal). Raise max_tokens \u2014 remembering that any thinking budget also counts against it.",
+  "_src": "0003-output-control"
+ },
+ {
+  "q": "A response contains a tool_use block. What is its stop_reason?",
+  "answers": [
+   "tool_use",
+   "end_turn",
+   "refusal",
+   "max_tokens"
+  ],
+  "correct": 0,
+  "why": "stop_reason: \"tool_use\" is your code's signal to execute and continue the loop \u2014 one of the five values from Lesson 0003's switchboard.",
+  "_src": "0005-tool-use-fundamentals"
+ },
+ {
+  "q": "How should a tool execution failure reach the model?",
+  "answers": [
+   "an is_error result",
+   "a thrown exception",
+   "an empty tool_result",
+   "a JSON-RPC error"
+  ],
+  "correct": 0,
+  "why": "Return the failure as a tool_result with is_error: true and instructive content \u2014 the channel Claude reads and can adapt to. Exceptions never cross the API; JSON-RPC errors are the MCP protocol lane, not execution failures.",
+  "_src": "0007-error-handling-in-agent-tools"
+ },
+ {
+  "q": "Per the official docs, CLAUDE.md and auto memory are:",
+  "answers": [
+   "context, not enforcement",
+   "hard security policy",
+   "strict configuration files",
+   "immutable team policy"
+  ],
+  "correct": 0,
+  "why": "\"Context, not enforced configuration.\" Guidance lives in memory files; guarantees live in permission rules and PreToolUse hooks. Asking how to make Claude *never* do X? The answer is never CLAUDE.md.",
+  "_src": "0009-claude-code-essentials"
+ },
+ {
+  "q": "Delegation to a subagent is primarily decided by:",
+  "answers": [
+   "the description field",
+   "the model parameter",
+   "the tools allowlist",
+   "the frontmatter name"
+  ],
+  "correct": 0,
+  "why": "Delegation is description-driven \u2014 Claude combines each subagent's description with your request and context. Same lesson as tool descriptions in 0006: the description is the interface.",
+  "_src": "0011-subagents-and-skills"
+ },
+ {
+  "q": "In Anthropic's definitions, workflows are systems where:",
+  "answers": [
+   "LLMs follow predefined code paths",
+   "models direct their own tools",
+   "humans approve every single step",
+   "tools orchestrate the LLM calls"
+  ],
+  "correct": 0,
+  "why": "Workflows orchestrate LLMs and tools through predefined code paths; agents dynamically direct their own processes and tool usage. The dividing line: who owns the control flow?",
+  "_src": "0013-workflows-vs-agents"
+ },
+ {
+  "q": "Multi-agent systems excel when tasks involve:",
+  "answers": [
+   "heavy parallelization beyond single contexts",
+   "shared mutable state across agents",
+   "strictly sequential and dependent subtasks",
+   "one shared context across agents"
+  ],
+  "correct": 0,
+  "why": "Heavy parallelization, information exceeding single context windows, and many complex tools. Shared context or tight interdependencies are explicit when-NOTs \u2014 coordination costs eat the gains.",
+  "_src": "0015-orchestrator-workers"
+ },
+ {
+  "q": "Message Batches usage is billed at:",
+  "answers": [
+   "50% of standard prices",
+   "10% of standard prices",
+   "1.25 times standard prices",
+   "25% of cached prices"
+  ],
+  "correct": 0,
+  "why": "A flat 50% of standard API prices \u2014 and it stacks with prompt caching discounts. Most batches finish within an hour; 24 hours is the hard expiry.",
+  "_src": "0017-batches-cost-latency"
+ },
+ {
+  "q": "In CCAR-P, Stakeholder Communication & Lifecycle Management weighs:",
+  "answers": [
+   "14%",
+   "7%",
+   "27%",
+   "20%"
+  ],
+  "correct": 0,
+  "why": "14% of CCAR-P per the corroborated study guides (7% is Developer Productivity & Operational Enablement; 27% is Foundations' Agentic Architecture). The official blueprint is still thin \u2014 verify before your exam.",
+  "_src": "0019-discovery-and-scoping"
+ },
+ {
+  "q": "MCP servers must not accept tokens that:",
+  "answers": [
+   "weren't issued to them",
+   "come from dynamic registration",
+   "lack any scope information",
+   "expire within one hour"
+  ],
+  "correct": 0,
+  "why": "Token passthrough is the explicitly forbidden anti-pattern: servers MUST NOT accept tokens not issued to the MCP server \u2014 it circumvents controls, muddies audit trails, and opens lateral movement.",
+  "_src": "0021-trust-security-mcp"
+ },
+ {
+  "q": "1. A follow-up request after a completed exchange must contain:",
+  "answers": [
+   "The full prior conversation",
+   "Just the new question",
+   "A stored session identifier",
+   "The previous response only"
+  ],
+  "correct": 0,
+  "why": "[Prompt Engineering \u00b7 0001] The API is stateless \u2014 your client resends the entire history as the messages array, every call.",
+  "_src": "0023-mock-exam-1"
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<footer class="course-footer">
+  Drill bank · drawn verbatim from lessons 0001–0024 ·
+  <a href="claude-architect-roadmap.html">the course</a> ·
+  <a href="cheatsheets.html">the cards</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

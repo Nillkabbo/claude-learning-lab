@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0010 · Claude Code in the team</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0010 · Phase 3 — Claude Code &amp; the Agent SDK</p>
+<h1>Claude Code in the team: hooks, slash commands &amp; shared config</h1>
+<p class="subtitle">One product, many machines, an org policy — how configuration travels, and who wins.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Claude Code Configuration · 20%</span>
+  <span>No install needed</span>
+</div>
+
+<p><a href="0009-claude-code-essentials.html">Lesson 0009</a> gave you the three pillars
+solo. Teams add the interesting problems: config that travels through a repo, policy that
+comes from the org, behavior that must fire <em>every</em> time, and procedures every
+teammate can invoke. That's hooks and slash commands — plus a sharper rule than 0009's
+about which layer <em>guarantees</em>.</p>
+
+<h2>Hooks: the policy engine</h2>
+
+<p>Hooks are "user-defined shell commands, HTTP endpoints, or LLM prompts that execute
+automatically at specific points in Claude Code's lifecycle." They run at three cadences:</p>
+
+<table>
+  <thead><tr><th>Cadence</th><th>Events you'll actually use</th></tr></thead>
+  <tbody>
+    <tr><td>Per tool call</td><td><code>PreToolUse</code> (can block), <code>PostToolUse</code>, <code>PermissionRequest</code>, <code>PermissionDenied</code></td></tr>
+    <tr><td>Per turn</td><td><code>UserPromptSubmit</code>, <code>Stop</code>, <code>PreCompact</code></td></tr>
+    <tr><td>Per session</td><td><code>SessionStart</code>, <code>SessionEnd</code></td></tr>
+  </tbody>
+</table>
+
+<p>Configuration nests three deep — <em>event → matcher group → handlers</em> — and
+handlers can be <code>command</code>, <code>http</code>, <code>mcp_tool</code>, or
+<code>prompt</code>:</p>
+
+<pre><code>{ "hooks": { "PreToolUse": [
+    { "matcher": "Bash",
+      "hooks": [ { "type": "command",
+                   "if": "Bash(rm *)",
+                   "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-rm.sh" } ] }
+] } }</code></pre>
+
+<p><strong>The exit-code contract</strong> is the heart of it:</p>
+<ul>
+  <li><strong>Exit 0</strong> — success. Stdout beginning with <code>{</code> is parsed as a
+  JSON decision (<code>permissionDecision: "deny"/"allow"</code>,
+  <code>additionalContext</code>, <code>updatedInput</code>, <code>systemMessage</code>);
+  on <code>UserPromptSubmit</code>/<code>SessionStart</code>, plain-text stdout becomes
+  context Claude reads.</li>
+  <li><strong>Exit 2</strong> — <em>blocking error, regardless of JSON</em>: "even a JSON
+  <code>allow</code> can't override it." <code>PreToolUse</code> blocks the call,
+  <code>UserPromptSubmit</code> rejects the prompt, and — the clever one —
+  <code>Stop</code> <em>prevents stopping</em>, forcing Claude to continue.</li>
+  <li><strong>Timeouts render no decision</strong> — "don't count on a stalled hook to act
+  as a gate."</li>
+</ul>
+
+<div class="callout warn">
+  <span class="callout-title">The refinement 0009 earned — and the exam tests</span>
+  Yes, exit 2 blocks <em>before</em> rules run. But hooks are the wrong tool for hard
+  allow/deny: <code>if</code> matching is best-effort and <strong>fails open</strong>, and a
+  mistyped script path in settings.json "leaves the gate silently disabled." Official
+  guidance: use <strong>the permission system</strong> for hard enforcement; use hooks for
+  what hooks are good at — injecting context, post-formatting, notifications, audit logs.
+  Defense in depth, with the guarantee in the rules layer.
+</div>
+
+<p><strong>Team mechanics:</strong> hook entries <em>merge</em> across settings levels;
+repo-file hooks require workspace trust (same asymmetry as allow rules); cloud sessions
+ignore your local <code>~/.claude/settings.json</code> entirely; and enterprises can set
+<code>allowManagedHooksOnly</code> or <code>disableAllHooks</code> (which can't touch
+managed hooks from outside managed settings).</p>
+
+<h2>Slash commands: procedures that travel</h2>
+
+<p>The big recent change: <strong>"custom commands have been merged into skills."</strong>
+A file at <code>.claude/commands/deploy.md</code> and a skill at
+<code>.claude/skills/deploy/SKILL.md</code> both create <code>/deploy</code> and work the
+same way — but skills are recommended, since they support extra files, invocation control,
+and relevance-based auto-loading.</p>
+
+<ul>
+  <li><strong>Locations:</strong> project (committed, shared), personal
+  (<code>~/.claude/</code>), enterprise (managed), or plugins — with precedence
+  <strong>enterprise &gt; personal &gt; project</strong>, and a skill winning over a
+  same-named command.</li>
+  <li><strong>Arguments:</strong> <code>$ARGUMENTS</code> (all args), <code>$1</code>,
+  <code>$ARGUMENTS[0]</code>; stacking works — <code>/write-tests /fix-issue 123</code>
+  loads both. If you don't reference <code>$ARGUMENTS</code>, it's appended
+  automatically.</li>
+  <li><strong>Frontmatter that matters:</strong>
+  <code>allowed-tools</code> — a per-turn tool grant that <em>clears when you send your
+  next message</em>;
+  <code>context: fork</code> — run in a <strong>forked subagent context</strong> (fresh
+  context, results returned — pure <a href="../reference/glossary.html">subagent</a>
+  pattern, previewing 0011);
+  <code>disable-model-invocation: true</code> — humans-only;
+  <code>model</code>, <code>argument-hint</code>, <code>hooks</code>.</li>
+</ul>
+
+<pre class="diagram">
+  THE TEAM ARTIFACT MAP — what lives where
+
+  concern                    artifact                     file
+  ─────────────────────────  ──────────────────────────  ───────────────────────────
+  standing guidance          CLAUDE.md                    ./CLAUDE.md (shared)
+  hard guarantees            permission rules             managed / .claude/settings.json
+  reactive behavior          hooks                        settings (merge across levels)
+  repeatable procedures      commands / skills            .claude/skills/<name>/SKILL.md
+  one dev's preferences      local overrides              CLAUDE.local.md, settings.local.json
+</pre>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now equip a whole team: hooks that add context and audit without pretending to
+  be firewalls, slash commands that encode procedures with correct frontmatter
+  (<code>allowed-tools</code> grants, <code>context: fork</code> isolation), and the
+  artifact map that answers "where does this concern go?" in one look.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "A PreToolUse hook exits with code 2. What happens?",
+    "answers": [
+      "blocks regardless of JSON",
+      "allows if JSON allows",
+      "prompts the user instead",
+      "defers to permission rules"
+    ],
+    "correct": 0,
+    "why": "Exit 2 is a blocking error whether or not JSON is printed — even a JSON \"allow\" can't override it. PreToolUse blocks the call; Stop prevents stopping; PreCompact blocks compaction."
+  },
+  {
+    "q": "For hard allow/deny enforcement, official guidance says to use:",
+    "answers": [
+      "the permission system",
+      "PreToolUse hooks always",
+      "memory file instructions",
+      "custom slash commands"
+    ],
+    "correct": 0,
+    "why": "Hook if-matching is best-effort and fails open; mistyped paths silently disable gates. Permissions are the guarantee layer; hooks shine at context injection, formatting, notifications, and audit."
+  },
+  {
+    "q": "A file at .claude/commands/deploy.md creates:",
+    "answers": [
+      "the /deploy command",
+      "an enterprise hook",
+      "a permission rule",
+      "a project subagent"
+    ],
+    "correct": 0,
+    "why": "Commands have merged into skills: the file name without extension becomes the command. A .claude/skills/deploy/SKILL.md works identically — and is the recommended form."
+  },
+  {
+    "q": "The allowed-tools frontmatter grants tools that:",
+    "answers": [
+      "clear on next message",
+      "persist for the session",
+      "override all deny rules",
+      "apply to every teammate"
+    ],
+    "correct": 0,
+    "why": "It's a per-turn grant — it clears when you send your next message. It stacks with (never overrides) the permission system, and it travels only with the file that declares it."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — wire the quality gate</span>
+  <p>The Apex tooling team wants four things: (a) every <code>Bash</code> call logged to an
+  audit file; (b) every user prompt silently preceded by "Check CONTRIBUTING.md before
+  proposing file moves"; (c) a <code>/review-pr</code> procedure any teammate can run that
+  works in an isolated fresh context with read-only tools; (d) a guarantee that
+  <code>rm -rf</code> never runs.</p>
+  <p><strong>On paper:</strong> for each, name the artifact type, the file it lives in, and
+  sketch the config — including the exit codes for (a)'s logger and the frontmatter for
+  (c).</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(a)</strong> <code>PostToolUse</code> hook, matcher <code>Bash</code>, type
+    <code>command</code>, appending to the audit log — and it should <strong>exit 0</strong>
+    (a logger must never block; PostToolUse can't un-run the tool anyway). Shared
+    <code>.claude/settings.json</code>.</p>
+    <p><strong>(b)</strong> <code>UserPromptSubmit</code> hook printing the reminder as
+    plain text (exit 0, stdout becomes context Claude reads) — or JSON with
+    <code>additionalContext</code>. Exactly what hooks are for: context, not enforcement.</p>
+    <p><strong>(c)</strong> A skill: <code>.claude/skills/review-pr/SKILL.md</code> with
+    frontmatter <code>allowed-tools: Read, Grep, Glob</code> (per-turn grant),
+    <code>context: fork</code> (fresh subagent context — long PR reviews don't pollute the
+    main session), optionally <code>disable-model-invocation: true</code> so only humans
+    trigger it.</p>
+    <p><strong>(d)</strong> Not a hook — hooks fail open. A <strong>deny rule</strong>
+    (<code>Bash(rm -rf *)</code>) in managed or shared settings is the guarantee; belt and
+    suspenders adds a PreToolUse blocker, but the rule is the load-bearing wall. If all four
+    match the artifact map without hesitating, this domain is yours.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/hooks">Hooks reference</a></strong> and the
+<a href="https://code.claude.com/docs/en/slash-commands">slash commands / skills page</a>.
+The hooks exit-code contract is worth a second read — it's dense with exam material.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  The "hooks fail open" point rewards a debate — when <em>would</em> a hook be the right
+  gate despite it? Bring it to the agent. Next: <em>"next lesson"</em> for 0011 ·
+  Subagents &amp; skills — isolated contexts, custom agents, and teaching Claude Code new
+  tricks.
+</div>
+
+<div class="lesson-nav">
+  <a href="0009-claude-code-essentials.html">◂ 0009 · Claude Code essentials</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0010 · Claude Architect course · grounded in the official
+  <a href="https://code.claude.com/docs/en/hooks">hooks</a> and
+  <a href="https://code.claude.com/docs/en/slash-commands">slash commands</a> references
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

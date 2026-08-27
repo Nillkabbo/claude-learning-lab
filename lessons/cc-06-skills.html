@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-06 · Skills: the procedure layer</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-06 · Phase B — Core user</p>
+<h1>Skills: the procedure layer</h1>
+<p class="subtitle">Commands merged into skills — your repeatable how-to, invoked or auto-loaded.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>0010's verified facts, in practice. <code>.claude/commands/deploy.md</code> and
+<code>.claude/skills/deploy/SKILL.md</code> both create <code>/deploy</code>; skills are
+the recommended form (supporting files, relevance auto-loading). Precedence:
+<strong>enterprise &gt; personal &gt; project</strong>, and a skill beats a same-named
+command.</p>
+<ul>
+  <li><strong><code>$ARGUMENTS</code></strong> and <code>$1</code> substitute; stacking
+  works (<code>/a /b 123</code> loads both).</li>
+  <li><strong>Frontmatter that matters</strong>: <code>allowed-tools</code> — a per-turn
+  grant that <em>clears on your next message</em>; <code>context: fork</code> — an
+  isolated subagent run; <code>disable-model-invocation: true</code> — humans only.</li>
+  <li>Skills live in the project, in <code>~/.claude</code>, in plugins
+  (<code>plugin-name:skill-name</code>), or via managed settings.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "allowed-tools grants last:",
+  "answers": [
+   "until the next message",
+   "the whole session long",
+   "forever across the repo",
+   "until permissions get changed"
+  ],
+  "correct": 0,
+  "why": "A per-turn grant \u2014 it clears when you send your next message (0010)."
+ },
+ {
+  "q": "context: fork gives the skill:",
+  "answers": [
+   "an isolated subagent run",
+   "full root shell access",
+   "a bigger context window",
+   "priority over all hooks"
+  ],
+  "correct": 0,
+  "why": "Forked subagent context: fresh, results returned \u2014 long procedures don't pollute the main session."
+ },
+ {
+  "q": "Skill vs command with the same name:",
+  "answers": [
+   "the skill wins",
+   "the command wins",
+   "both run together",
+   "neither is available"
+  ],
+  "correct": 0,
+  "why": "Commands merged into skills; on collision, the skill takes precedence."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Write a real skill for something you do weekly: <code>.claude/skills/&lt;name&gt;/SKILL.md</code>
+  with description, <code>argument-hint</code>, and the procedure. Invoke it with args.
+  Report the skill and one improvement after first use.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/slash-commands">Skills (slash commands) — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-05-memory-craft.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-06 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

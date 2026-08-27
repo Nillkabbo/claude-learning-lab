@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-21 · Every platform: desktop, mobile, web, Chrome, computer use</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-21 · Phase F — Everywhere & everything</p>
+<h1>Every platform: desktop, mobile, web, Chrome, computer use</h1>
+<p class="subtitle">One assistant, every surface — and a rule for choosing between them.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide · Phase F</span>
+  <span>Hands-on by design</span>
+</div>
+<p>The official comparison, learned as a decision table:</p>
+<table>
+<thead><tr><th>Platform</th><th>Best for</th><th>Distinct capability</th></tr></thead>
+<tbody>
+<tr><td><strong>CLI</strong></td><td>Terminal work, scripting, servers</td><td><em>Full feature set</em>; the Agent SDK and scripting are CLI-only</td></tr>
+<tr><td><strong>Desktop</strong></td><td>Visual review, parallel sessions</td><td>Diff viewer, app preview; computer use + Dispatch (Pro/Max)</td></tr>
+<tr><td><strong>VS Code</strong></td><td>Staying in the editor</td><td>Inline diffs, integrated terminal, file context</td></tr>
+<tr><td><strong>JetBrains</strong></td><td>IntelliJ/PyCharm/WebStorm…</td><td>Diff viewer, selection sharing (runs the CLI in the IDE terminal)</td></tr>
+<tr><td><strong>Web</strong></td><td>Long tasks needing little steering; work continuing while you're offline</td><td>Cloud-based, Anthropic-managed; sessions continue after disconnect</td></tr>
+<tr><td><strong>Mobile</strong></td><td>Starting/monitoring away from your machine</td><td>A thin client into cloud sessions; Remote Control for local ones</td></tr>
+</tbody>
+</table>
+<p><strong>Away-from-terminal options</strong>: <em>Dispatch</em> (message from mobile → runs on your Desktop),
+<em>Remote Control</em> (drive a local session from claude.ai/code or mobile), <em>Channels</em>
+(Telegram/Discord/your server → your CLI), <em>Slack</em> (runs in Anthropic's cloud),
+<em>self-hosted</em> (your org's infrastructure, Team/Enterprise), <em>scheduled tasks</em>.</p>
+<p><strong>The mixing rule</strong>: one project, many surfaces — configuration, project memory, and
+MCP servers are <em>shared across local surfaces</em>. Pick per task, not per identity.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "The platform with the full feature set is:",
+  "answers": [
+   "the CLI",
+   "mobile only",
+   "Slack alone",
+   "Chrome alone"
+  ],
+  "correct": 0,
+  "why": "The CLI is the most complete surface \u2014 scripting and the Agent SDK are CLI-only."
+ },
+ {
+  "q": "Web sessions are best for:",
+  "answers": [
+   "long unattended tasks",
+   "inline file diffs",
+   "deep editor integration",
+   "local git hooks"
+  ],
+  "correct": 0,
+  "why": "Cloud-based, Anthropic-managed, continuing after disconnect \u2014 built for long tasks needing little steering."
+ },
+ {
+  "q": "The mobile app is:",
+  "answers": [
+   "a thin client",
+   "a full CLI",
+   "a sandbox host",
+   "an IDE plugin"
+  ],
+  "correct": 0,
+  "why": "A thin client into cloud sessions, or into local sessions via Remote Control."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Walk the matrix yourself: pick your next three real tasks and assign each the right
+  surface (CLI / desktop / IDE / web). Use one non-default surface for a day. Report the
+  assignment rationale.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/platforms">Platforms and integrations — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-20-capstone-toolkit.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-21 · Claude Code Guide · sources: official docs + Track 1 lessons
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0013 · Workflows vs agents</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0013 · Phase 4 — Agentic architecture · 27%</p>
+<h1>Workflows vs agents: when not to build an agent loop</h1>
+<p class="subtitle">The most important architecture decision is the complexity you decline.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Agentic Architecture · 27%</span>
+  <span>The heavyweight domain begins</span>
+</div>
+
+<p>Phase 4 opens with the essay that named this territory — Anthropic's
+<a href="https://www.anthropic.com/engineering/building-effective-agents">"Building effective agents"</a>.
+One note before anything else: the post now carries a banner saying the <em>tooling</em>
+landscape has changed since December 2024 (see Managed Agents for the current stack) — but
+its architectural vocabulary is exactly what the 27% domain tests. Today: the decision
+that everything else in this phase hangs on.</p>
+
+<h2>Two definitions, quoted exactly</h2>
+
+<blockquote>
+<p><strong>"Workflows are systems where LLMs and tools are orchestrated through predefined
+code paths."</strong></p>
+<p><strong>"Agents, on the other hand, are systems where LLMs dynamically direct their own
+processes and tool usage, maintaining control over how they accomplish tasks."</strong></p>
+</blockquote>
+
+<p>Both are <em>agentic systems</em> — Anthropic's umbrella term. The dividing line is one
+question: <strong>who owns the control flow?</strong> Your code (workflow) or the model
+(agent)? Everything you've built since <a href="0005-tool-use-fundamentals.html">0005</a>
+was the raw material; this is the architectural act of deciding who assembles it.</p>
+
+<pre class="diagram">
+  THE COMPLEXITY LADDER (climb only when forced)
+
+  single augmented call      one LLM + retrieval + examples      "usually enough"
+        │
+  workflow                   YOU define the steps                 predictable, consistent
+  chaining · routing ·       (code paths, gates)                  for well-defined tasks
+  parallelization ·
+  orchestrator-workers ·
+  evaluator-optimizer
+        │
+  agent                      THE MODEL defines the steps          flexible, model-driven
+  (loop + tools + stopping)  for open-ended problems              costly, error-compounding
+</pre>
+
+<h2>The decision, in the essay's own words</h2>
+
+<ul>
+  <li><strong>Start at the bottom:</strong> "find the simplest solution possible, and only
+  increase complexity when needed. <em>This might mean not building agentic systems at
+  all.</em>" For many applications, "optimizing single LLM calls with retrieval and
+  in-context examples is usually enough."</li>
+  <li><strong>Workflows</strong> "offer predictability and consistency for well-defined
+  tasks" — you can name the steps in advance.</li>
+  <li><strong>Agents</strong> are "the better option when flexibility and model-driven
+  decision-making are needed at scale" — open-ended problems "where it's difficult or
+  impossible to predict the required number of steps."</li>
+  <li><strong>The universal trade:</strong> agentic systems "trade latency and cost for
+  better task performance." If nobody can state what the extra performance buys, the
+  complexity is unfinanced.</li>
+</ul>
+
+<h2>When agents earn their keep</h2>
+
+<p>Agents stay in control by getting <strong>"ground truth" from the environment at each
+step</strong> — tool call results, code execution — to assess progress, pausing for human
+feedback at checkpoints, and terminating on completion or a <strong>stopping condition</strong>
+(a maximum iteration cap — the same discipline as 0007's error budgets and 0011's
+<code>maxTurns</code>). The essay is equally clear about the price: "higher costs, and the
+potential for compounding errors," bought down with "extensive testing in sandboxed
+environments, along with the appropriate guardrails" — your Phase 2–3 toolkit, mandatory
+now.</p>
+
+<p>Two flagship domains where agents genuinely win (both from Anthropic's own work):
+<strong>customer support</strong> — conversation plus action, tools for refunds and data,
+"success clearly measured through user-defined resolutions" — and <strong>coding
+agents</strong> — verifiable via tests, iterable on test feedback. Common thread:
+<em>clear success criteria and a feedback loop</em>.</p>
+
+<h2>The five patterns, previewed</h2>
+
+<table>
+  <thead><tr><th>Pattern</th><th>Shape</th><th>Use when</th></tr></thead>
+  <tbody>
+    <tr><td>Prompt chaining</td><td>Sequential calls, programmatic gates between</td><td>Task cleanly decomposes into fixed subtasks; trading latency for accuracy</td></tr>
+    <tr><td>Routing</td><td>Classify, then dispatch to specialized handlers</td><td>Distinct input categories; enables per-tier models (Haiku for easy, Sonnet for hard)</td></tr>
+    <tr><td>Parallelization</td><td><em>Sectioning</em> (independent subtasks) or <em>voting</em> (multiple attempts)</td><td>Speed, or multiple perspectives for confidence (guardrails, vulnerability voting)</td></tr>
+    <tr><td>Orchestrator-workers</td><td>Central LLM decomposes, delegates, synthesizes</td><td>Subtasks <em>can't be predicted</em> in advance (multi-file code changes)</td></tr>
+    <tr><td>Evaluator-optimizer</td><td>Generate ↔ critique loop</td><td>Clear evaluation criteria; refinement demonstrably helps</td></tr>
+  </tbody>
+</table>
+
+<p>"These building blocks aren't prescriptive" — combine and customize them, and add
+complexity "only when it demonstrably improves outcomes." Lesson 0014 takes chaining,
+routing, and their siblings apart in depth; 0015 does orchestrator-workers.</p>
+
+<div class="callout note">
+  <span class="callout-title">ACI — the principle you already met</span>
+  The essay's third principle: craft the <strong>agent-computer interface</strong> with the
+  same effort you'd give a human-computer interface. Its best story is poka-yoke — the
+  SWE-bench agent misused relative paths, so the tool was changed to <em>require</em>
+  absolute paths, and "the model used this method flawlessly." That's 0006's tool design
+  and 0004's constrained decoding, philosophy unified: make the right thing the only
+  easy thing.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now make the call every scenario question in the 27% domain starts with —
+  single call, workflow, or agent — and defend it in the essay's own terms: who owns
+  control flow, what the latency/cost trade buys, where the ground truth comes from, and
+  what the stopping condition is.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "In Anthropic's definitions, workflows are systems where:",
+    "answers": [
+      "LLMs follow predefined code paths",
+      "models direct their own tools",
+      "humans approve every single step",
+      "tools orchestrate the LLM calls"
+    ],
+    "correct": 0,
+    "why": "Workflows orchestrate LLMs and tools through predefined code paths; agents dynamically direct their own processes and tool usage. The dividing line: who owns the control flow?"
+  },
+  {
+    "q": "The recommended starting point for any LLM application is:",
+    "answers": [
+      "the simplest solution possible",
+      "an autonomous agent loop",
+      "a multi-agent orchestration system",
+      "the most sophisticated framework"
+    ],
+    "correct": 0,
+    "why": "\"Find the simplest solution possible, and only increase complexity when needed. This might mean not building agentic systems at all.\" For many applications a single call with retrieval and examples is enough."
+  },
+  {
+    "q": "Agents justify their costs when the problem is:",
+    "answers": [
+      "open-ended with unpredictable steps",
+      "decomposable into fixed subtasks",
+      "solvable in one call",
+      "predictable and tightly scoped"
+    ],
+    "correct": 0,
+    "why": "Agents suit open-ended problems where you can't predict the number of steps or hardcode a path — with ground truth per step, checkpoints, and stopping conditions to contain cost and compounding error."
+  },
+  {
+    "q": "Agents maintain control during execution primarily via:",
+    "answers": [
+      "ground truth from each step",
+      "predefined gates between fixed stages",
+      "human approval of every action",
+      "a fixed maximum task budget"
+    ],
+    "correct": 0,
+    "why": "Ground truth from the environment — tool results, code execution — lets the agent assess progress each step. Stage gates belong to workflows; max iterations are a stopping condition, not a steering mechanism."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — classify six builds (exam-style)</span>
+  <p>For each, pick single call / workflow (name the pattern) / agent — one sentence of
+  justification each:</p>
+  <ol>
+    <li>Extract invoice totals from PDFs into JSON.</li>
+    <li>Generate marketing copy, then translate it into German.</li>
+    <li>Sort support tickets into billing / technical / general, easy ones to a cheaper model.</li>
+    <li>Resolve GitHub issues that may touch dozens of files, verified by tests.</li>
+    <li>Polish literary translations using a critic that suggests refinements.</li>
+    <li>Screen code for vulnerabilities using several independent prompts that must agree.</li>
+  </ol>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <ol>
+      <li><strong>Single call</strong> + structured outputs (0004). No steps to orchestrate.</li>
+      <li><strong>Workflow: prompt chaining</strong> — fixed subtasks, a gate can check the copy before translation.</li>
+      <li><strong>Workflow: routing</strong> — classification then specialized handlers; the essay's own Haiku/Sonnet example.</li>
+      <li><strong>Agent</strong> — "difficult or impossible to predict the required number of steps"; tests provide ground truth per step; cap iterations.</li>
+      <li><strong>Workflow: evaluator-optimizer</strong> — clear criteria, refinement demonstrably helps.</li>
+      <li><strong>Workflow: parallelization (voting)</strong> — multiple perspectives, threshold to balance false positives/negatives. If you called 4 or 6 an agent, reread the ladder: no model-owned control flow, no agent.</li>
+    </ol>
+    <p>Six for six with the control-flow argument? You're answering the 27% domain's
+    opening question the way it's graded.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a></strong> —
+read it end to end; the definitions, the trade-off language, and Appendix 2's ACI advice
+are all exam-grade. For the current tooling it points to: Anthropic's Managed Agents.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  The best arguments in this domain are over edge cases — when does a workflow with an
+  orchestrator stop being a workflow? Bring yours to the agent. Next: <em>"next
+  lesson"</em> for 0014 · Composition patterns — chaining, routing, parallelization,
+  evaluator-optimizer, taken to implementation depth.
+</div>
+
+<div class="lesson-nav">
+  <a href="0012-agent-sdk.html">◂ 0012 · Agent SDK</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0013 · Claude Architect course · grounded in
+  <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a> (Anthropic engineering, verbatim definitions)
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

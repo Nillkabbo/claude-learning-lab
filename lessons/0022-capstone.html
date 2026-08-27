@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0022 · Capstone</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0022 · Phase 5 — Professional depth (final lesson of the phase)</p>
+<h1>Capstone: a full production architecture from a blank page</h1>
+<p class="subtitle">Twenty-one lessons, one checklist, one blank page. This is the exam, in slow motion.</p>
+
+<div class="meta">
+  <span class="accent">≈ 20 minutes + the exercise</span>
+  <span>Synthesizes 0001–0021</span>
+  <span>The exercise is the real lesson</span>
+</div>
+
+<p>The CCAR exams give you a scenario and ask for judgment. This lesson compresses the
+entire course into the <strong>order you think in</strong> — a master checklist where
+every line is a decision you've already learned to make, cited to its lesson. Then the
+exercise hands you a blank page and a realistic brief. Do it on paper, under a timer if
+you can bear it.</p>
+
+<h2>The master checklist (design order)</h2>
+
+<ol>
+  <li><strong>Criteria before architecture.</strong> Numeric success criteria, paired
+  against gaming; constraint inventory; failure catalog with costs.
+  <a href="0019-discovery-and-scoping.html">0019</a> · <a href="0016-evaluation-and-feedback-loops.html">0016</a></li>
+  <li><strong>Posture before patterns.</strong> Product chooser (who runs the loop?) and
+  complexity ladder (single call → workflow → agent) — with the losing options' reasons
+  recorded. <a href="0012-agent-sdk.html">0012</a> · <a href="0013-workflows-vs-agents.html">0013</a></li>
+  <li><strong>Patterns composed, not worshiped.</strong> Route (focus/cost/privacy), chain
+  with gates, section/vote, evaluate-and-refine; multi-agent only where the economics
+  pay (parallel, context-exceeding, high-value). <a href="0014-composition-patterns.html">0014</a> · <a href="0015-orchestrator-workers.html">0015</a></li>
+  <li><strong>Interfaces designed for a reader.</strong> Structured outputs for shape
+  (grammar/semantic/human validation layers); tools with four-question descriptions,
+  enums, consolidation, high-signal results; <code>strict: true</code> where it matters.
+  <a href="0004-structured-outputs.html">0004</a> · <a href="0006-designing-tool-interfaces.html">0006</a></li>
+  <li><strong>Errors and state engineered.</strong> Transient/permanent/uncertain
+  classification; instructive messages; idempotency keys on side effects;
+  verify-don't-retry. <a href="0007-error-handling-in-agent-tools.html">0007</a></li>
+  <li><strong>Context budgeted.</strong> What counts, what re-bills; compaction and
+  clearing with cache-aware thresholds; memory for what survives; tool-search if the
+  tool bill is fat. <a href="0008-context-management.html">0008</a></li>
+  <li><strong>Trust boundaries drawn.</strong> Permission deny→ask→allow; confirmation
+  gates in code (<code>canUseTool</code>); MCP scopes progressive, no passthrough, no
+  session auth; untrusted content in <code>tool_result</code> blocks.
+  <a href="0009-claude-code-essentials.html">0009</a> · <a href="0021-trust-security-mcp.html">0021</a></li>
+  <li><strong>The four workflow concerns.</strong> Escalation as a ≥95% skill with real
+  handoff context; compliance in enforced layers; degradation ladder with no silent
+  failures; paired business metrics. <a href="0018-workflow-design.html">0018</a></li>
+  <li><strong>Evaluation built before shipping.</strong> ~20-case starter set, graders
+  from the spectrum judged cross-model, outcome-not-path for agents, humans for what
+  automation misses. <a href="0016-evaluation-and-feedback-loops.html">0016</a></li>
+  <li><strong>The bill engineered.</strong> Batch the patient, cache the stable, tier
+  the models, budget the thinking; invalidation hierarchy respected in release design.
+  <a href="0017-batches-cost-latency.html">0017</a></li>
+  <li><strong>The lifecycle owned.</strong> Handoff package (runbook = degradation
+  ladder, why-ledger, eval suite, policy map); three-plane observation; iteration gated
+  by evals, deployed by rainbow, protected by checkpoints.
+  <a href="0020-lifecycle-management.html">0020</a></li>
+</ol>
+
+<pre class="diagram">
+   criteria ─► posture ─► patterns ─► interfaces ─► errors ─► context
+      │                                                    │
+      ▼                                                    ▼
+   lifecycle ◄── economics ◄── evaluation ◄── workflow ◄── trust
+  (handoff/observe/iterate)   (built pre-ship)  (4 concerns)  (boundaries)
+</pre>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  This checklist <em>is</em> the exam skill: a scenario walks in, and you walk it down
+  the list, producing a defensible decision at each line with a number or a spec rule to
+  back it. Everything from statelessness (0001) to rainbow deploys (0020) has a slot.
+</div>
+
+<h2>Check yourself</h2>
+<p>Synthesis questions, from memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "The first artifact of any engagement is:",
+    "answers": [
+      "numeric success criteria first",
+      "the system prompt draft",
+      "a model tier selection",
+      "an MCP server inventory"
+    ],
+    "correct": 0,
+    "why": "Criteria before architecture: paired, numeric, achievable — they decide the ladder position, the eval suite, and every later trade-off. Prompts and tools come after the target exists."
+  },
+  {
+    "q": "Multi-agent architecture is justified when work is:",
+    "answers": [
+      "parallel and context-exceeding work",
+      "sequential, coupled, shared-state work",
+      "single-call extractable simple work",
+      "latency-critical interactive chat work"
+    ],
+    "correct": 0,
+    "why": "Heavy parallelization, information beyond single contexts, and task value that can pay the ~15× token bill. Coupled shared-state and latency-critical work are explicit when-NOTs."
+  },
+  {
+    "q": "A design with no enforced compliance layer fails because:",
+    "answers": [
+      "prompts are context, not enforcement",
+      "models cannot read policy documents",
+      "filters require prompts to function",
+      "compliance needs human reviewers only"
+    ],
+    "correct": 0,
+    "why": "The through-line from 0009 to 0021: memory files and prompt rules guide, they don't guarantee. Compliance lives in deterministic filters, permission rules, gates, and routing — enforced layers."
+  },
+  {
+    "q": "Before any prompt change ships to production, it must:",
+    "answers": [
+      "clear evals and held-out data",
+      "ship behind a rainbow deployment",
+      "get legal and finance approval",
+      "wait for quarterly release windows"
+    ],
+    "correct": 0,
+    "why": "The iteration gate: changes cascade through agent systems, so every edit runs the eval suite and final held-out validation — then deploys (compatibly, via rainbow) with checkpoints protecting runners."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn — the capstone</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">The brief: "Compass" for Meridian Bank (45–60 minutes, on paper)</span>
+  <p>Meridian Bank (500 analysts, regulated) wants <strong>Compass</strong>: analysts ask
+  research questions answered from market data (already exposed as MCP tools by the
+  bank), internal policy documents (large, static, updated weekly), and client
+  portfolios (sensitive, access varies by analyst). Requirements: every claim cited;
+  interactive answers in seconds; a nightly 200-question deep-research digest; advice
+  compliance review; and a previous AI project that frightened the CFO's token budget.</p>
+  <p><strong>Deliver, mapped to checklist numbers:</strong> (1) criteria + constraints +
+  failure catalog; (2) posture with recorded reasons; (3) the architecture sketch —
+  patterns per path; (4) interface decisions (one tool description outline, the
+  structured-output choice); (5) error/idempotency design for portfolio writes;
+  (6) the context strategy; (7) the trust map (MCP scopes, gates, content containment);
+  (8) the four workflow concerns; (9) the eval plan; (10) the cost model with numbers;
+  (11) the lifecycle package summary.</p>
+  <details class="reveal">
+    <summary>Check your answer against the model skeleton</summary>
+    <p><strong>(1)</strong> e.g. citation-accuracy ≥98% (compliance), interactive
+  first-token p95 &lt;2s, digest completeness per rubric ≥90%, sensitive-data exposure 0,
+  CFO-facing monthly ceiling. Constraints: MCP market tools exist; policy docs static
+  weekly; portfolio access per-analyst. Failure catalog: market-data outage, mid-write
+  portfolio timeout, digest deadline miss.</p>
+    <p><strong>(2)</strong> Interactive: routed workflow (no agent — latency is the
+  product, paths are predictable). Digest: agent (open-ended, context-exceeding,
+  high-value — the 15× economics can pay overnight). Posture: Agent SDK in the bank's
+  perimeter (regulated data leaves nothing); Managed Agents rejected — recorded why.</p>
+    <p><strong>(3)</strong> Interactive: classify → (policy-RAG lane | portfolio-tools
+  lane | market lane) → chained draft → citation gate → emit; parallel screening vote on
+  advice-adjacent outputs. Digest: orchestrator-workers — lead plans to memory, workers
+  per question-cluster write filesystem artifacts, citation pass, end-state eval.</p>
+    <p><strong>(4)</strong> Tools already exist via MCP: audit their descriptions
+  against the four questions; consolidate overlaps; demand progressive scopes
+  (<code>market:read</code> first). Structured outputs: the citation gate's schema and
+  the digest's findings format; semantic rules (holdings freshness) validated in code.</p>
+    <p><strong>(5)</strong> Portfolio writes: confirmation gate + idempotency key;
+  timeout = uncertain → verify via read-back before retry; instructive errors to adapt.</p>
+    <p><strong>(6)</strong> Interactive: stable-first prefix (policy corpus, tools) with
+  breakpoints; per-analyst history as growing suffix. Digest: compaction + memory tool,
+  clear_tool_uses with clear_at_least, thinking management on newer models.</p>
+    <p><strong>(7)</strong> Portfolio lane = per-analyst scoped tools (no passthrough);
+  market content stays in tool_result blocks; writes gated; digest workers sandboxed;
+  scopes progressive, no wildcards.</p>
+    <p><strong>(8)</strong> Escalation to human compliance reviewers with full context
+  (artifacts, citations) on low-confidence advice; compliance = enforced filters +
+  routing; degradation ladder per failure catalog (market outage → policy-only answers,
+  honestly labeled); metrics paired (deflection ↔ analyst CSAT).</p>
+    <p><strong>(9)</strong> ~20 real questions now; LLM-binary citation judge
+  (cross-model), rubric judge on digests (0.0–1.0 + pass/fail), outcome-not-path for
+  the digest agent; humans sample for source-selection bias.</p>
+    <p><strong>(10)</strong> Digest via Batch (×0.5) where latency allows; cached
+  policy prefix (reads ×0.1); tiered models by lane; tool bill audited; Tuesday-style
+  tool changes scheduled against the invalidation hierarchy — show the CFO the
+  arithmetic, not adjectives.</p>
+    <p><strong>(11)</strong> Runbook from the ladder; why-ledger; eval suite in CI;
+  usage-report dashboards by workspace/model; rainbow deploys; checkpoints for the
+  overnight digest. If your paper hit all eleven with a number or spec-rule at each —
+  you're ready for Phase 6's mocks.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ The checklist <em>is</em> the source: follow each line's lesson link. The exam
+shape it trains for is the scenario brief — this lesson's exercise is a faithful
+rehearsal.</p>
+
+<div class="callout note">
+  <span class="callout-title">Phase 5 complete — Phase 6 awaits</span>
+  The full curriculum is delivered after this lesson except the two mock exams. Say
+  <em>"mock exam"</em> when you want 0023 (mixed retrieval across all five domains), and
+  report your capstone outcome — it's the single richest piece of evidence the learning
+  records could hold.
+</div>
+
+<div class="lesson-nav">
+  <a href="0021-trust-security-mcp.html">◂ 0021 · Trust &amp; MCP</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0022 · Claude Architect course · synthesis of lessons 0001–0021
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

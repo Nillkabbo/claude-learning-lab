@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foundations of Claude — the ten laws</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Reference · The fundamentals</p>
+<h1>Foundations of Claude: the ten laws</h1>
+<p class="subtitle">Hold in every project, every product, every model generation. Learn these and nothing about Claude will surprise you.</p>
+
+<div class="meta">
+  <span class="accent">Print me</span>
+  <span>Every law links to its lesson</span>
+  <span>Companion: the build-anything playbook</span>
+</div>
+
+<ol>
+  <li>
+    <h2>1 · The API is stateless — you own the conversation</h2>
+    <p>Claude remembers nothing between requests. The <code>messages</code> array <em>is</em> the
+    conversation, and your code must resend all of it, every call, ending with a user
+    message. Every "the bot forgot" bug is a dropped turn; every long-chat cost is this
+    law re-billing you. <a href="../lessons/0001-anatomy-of-a-claude-request.html">0001</a></p>
+  </li>
+  <li>
+    <h2>2 · Everything is content blocks</h2>
+    <p>A reply is a <em>list of typed blocks</em> — text, tool_use — not a string. That shape is
+    what lets one response talk and act at once, and what you branch on.
+    <a href="../lessons/0001-anatomy-of-a-claude-request.html">0001</a> · <a href="../lessons/0005-tool-use-fundamentals.html">0005</a></p>
+  </li>
+  <li>
+    <h2>3 · The system prompt is policy, not conversation — and it is context, not enforcement</h2>
+    <p>Role and standing rules live above the conversation; task content rides in user
+    turns. And no prompt — system or memory file — <em>guarantees</em> anything: guarantees
+    live in rules, filters, and gates. Newer models respond more strongly to system
+    prompts, so shouted legacy rules now over-trigger.
+    <a href="../lessons/0002-system-prompts-and-prefilling.html">0002</a> · <a href="../lessons/0009-claude-code-essentials.html">0009</a></p>
+  </li>
+  <li>
+    <h2>4 · Shape is enforced by grammar; meaning by code; stakes by humans</h2>
+    <p>Structured outputs constrain generation itself (schema-valid by construction —
+    though numerical constraints and length limits 400). Semantic rules are yours,
+    post-parse. High-stakes or low-confidence outputs get human review. Three layers,
+    three owners — never confuse them. Retired dials (temperature, prefill) are
+    migration questions, not levers. <a href="../lessons/0003-output-control.html">0003</a> · <a href="../lessons/0004-structured-outputs.html">0004</a></p>
+  </li>
+  <li>
+    <h2>5 · The tool loop: the model requests, you execute, results ride in user messages</h2>
+    <p><code>stop_reason: tool_use</code> → execute → <code>tool_result</code> in a user message,
+    matched by <code>tool_use_id</code>, assistant turn echoed in full. Tool descriptions are
+    the interface — "by far the most important factor in tool performance": what it
+    does, when, when not, limits. <a href="../lessons/0005-tool-use-fundamentals.html">0005</a> · <a href="../lessons/0006-designing-tool-interfaces.html">0006</a></p>
+  </li>
+  <li>
+    <h2>6 · Errors are messages the model reads</h2>
+    <p>Signal with <code>is_error</code> and instructive content. Transient says "retry after N";
+    permanent names the alternative; <strong>uncertain</strong> says UNKNOWN and demands
+    verification — idempotency keys make retries safe by construction. MCP formalizes
+    the split: protocol errors (communication) vs in-band execution errors (recoverable).
+    <a href="../lessons/0007-error-handling-in-agent-tools.html">0007</a></p>
+  </li>
+  <li>
+    <h2>7 · Context is a budget that rots</h2>
+    <p>Everything counts — messages, tool results, tool definitions, thinking, even cached
+    tokens — and accuracy degrades as it grows. Compaction is the primary strategy;
+    clearing is cache-aware; memory saves essentials before clearing. Curate, always.
+    <a href="../lessons/0008-context-management.html">0008</a></p>
+  </li>
+  <li>
+    <h2>8 · Enforcement lives in layers</h2>
+    <p>Permission rules (deny → ask → allow, first match; lists merge; trust-gated) and
+    deterministic filters enforce; hooks react (and fail open — use them for context and
+    audit, not guarantees); prompts guide. Trust boundaries: untrusted content stays in
+    <code>tool_result</code> blocks; MCP gives no token passthrough, no session auth,
+    progressive scopes only. <a href="../lessons/0009-claude-code-essentials.html">0009</a> · <a href="../lessons/0021-trust-security-mcp.html">0021</a></p>
+  </li>
+  <li>
+    <h2>9 · Complexity is a purchase</h2>
+    <p>"Find the simplest solution possible" — single call → workflow (route, chain with
+    gates, section/vote, evaluate-and-refine) → agent (open-ended, ground truth per
+    step, stopping conditions) → multi-agent (parallel, context-exceeding, high-value —
+    ~15× tokens). Patterns compose; buy each rung only when it demonstrably pays.
+    <a href="../lessons/0012-agent-sdk.html">0012</a> · <a href="../lessons/0013-workflows-vs-agents.html">0013</a> · <a href="../lessons/0014-composition-patterns.html">0014</a> · <a href="../lessons/0015-orchestrator-workers.html">0015</a></p>
+  </li>
+  <li>
+    <h2>10 · Evidence and economics gate everything</h2>
+    <p>Criteria before architecture, numeric. Evals gate every change (cross-model
+    judges, outcomes not paths, humans for what automation misses). The bill is
+    architecture: batch the patient (−50%), cache the stable (reads at 0.1×), respect
+    the invalidation hierarchy. Then own it: handoff packages, three-plane observation,
+    rainbow deploys. <a href="../lessons/0016-evaluation-and-feedback-loops.html">0016</a> · <a href="../lessons/0017-batches-cost-latency.html">0017</a> · <a href="../lessons/0019-discovery-and-scoping.html">0019</a> · <a href="../lessons/0020-lifecycle-management.html">0020</a></p>
+  </li>
+</ol>
+
+<div class="callout win">
+  <span class="callout-title">How to use this page</span>
+  Before starting any project, walk the ten laws against your idea — each either
+  changes a design decision or confirms one. Then open the
+  <a href="build-anything-playbook.html">build-anything playbook</a> and execute it phase
+  by phase, with the <a href="../starter/">starter kit</a> as your foundation in code.
+</div>
+
+<footer class="course-footer">
+  Foundations of Claude · distilled from lessons 0001–0022, all facts verified against official docs ·
+  <a href="glossary.html">Glossary</a> · <a href="claude-architect-roadmap.html">Roadmap</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

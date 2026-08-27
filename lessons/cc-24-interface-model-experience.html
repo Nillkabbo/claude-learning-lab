@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-24 · Your interface & model experience</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-24 · Phase F — Everywhere & everything</p>
+<h1>Your interface & model experience</h1>
+<p class="subtitle">Make the tool yours: terminal, status line, styles, speed, and the advisor.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide · Phase F</span>
+  <span>Hands-on by design</span>
+</div>
+<p>Two clusters the docs dedicate whole sections to:</p>
+<ul>
+  <li><strong>Interface</strong> — configure your terminal; fullscreen rendering;
+  customize the <em>status line</em> and <em>keyboard shortcuts</em>; voice dictation;
+  screen-reader support. Small levers, daily comfort.</li>
+  <li><strong>Model experience</strong> — <em>model configuration</em> (which Claude, per
+  task); <em>output styles</em> (the response persona); <em>fast mode</em> for speed;
+  and the <em>advisor tool</em>: escalate a hard decision to a stronger model
+  mid-generation — the two-model pattern from Track 1's research, productized.</li>
+</ul>
+<p>The operator's frame: these are the ergonomic and economic dials — persona costs
+nothing, model choice costs money, fast mode trades quality for speed, the advisor
+spends big-model tokens only on the hard calls.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "The advisor tool:",
+  "answers": [
+   "escalates to a stronger model",
+   "downgrades to the cheapest model",
+   "caches your whole system prompt",
+   "rewrites all your git history"
+  ],
+  "correct": 0,
+  "why": "Hard decisions escalate to a stronger model mid-generation \u2014 big-model tokens spent only on the hard calls."
+ },
+ {
+  "q": "Output styles change:",
+  "answers": [
+   "the response persona",
+   "the model pricing",
+   "the context window",
+   "the sandbox rules"
+  ],
+  "correct": 0,
+  "why": "The persona of responses \u2014 a formatting/voice lever, not an economic one."
+ },
+ {
+  "q": "Fast mode trades:",
+  "answers": [
+   "some quality for speed",
+   "safety for extra tokens",
+   "memory for model accuracy",
+   "hooks for permission rules"
+  ],
+  "correct": 0,
+  "why": "A latency dial: quicker responses at some quality cost \u2014 know when you're flipping it."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Customize three things you'll touch daily: the status line, one keyboard shortcut,
+  and an output style. Then deliberately compare a task in fast mode vs normal. Report
+  the setup you kept.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/interface">Interface configuration — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-23-ides-slack-chrome.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-24 · Claude Code Guide · sources: official docs + Track 1 lessons
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

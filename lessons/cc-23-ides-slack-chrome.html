@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-23 · IDEs, Slack, and Chrome</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-23 · Phase F — Everywhere & everything</p>
+<h1>IDEs, Slack, and Chrome</h1>
+<p class="subtitle">Meet your team where it already is.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide · Phase F</span>
+  <span>Hands-on by design</span>
+</div>
+<ul>
+  <li><strong>VS Code</strong> — inline diffs, the integrated terminal, file context in
+  the editor. <strong>JetBrains</strong> (IntelliJ, PyCharm, WebStorm…) — diff viewer
+  and <em>selection sharing</em> (select code, share it as context); under the hood it
+  runs the CLI in the IDE's terminal, so third-party providers work.</li>
+  <li><strong>Slack</strong> — Claude responds to <code>@Claude</code> mentions in team
+  channels; those sessions run in <em>Anthropic's cloud</em>, not your machine.
+  <strong>Claude Tag</strong> gives the org a <em>shared @Claude identity with
+  admin-configured access</em> (Team and Enterprise).</li>
+  <li><strong>Chrome</strong> — Claude controls <em>your logged-in browser</em>: testing
+  web apps, filling forms, automating sites <em>without an API</em>.</li>
+</ul>
+<p>The architecture eye from Track 1: every integration is a trust boundary — who
+authenticates, what the surface can reach, what's logged (0021's review applies to
+Chrome and Slack exactly as to MCP).</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Slack integration responds to:",
+  "answers": [
+   "@Claude mentions",
+   "every message",
+   "DMs only",
+   "issues only"
+  ],
+  "correct": 0,
+  "why": "Mentions in team channels \u2014 and those sessions run in Anthropic's cloud."
+ },
+ {
+  "q": "Claude Tag provides:",
+  "answers": [
+   "a shared org identity",
+   "your personal API keys",
+   "an anonymous channel identity",
+   "a full billing waiver"
+  ],
+  "correct": 0,
+  "why": "A shared organizational @Claude identity with admin-configured access, on Team and Enterprise plans."
+ },
+ {
+  "q": "The Chrome integration controls:",
+  "answers": [
+   "your logged in browser",
+   "a fresh headless browser",
+   "the model weights themselves",
+   "your keyboard and shortcuts"
+  ],
+  "correct": 0,
+  "why": "Your logged-in browser \u2014 testing web apps, filling forms, automating sites without an API."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Install the VS Code (or JetBrains) extension and do one full task inside the IDE.
+  If your team uses Slack: one @Claude mention in a scratch channel (or sketch the Claude
+  Tag rollout on paper). Report which surface earned a permanent spot.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/ide">Use Claude Code in VS Code — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-22-web-routines-ultrareview.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-23 · Claude Code Guide · sources: official docs + Track 1 lessons
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

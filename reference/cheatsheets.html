@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cheat sheets — print me</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Reference · Print me</p>
+<h1>Cheat sheets</h1>
+<p class="subtitle">Three cards: the tool, the API, the exam. Recall anchors, not 70 tabs.</p>
+
+<div class="meta">
+  <span class="accent">Card 1: Claude Code</span><span>Card 2: The API</span><span>Card 3: The exam</span>
+</div>
+
+<h2>Card 1 — Claude Code</h2>
+<table>
+  <tbody>
+    <tr><td><strong>Install</strong></td><td><code>curl -fsSL https://claude.ai/install.sh | bash</code> (native, auto-updates) · verify <code>claude --version</code></td></tr>
+    <tr><td><strong>Modes</strong></td><td><strong>Shift+Tab</strong> cycles: manual (ask each) → plan (read-only, plan first) → auto (classifier-reviewed)</td></tr>
+    <tr><td><strong>Session</strong></td><td><code>/clear</code> new task · <code>claude -c</code> continue · <code>claude -r</code> resume list · <code>claude -p "…" --output-format json</code> one-shot</td></tr>
+    <tr><td><strong>Inspect</strong></td><td><code>/context</code> what loaded + tokens · <code>/status</code> settings sources · <code>claude doctor</code> rejected entries</td></tr>
+    <tr><td><strong>Memory</strong></td><td>project <code>./CLAUDE.md</code> · user <code>~/.claude/CLAUDE.md</code> · local <code>CLAUDE.local.md</code> (gitignored) · <code>@imports</code> ≤4 hops · &lt;200 lines · "context, not enforcement"</td></tr>
+    <tr><td><strong>Permissions</strong></td><td>eval <strong>deny → ask → allow</strong>, first match · bare deny hides tool · lists merge · committed allows need folder trust, deny/ask immediate · settings: managed &gt; CLI &gt; local &gt; shared &gt; user</td></tr>
+    <tr><td><strong>Hooks</strong></td><td>exit 2 blocks (regardless of JSON) · exit 0 + JSON decides · <strong>fail open</strong> → permissions are the guarantee, hooks the tripwire</td></tr>
+    <tr><td><strong>Subagents</strong></td><td>delegation is description-driven · built-ins Explore/Plan/General-purpose · 20 concurrent / 3 deep default</td></tr>
+    <tr><td><strong>Skills</strong></td><td><code>.claude/skills/&lt;n&gt;/SKILL.md</code> · <code>allowed-tools</code> clears next message · <code>context: fork</code> isolates</td></tr>
+  </tbody>
+</table>
+
+<h2>Card 2 — The Messages API</h2>
+<table>
+  <tbody>
+    <tr><td><strong>Statelessness</strong></td><td>you own the conversation — full history every call, ending with a <em>user</em> message</td></tr>
+    <tr><td><strong>Request</strong></td><td><code>model</code>, <code>max_tokens</code> (required; thinking budget counts against it), <code>system</code> (policy), <code>messages</code></td></tr>
+    <tr><td><strong>stop_reason</strong></td><td><code>end_turn</code> done · <code>max_tokens</code> you truncated · <code>stop_sequence</code> your brake fired · <code>tool_use</code> execute &amp; loop · <code>refusal</code> policy path</td></tr>
+    <tr><td><strong>Retired</strong></td><td>temperature (only 1.0 on post-Opus-4.6; else 400) · prefill (trailing assistant turn 400s on 4.6+) · <code>output_format</code> → <code>output_config.format</code></td></tr>
+    <tr><td><strong>Structured output</strong></td><td>constrained decoding · supports enums/required/nested · <strong>numerical + length constraints 400</strong> → semantic rules are your code, humans for stakes</td></tr>
+    <tr><td><strong>Tool loop</strong></td><td><code>tool_result</code> rides in a <strong>user message</strong>, first in content, matched by <code>tool_use_id</code>, assistant turn echoed in full · tool_choice: auto/any/tool/none</td></tr>
+    <tr><td><strong>Errors</strong></td><td><code>is_error</code> + instructive text · transient ("retry after N") / permanent (name the alternative) / uncertain (UNKNOWN, verify; idempotency keys) · MCP: protocol (JSON-RPC) vs in-band <code>isError</code></td></tr>
+    <tr><td><strong>Context</strong></td><td>everything counts (cached too) · rot with size · compaction primary · clearing cache-aware (<code>clear_at_least</code>) · memory-before-clear</td></tr>
+    <tr><td><strong>Cost</strong></td><td>batch ×0.5 flat (stacks) · cache reads ×0.1 · writes ×1.25 (5-min)/×2 (1-hour) · invalidation: tools→3 levels, system→2, messages→1</td></tr>
+    <tr><td><strong>Patterns</strong></td><td>simplest first · route (focus/cost/privacy) · chain w/ gates · section/vote · evaluator-optimizer · multi-agent = ~15× tokens, parallel+context-exceeding+valuable only</td></tr>
+  </tbody>
+</table>
+
+<h2>Card 3 — The exam (CCAR-F, verified vs the official guide)</h2>
+<table>
+  <tbody>
+    <tr><td><strong>Shape</strong></td><td>60 items (MC + multi-select) · 120 min · pass 720/1000 · $125 · Pearson VUE · <strong>4 scenarios drawn from a bank of 6</strong>: support agent · code-gen w/ CC · multi-agent research · dev productivity · CC-in-CI · structured extraction</td></tr>
+    <tr><td><strong>Domains</strong></td><td>Agentic Architecture &amp; Orchestration <strong>27%</strong> · Tool Design &amp; MCP Integration <strong>18%</strong> · Claude Code Configuration &amp; Workflows <strong>20%</strong> · Prompt Engineering &amp; Structured Output <strong>20%</strong> · Context Management &amp; Reliability <strong>15%</strong></td></tr>
+    <tr><td><strong>Method</strong></td><td>read stem → name the domain → recall the law → eliminate. Trade-offs beat absolutes; "always/never" answers are usually wrong; simplest-solution-first is the default posture</td></tr>
+    <tr><td><strong>Booking</strong></td><td>Partner Academy, work email in a Claude Partner Network org · read the Exam Guide PDF first (in <code>resources/</code>) · 12-month validity · 4 attempts/yr (14/30/90-day waits)</td></tr>
+  </tbody>
+</table>
+
+<footer class="course-footer">
+  Cheat sheets · verified against the sources in <a href="RESOURCES.md">RESOURCES.md</a> ·
+  <a href="foundations-of-claude.html">the ten laws</a> complete the set ·
+  re-verify dated facts before exam day (<code>resources/FACTS-TO-REVERIFY.md</code>)
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

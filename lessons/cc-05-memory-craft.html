@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-05 · Memory craft: CLAUDE.md in depth</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-05 · Phase B — Core user</p>
+<h1>Memory craft: CLAUDE.md in depth</h1>
+<p class="subtitle">The file that teaches every future session — and the directory that houses it.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>Everything 0009 taught, at operator depth. The scope ladder: <strong>managed
+  policy → user (<code>~/.claude/CLAUDE.md</code>) → project (<code>./CLAUDE.md</code>,
+  committed) → local (<code>CLAUDE.local.md</code>, gitignored)</strong>. Loading is
+  recursive upward from where you launch, concatenated so <em>closer files read last</em>
+  (last = loudest); subdirectory files load on demand.</p>
+<ul>
+  <li><strong><code>@path</code> imports</strong> nest up to <strong>four hops</strong>,
+  resolve relative to the importing file, and backticks keep them literal. Import
+  <code>@AGENTS.md</code> for agent-file compatibility.</li>
+  <li><strong>Auto memory</strong>: notes Claude writes itself, indexed via
+  <code>MEMORY.md</code> — context, not enforcement, like all memory.</li>
+  <li><strong>Craft</strong>: under 200 lines; add an instruction when Claude makes the
+  same mistake twice; specific commands, not vibes; contradictions make Claude pick
+  arbitrarily; procedures belong in skills, not CLAUDE.md.</li>
+  <li><strong><code>/memory</code></strong> lists and edits every scope;
+  <strong><code>/init</code></strong> bootstraps a starter file with improvement
+  suggestions; <strong><code>/context</code></strong> proves what actually loaded.</li>
+</ul>
+<p>The <em>.claude directory</em> tour (official page) covers the rest of the house:
+<code>settings.json</code>, <code>agents/</code>, <code>skills/</code>, hooks — Phase B's
+map.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "@imports nest to at most:",
+  "answers": [
+   "four hops",
+   "one hop",
+   "unlimited depth",
+   "exactly two"
+  ],
+  "correct": 0,
+  "why": "Maximum import depth is four hops; backticks keep a path literal instead of importing."
+ },
+ {
+  "q": "CLAUDE.local.md is:",
+  "answers": [
+   "personal and gitignored",
+   "team-shared and committed",
+   "the org-managed policy",
+   "made by /init"
+  ],
+  "correct": 0,
+  "why": "Local memory is yours alone \u2014 add it to .gitignore; the project CLAUDE.md is the committed, shared one."
+ },
+ {
+  "q": "The right moment to add a CLAUDE.md instruction:",
+  "answers": [
+   "the second same mistake",
+   "before the first session",
+   "only at project start",
+   "never \u2014 use hooks"
+  ],
+  "correct": 0,
+  "why": "Add when Claude makes the same mistake a second time \u2014 specific, not preemptive poetry."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Run <code>/init</code> on a real project. Trim its output to the 10 lines that
+  actually matter. Add one correction you've repeated twice. Verify with
+  <code>/context</code>. Report the line count before/after.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/memory">How Claude remembers your project — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-04-how-it-works.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-05 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

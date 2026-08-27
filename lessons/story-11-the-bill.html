@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 11 · The bill</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 11 of 12</p>
+<h1>The bill</h1>
+<p class="subtitle">In which the invoice arrives, and you learn that watching costs is an engineering skill.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: usage visibility · spend limits · right-sizing · team settings</span>
+  <span>Project gains: a cost dashboard habit, org-grade settings</span>
+</div>
+
+<h2>The email</h2>
+
+<p>"Monthly usage is up 40%," says the subject line, and Priya forwards it with one
+word: "Explain." Not accusatory — worse: <em>curious</em>. You open the usage
+dashboard the way you'd open a suspicious package.</p>
+
+<p>Forty minutes later you know three things you didn't:</p>
+
+<ol>
+  <li><strong>Where it went</strong> — usage broken down by workspace, by API key, by
+  model, by day. The spike: your Chapter 10 night-shift, plus Dana's ultrareviews.</li>
+  <li><strong>What it costs</strong> — cached vs uncached input in the report tells
+  the real story: your long nightly contexts were re-billed full-price because the
+  prompt changed every run. Stable prefix → cache reads at a tenth. One refactor of
+  the nightly prompt ordering and the line item drops by half.</li>
+  <li><strong>What it should be</strong> — right-sizing: the sync job and the diff
+  reviewer don't need the big model for every call. Chores step down a tier; deep
+  review stays big. Same lesson as the exam course's cost chapter, now with your own
+  name on the invoice.</li>
+</ol>
+
+<p>You write the explanation as three bullet points and one fix each. Priya replies
+"good" — the third one — and CC's finance with a spend limit for the workspace. The
+limit isn't distrust; it's a fence so the <em>next</em> surprise pages a budget instead
+of a person.</p>
+
+<h2>The quiet upgrade</h2>
+
+<p>While you're in admin territory, you finish the team's growing-pains work: a
+<strong>managed settings</strong> layer — org-level policy (allow-lists, the spend
+caps, hook rules) that travels to every dev's machine and every CI runner, and that
+nothing below it overrides. Your Chapter 7 guardrails stop being "in our repo" and
+become "how Meridian works." You also switch on usage analytics for the team — the
+consumption plane from your lifecycle lesson, wired: who, what, how much, trending
+where.</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  Costs became observable, explained, and fenced: usage by key/model/day; the cache
+  as a design lever; right-sizing as habit; spend limits as fences; managed settings
+  as policy at fleet scale. The bill stopped being weather and became architecture.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Open your usage view (console workspace, analytics dashboard, or OTel export
+    if you wired it); find your top cost driver by day and by cause.</li>
+    <li>Apply one lever: stable-prefix caching on your longest recurring prompt, a
+    model step-down on one chore, or <code>/clear</code> discipline between
+    unrelated tasks.</li>
+    <li>Set or propose one spend limit, in writing, with what it pages.</li>
+    <li>Sketch the org settings chain: managed → repo → local, one line each on what
+    lives where.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> a explained cost driver, one applied lever with
+  before/after numbers, one fence proposed. Report it — the last chapter is next, and
+  it ends with a package, not a page.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-10-the-2am-page.html">◂ Chapter 10</a>
+  <a class="next" href="story-12-your-legacy.html">Chapter 12 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 11 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-16, CC-13</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

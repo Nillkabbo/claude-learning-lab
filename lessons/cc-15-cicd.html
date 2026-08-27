@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-15 · Code review & CI/CD</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-15 · Phase D — Team & enterprise</p>
+<h1>Code review & CI/CD</h1>
+<p class="subtitle">Claude in the pipeline: reviewing PRs and scanning for vulnerabilities.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>The official CI surface (docs map): <strong>GitHub Actions</strong> (and with
+cloud providers, GHES, GitLab CI/CD), <strong>Code Review</strong>, and
+<strong>Claude Security</strong> for vulnerability scanning — plus
+<em>catch security issues as Claude writes code</em>.</p>
+<ul>
+  <li><strong>Headless in CI</strong> is the same law as CC-12: <code>claude -p</code>
+  with JSON output, contained permission modes, and explicit budgets — an automation
+  without fences is an outage scheduler.</li>
+  <li><strong>Review as a gate</strong> — invoke code review on PRs; findings arrive as
+  comments. Pair with Track 1's eval discipline: the pipeline judges outcomes, not vibes.</li>
+  <li><strong>Secrets stay secrets</strong> — deny rules and sandboxing apply in CI too;
+  the org's managed settings travel with the pipeline.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "CI usage of Claude Code rests on:",
+  "answers": [
+   "headless JSON output",
+   "interactive TTY sessions",
+   "manual human approvals",
+   "the desktop app"
+  ],
+  "correct": 0,
+  "why": "claude -p --output-format json \u2014 scriptable, composable, fenceable."
+ },
+ {
+  "q": "CI automation without permission fences:",
+  "answers": [
+   "it schedules outages",
+   "it saves tokens",
+   "it improves accuracy",
+   "is impossible anyway"
+  ],
+  "correct": 0,
+  "why": "Track 1's unattended-power law: contained modes + budgets + stopping conditions, or don't ship it."
+ },
+ {
+  "q": "Claude Security scans for:",
+  "answers": [
+   "vulnerabilities in code",
+   "odd billing anomalies",
+   "slow unit tests",
+   "the merge conflicts"
+  ],
+  "correct": 0,
+  "why": "Codebase vulnerability scanning is its own official page; review + scanning = the pipeline's judgment pair."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Add a minimal GitHub Action (or GitLab job) that runs <code>claude -p "review
+  this diff" --output-format json</code> on a scratch PR with a strict allow-list and a
+  spend cap. Report the workflow file and one finding it produced.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/cicd">Code review & CI/CD — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-14-security-deep-dive.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-15 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

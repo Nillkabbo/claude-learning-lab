@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0012 · Agent SDK</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0012 · Phase 3 — Claude Code &amp; the Agent SDK (final lesson of the phase)</p>
+<h1>Agent SDK: the loop as a library</h1>
+<p class="subtitle">Everything you've hand-built since Lesson 0005, handed to you as a function.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Claude Code Configuration · 20%</span>
+  <span>Code shown, none required</span>
+</div>
+
+<p>Since <a href="0005-tool-use-fundamentals.html">0005</a> you could build an agent by
+hand: send tools, read <code>tool_use</code>, execute, return <code>tool_result</code>,
+repeat. That's the Messages API contract — powerful, and <em>yours to babysit</em>. The
+Agent SDK's official tagline is the whole story: <strong>"Build production AI agents with
+Claude Code as a library"</strong> — the same tools, agent loop, and context management
+that power Claude Code, running <em>in your process</em>.</p>
+
+<h2>The product chooser (a complete exam answer)</h2>
+
+<table>
+  <thead><tr><th>Product</th><th>Who runs the agent loop</th><th>You reach for it when</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Messages API / Client SDK</strong></td><td><strong>You</strong> — you implement the tool loop yourself</td><td>You want full control: custom loops, 0004-style structured outputs, minimal machinery</td></tr>
+    <tr><td><strong>Agent SDK</strong> (Python / TypeScript)</td><td>The library — in <strong>your process</strong></td><td>You want the Claude Code engine (tools, context management, skills) embedded in your app</td></tr>
+    <tr><td><strong>Claude Code CLI</strong></td><td>Built-in — interactive terminal harness</td><td>Human-driven, one-off or team work in a repo</td></tr>
+    <tr><td><strong>Managed Agents</strong></td><td><strong>Anthropic</strong> — hosted REST, sandbox included</td><td>You don't want to run anything at all</td></tr>
+  </tbody>
+</table>
+
+<p>Two footnotes worth exam points: the Agent SDK exists for <strong>Python and TypeScript
+only</strong> — for other languages, the official pattern is running the CLI as a
+subprocess with <code>-p</code> and <code>--output-format json</code>. And the axis the
+table really encodes is one question: <em>who runs the loop, and where?</em></p>
+
+<h2><code>query()</code>: the one function</h2>
+
+<pre><code># Python
+async for message in query(
+    prompt="Review utils.py for bugs. Fix any issues you find.",
+    options=ClaudeAgentOptions(
+        allowed_tools=["Read", "Edit", "Glob"],
+        permission_mode="acceptEdits",
+    ),
+):
+    ...</code></pre>
+
+<pre><code>// TypeScript
+for await (const message of query({
+  prompt: "...",
+  options: {
+    allowedTools: ["Read", "Edit", "Glob"],
+    permissionMode: "acceptEdits"
+  }
+})) { ... }</code></pre>
+
+<p>You iterate <em>messages</em>: assistant messages carrying content blocks (text
+reasoning, or a tool <code>name</code> being executed — the loop from 0005 running
+inside), and a final <code>ResultMessage</code>. The progression the docs teach is the
+allowlist widening: read-only (<code>Read, Glob, Grep</code>) → code modification
+(<code>+ Edit</code>) → full automation (<code>+ Bash</code>). Other options:
+<code>system_prompt</code> (0002's craft), <code>mcpServers</code>, and more.</p>
+
+<h2>Guardrails in code</h2>
+
+<ul>
+  <li><strong><code>permission_mode</code></strong> — 0009's modes, set
+  programmatically (<code>"acceptEdits"</code>, <code>"plan"</code>, …).</li>
+  <li><strong><code>allowedTools</code></strong> — the allowlist as first-class option;
+  0011's minimal-tool-grant discipline, now in your constructor.</li>
+  <li><strong><code>canUseTool</code></strong> — a programmatic approval callback: your
+  <em>code</em> decides per call. This is 0006's confirmation gate and 0009's permission
+  prompt merged into one function you own.</li>
+  <li><strong>Hooks</strong> — 0010's lifecycle events, runnable from the SDK too.</li>
+</ul>
+
+<h2>Sessions, and the traveling team config</h2>
+
+<p><strong>Sessions</strong> "maintain context across exchanges, <em>resume or fork
+later</em>" — 0008's multisession pattern and 0011's fork, productized. And the config
+your team built travels with it: <strong>skills, commands, and memory load automatically
+from your project's <code>.claude/</code> and <code>~/.claude/</code> — "same as Claude
+Code."</strong> The artifact map from 0010 isn't CLI-only; it's the SDK's configuration
+surface. Subagents spawn, MCP servers connect, plugins package the lot.</p>
+
+<div class="callout win">
+  <span class="callout-title">The win — Phase 3 complete</span>
+  You can now choose the right product for any scenario (the four-way table), wire an
+  Agent SDK invocation with scoped tools and permission modes, place the confirmation
+  gate in code via <code>canUseTool</code>, and know that your team's <code>.claude/</code>
+  artifacts ride along. The whole 20% Claude Code domain — essentials, team config,
+  subagents/skills, and the SDK — is covered.
+</div>
+
+<div class="callout warn">
+  <span class="callout-title">The trade-off exam questions live on</span>
+  Grabbing the Agent SDK for a job the Messages API does (one structured extraction) buys
+  machinery you must feed, secure, and explain. Hand-building loops, compaction, and
+  permissions that the SDK already productized is the mirror mistake. The 27% agentic
+  architecture domain starts with exactly this judgment: <em>how much agent do you
+  actually need?</em>
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "The Agent SDK's core promise is:",
+    "answers": [
+      "Claude Code as a library",
+      "Anthropic hosts and runs agents",
+      "raw API with manual loops",
+      "an interactive terminal agent harness"
+    ],
+    "correct": 0,
+    "why": "\"Build production AI agents with Claude Code as a library\" — same tools, agent loop, and context management as Claude Code, running in your process. Hosting is Managed Agents; manual loops are the Client SDK; the terminal is the CLI."
+  },
+  {
+    "q": "In the quickstart, allowed_tools grants:",
+    "answers": [
+      "built-in tool name strings",
+      "arbitrary shell wildcard grants",
+      "schemas defining custom functions",
+      "permission deny list overrides"
+    ],
+    "correct": 0,
+    "why": "Strings like Read, Edit, Glob, Bash, WebSearch — the built-in toolset, widened progressively from read-only to full automation. Custom tool definitions are a separate mechanism."
+  },
+  {
+    "q": "For a language with no SDK (say, Go), the official pattern is:",
+    "answers": [
+      "CLI subprocess, JSON output",
+      "reimplement the loop yourself",
+      "call managed REST agents",
+      "use the TypeScript SDK"
+    ],
+    "correct": 0,
+    "why": "Run the CLI as a subprocess with -p and --output-format json. The SDK itself exists only for Python and TypeScript."
+  },
+  {
+    "q": "Skills and memory in the Agent SDK load from:",
+    "answers": [
+      "the .claude folders",
+      "environment variables only",
+      "SDK query options",
+      "remote managed settings"
+    ],
+    "correct": 0,
+    "why": "Automatically from the project's .claude/ and ~/.claude/ — \"same as Claude Code.\" Your team's skills, commands, and memory travel with the SDK unchanged."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — pick the product (exam-style)</span>
+  <p>Four Apex projects, four teams: (a) a nightly unattended batch that fixes doc-comment
+  errors across 200 repos, running in containers; (b) an interactive copilot for support
+  engineers that reads tickets and drafts replies — but any file write needs a human click;
+  (c) a Go microservice that triages bug reports into categories; (d) a one-shot extractor
+  pulling a policy number from an email body into JSON.</p>
+  <p><strong>On paper:</strong> pick the product for each — Messages API, Agent SDK, CLI,
+  or Managed Agents — and for the Agent SDK cases, sketch the options (system prompt,
+  allowed tools, permission mode, and where the approval gate lives).</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(a)</strong> Agent SDK (TS or Python), headless in the container:
+    <code>system_prompt</code> scoped to doc fixes, <code>allowed_tools: ["Read", "Edit",
+    "Glob", "Grep"]</code> — notably <em>no Bash</em> — <code>permission_mode:
+    "acceptEdits"</code>. Unattended + isolated container is the one habitat where
+    permissive modes are defensible.</p>
+    <p><strong>(b)</strong> Agent SDK with the approval in code:
+    <code>allowed_tools</code> including writes, but the human click lives in
+    <code>canUseTool</code> — your callback returns allow only after approval. The
+    confirmation gate as a function.</p>
+    <p><strong>(c)</strong> CLI as subprocess with <code>-p --output-format json</code> —
+    the official pattern for languages without an SDK. (Managed Agents is defensible if
+    they'd rather not run it; the reasoning is the point.)</p>
+    <p><strong>(d)</strong> Messages API + <strong>structured outputs</strong> (0004) —
+    one schema, one call, zero agent machinery. If you flinched at using an SDK here,
+    your instincts are exam-ready.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/agent-sdk/overview">Agent SDK overview</a></strong>
+(the product table) and the <a href="https://code.claude.com/docs/en/agent-sdk/quickstart">quickstart</a>
+(the verified <code>query()</code> shapes above).</p>
+
+<div class="callout note">
+  <span class="callout-title">Phase 3 complete — the heavyweight awaits</span>
+  Say <em>"phase review"</em> for a mixed quiz over 0009–0012, or <em>"next lesson"</em>
+  to enter Phase 4 — Agentic Architecture, 27% of the exam and the domain every other
+  domain was building toward. Questions about today's material? The agent is on call.
+</div>
+
+<div class="lesson-nav">
+  <a href="0011-subagents-and-skills.html">◂ 0011 · Subagents &amp; skills</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0012 · Claude Architect course · grounded in the official
+  <a href="https://code.claude.com/docs/en/agent-sdk/overview">Agent SDK overview</a> and
+  <a href="https://code.claude.com/docs/en/agent-sdk/quickstart">quickstart</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0001 · The anatomy of a Claude request</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0001 · Phase 1 — The API core</p>
+<h1>The anatomy of a Claude request</h1>
+<p class="subtitle">Claude remembers nothing. You remember everything. That's the whole lesson — the rest is detail.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes</span>
+  <span>Exam: Prompt Engineering · Context Mgmt</span>
+  <span>No coding needed</span>
+</div>
+
+<p>Every one of the five exam domains — agentic architecture (27%), Claude Code (20%),
+prompt engineering (20%), tools &amp; MCP (18%), context management (15%) — quietly assumes
+one mental model: <strong>what a Claude API request actually is</strong>. Get this right and
+half the exam's "tricky" questions become obvious. Here it is.</p>
+
+<h2>The one idea: statelessness</h2>
+
+<p>The Messages API is <strong>stateless</strong>. Claude has no memory of any previous request.
+Not the last message, not the last conversation, not yesterday. If you ask a follow-up
+question, nothing — <em>nothing</em> — carries over unless <em>you</em> send it again.</p>
+
+<p>That sounds like a limitation. It's actually the foundation of everything: because the
+model is stateless, <strong>your code owns the conversation</strong>. You decide what history
+exists, which turns are included, what gets summarized away, what gets retrieved from
+elsewhere. Context management (15% of the exam) is precisely the craft of managing that
+ownership well.</p>
+
+<pre class="diagram">
+  STATELESS MODEL                          YOUR APPLICATION
+  ┌───────────────┐   full history    ┌─────────────────────┐
+  │               │ ◄───────────────  │  messages array     │
+  │    Claude     │                  │  (you build this)   │
+  │               │  ──────────────► │                     │
+  └───────────────┘   one reply      └─────────────────────┘
+        ▲                                   │
+        └──────── nothing remembered ───────┘
+</pre>
+
+<h2>Anatomy of a request</h2>
+
+<p>A minimal, complete request has three required parts and one you'll almost always set:</p>
+
+<pre><code>{
+  <span style="color:#8a2323">"model"</span>: "claude-sonnet-4-5",
+  <span style="color:#8a2323">"max_tokens"</span>: 1024,
+  <span style="color:#8a2323">"system"</span>: "You are Tangerine Bank's assistant. Be concise.",
+  <span style="color:#8a2323">"messages"</span>: [
+    { "role": "user",      "content": "What's my checking balance?" },
+    { "role": "assistant", "content": "Your checking balance is $412.50." },
+    { "role": "user",      "content": "And my savings?" }
+  ]
+}</code></pre>
+
+<table>
+  <thead><tr><th>Field</th><th>Required?</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr><td><code>model</code></td><td>Yes</td><td>Which Claude handles this. Architects choose per task — capability vs cost vs latency.</td></tr>
+    <tr><td><code>max_tokens</code></td><td><strong>Yes</strong></td><td>Cap on response length. Required, and a classic exam trap: too small silently truncates output.</td></tr>
+    <tr><td><code>system</code></td><td>No</td><td>Role, rules, tone — the <a href="../reference/glossary.html">policy layer</a>. Persists across the conversation you send.</td></tr>
+    <tr><td><code>messages</code></td><td>Yes</td><td>The conversation: alternating <code>user</code>/<code>assistant</code> turns, oldest first. This array <em>is</em> the conversation.</td></tr>
+  </tbody>
+</table>
+
+<p>Notice what the third user turn <em>doesn't</em> say: "my savings <em>at Tangerine</em>" or
+"you just told me my checking." It doesn't need to — the earlier turns are right there in
+the array. The model reads the whole thing fresh, every time.</p>
+
+<h2>Anatomy of the reply</h2>
+
+<pre><code>{
+  "content": [
+    { "type": "text", "text": "Your savings balance is $8,230.00." }
+  ],
+  "stop_reason": "end_turn",
+  "usage": { "input_tokens": 96, "output_tokens": 14 }
+}</code></pre>
+
+<p>Three things your code will constantly branch on:</p>
+<ul>
+  <li><strong><code>content</code> is a list of blocks</strong> — not a plain string. A single reply can hold a text block <em>and</em> a tool-use block (Lesson 0005 builds on this).</li>
+  <li><strong><code>stop_reason</code></strong> says why generation ended: <code>end_turn</code> (done), <code>max_tokens</code> (you truncated it), <code>tool_use</code> (it wants a tool called).</li>
+  <li><strong><code>usage</code></strong> is your bill — inputs and outputs are priced differently, and the input <em>grows as the conversation grows</em>. That's the economic engine behind context management.</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now <strong>diagnose the "amnesiac app"</strong>: any chatbot that "forgets" earlier
+  messages isn't haunted — its code is dropping turns from the <code>messages</code> array it
+  resends. You know the fix, and you know why long chats get expensive (every turn
+  re-bills the whole history as input tokens).
+</div>
+
+<div class="callout warn">
+  <span class="callout-title">Common pitfall</span>
+  "Stateless API" ≠ "Claude has no memory features." Claude Code sessions, the Agent SDK,
+  and memory tools all exist — but they are <em>client-side machinery</em> that manages and
+  resends context for you. Underneath, every single call is still stateless. The exam
+  rewards knowing which layer owns the memory.
+</div>
+
+<h2>Check yourself</h2>
+<p>Retrieval, not review — answer from memory. Immediate feedback is built in.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "You send a request, get a reply, then send a follow-up question. What must the second request include?",
+    "answers": [
+      "The full prior conversation",
+      "Just the new question",
+      "A stored session identifier",
+      "The previous response only"
+    ],
+    "correct": 0,
+    "why": "The API is stateless: no server-side conversation or session token exists. Your client resends the entire history — that's what the messages array is for."
+  },
+  {
+    "q": "Besides model, which field is required in every Messages API request?",
+    "answers": [
+      "max_tokens",
+      "system",
+      "temperature",
+      "stream"
+    ],
+    "correct": 0,
+    "why": "max_tokens is required — and undersizing it is a classic failure mode: output truncates with stop_reason \"max_tokens\" instead of \"end_turn\"."
+  },
+  {
+    "q": "\"You are Tangerine Bank's assistant; never discuss competitors.\" Where does this belong?",
+    "answers": [
+      "The system prompt",
+      "The user message",
+      "The assistant prefill",
+      "The tool description"
+    ],
+    "correct": 0,
+    "why": "Persistent role and policy belong in the system prompt — it frames the whole conversation. User-message instructions read as conversation, not policy, and dilute as history grows."
+  },
+  {
+    "q": "A reply's text comes back in which shape?",
+    "answers": [
+      "A list of content blocks",
+      "One single plain text string",
+      "A dictionary keyed by role",
+      "An array of raw strings"
+    ],
+    "correct": 0,
+    "why": "content is an array of typed blocks (text, tool_use, …). One reply can mix block types — the shape that makes tool use possible."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — the follow-up that failed</span>
+  <p>A colleague's banking bot breaks like this:</p>
+  <pre><code>Turn 1 — user: "What's my checking balance?"
+Turn 1 — bot:  "Your checking balance is $412.50."
+Turn 2 — user: "Transfer $200 to savings from there."</code></pre>
+  <p>The bot replies: <em>"From where?"</em>. Its developer built turn 2's request containing
+  <strong>only</strong> the turn-2 user message.</p>
+  <p><strong>Fix it on paper:</strong> write the exact <code>messages</code> array the turn-2
+  request should contain (three entries, using the values above — the system prompt is
+  "You are Tangerine Bank's assistant. Be concise.").</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <pre><code>"messages": [
+  { "role": "user",      "content": "What's my checking balance?" },
+  { "role": "assistant", "content": "Your checking balance is $412.50." },
+  { "role": "user",      "content": "Transfer $200 to savings from there." }
+]</code></pre>
+    <p>Oldest first, roles alternating, the assistant's own reply included verbatim — that
+    assistant turn is what lets "from there" resolve. If you also caught that the fix
+    belongs in the code that <em>builds</em> the array (keep appending every turn), you're
+    already thinking like an architect.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>Read this before the next lesson — it's the official ground truth for everything above:</p>
+<p>→ <strong><a href="https://docs.claude.com/en/api/overview">Claude API overview</a></strong> (docs.claude.com).
+Skim the Messages API reference while you're there. Optional but excellent:
+the <a href="https://github.com/daronyondem/claude-architect-exam-guide">community exam guide's</a>
+section on "API fundamentals and output control".</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Anything unclear — statelessness, tokens, why content is a list — <strong>ask the agent
+  right now</strong>, in plain words. Unresolved confusion in lesson one becomes a wrong
+  answer in lesson fifteen. When you're ready, say <em>"next lesson"</em> for
+  0002 · System prompts &amp; prefilling.
+</div>
+
+<div class="lesson-nav">
+  <a href="../reference/claude-architect-roadmap.html">◂ Course roadmap</a>
+  <a class="next" href="../reference/glossary.html">Glossary ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0001 · Claude Architect course · grounded in
+  <a href="https://docs.claude.com/en/api/overview">Claude API docs</a> ·
+  exam context: <a href="../reference/claude-architect-roadmap.html">roadmap</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

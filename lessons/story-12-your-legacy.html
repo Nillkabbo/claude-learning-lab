@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 12 · Your legacy</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 12 of 12 — the finale</p>
+<h1>Your legacy</h1>
+<p class="subtitle">In which the new hire asks the question Marco used to ask, and your answer installs in one command.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes + the finish line</span>
+  <span>Concepts: plugins · packaging · the whole journey</span>
+  <span>Project gains: Tracker v1.0, the toolkit shipped — the entire project, complete</span>
+</div>
+
+<h2>Six months later</h2>
+
+<p>Meridian has eleven developers now. Tracker is on every machine: add, list, close,
+tag, search — born from your first Monday, hardened by a quote character, guarded by
+rules you wrote after a near-miss nobody remembers but you. And there's a new hire —
+bright, eager, asks the exact question Marco asked on your first week: "How do I run
+this?"</p>
+
+<p>You could answer. But you've learned what Priya knew on a whiteboard a lifetime
+ago: anything explained twice becomes documentation. Except you can go further than
+she meant — because everything you built this year isn't scattered know-how anymore.
+It's <em>packageable</em>.</p>
+
+<h2>The package</h2>
+
+<p>Over the year, your repo accumulated an arsenal: the <code>/release</code> skill,
+the <code>/sync</code> skill, the read-only detective, the audit hook, the guardrail
+settings, the night-shift script. A <strong>plugin</strong> bundles exactly this —
+skills, agents, hooks, config — into one installable, namespaced unit
+(<code>meridian:release</code>, <code>meridian:detective</code>…) that a team shares
+via a marketplace with one command. So that's the finale's build: the
+<em>Meridian Toolkit</em>.</p>
+
+<p>You inventory what ships (and cut what shouldn't — the audit hook is Meridian
+policy, org-managed, not a plugin), write the manifest, publish to the team
+marketplace, and when the new hire asks the question, Marco — <em>Marco</em> — answers
+first:</p>
+
+<p>"Run <code>/plugin install meridian/toolkit</code>. Read CLAUDE.md. Then ask
+Claude — it knows this place."</p>
+
+<h2>v1.0</h2>
+
+<pre><code>tracker add "ship v1.0"
+tracker list          # the whole year, in twelve lines of closed tasks
+/release v1.0</code></pre>
+
+<p>The suite runs green — it has for eleven straight releases. The changelog reads
+like your story: <em>skeleton… quotes… atomic writes… close… tags, search…</em> Priya
+reads it end to end, closes her laptop, and says the sentence this whole story was
+built to earn:</p>
+
+<p>"Who's ready to build the next one?"</p>
+
+<div class="callout win">
+  <span class="callout-title">What you now hold — the entire journey, inventoried</span>
+  <strong>A complete project</strong>: Tracker — real CLI, real tests, real CI, real
+  releases, real users. <strong>A shipped toolkit</strong>: skills, a subagent,
+  automation, guardrails — packaged. And the capability inventory behind it all:
+  sessions and modes (ch1–2), memory (ch3), skills (ch4), subagents (ch5), MCP with
+  trust review (ch6), enforcement layers (ch7), parallel work (ch8), the review stack
+  (ch9), headless automation (ch10), costs and fleet policy (ch11), packaging (ch12).
+  That is the whole of Claude Code — not read, <em>lived</em>.
+</div>
+
+<h2>Your turn — the final hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">The finish line</span>
+  <ol>
+    <li>Audit your toolkit: list every skill, agent, hook, and setting your repo
+    accumulated. Cut what's project-specific; keep what's team-valuable.</li>
+    <li>Package it as a plugin: manifest, marketplace (even a one-person one),
+    install-from-fresh test — the new-hire simulation.</li>
+    <li>Ship Tracker v1.0 via your release skill. Full suite green. Tag pushed.</li>
+    <li>Write the project's README as the story's epilogue: what it is, what it
+    taught, what's next.</li>
+  </ol>
+  <p><strong>Final checkpoint — the goal, complete:</strong> one entire project
+  (working CLI, tests, CI, releases, docs), one shipped toolkit, one fresh-machine
+  install proving a stranger could start where you started and be productive in an
+  hour. Report it to your agent — that report is the graduation. Then, if the
+  certification is still calling: everything in this story maps one-to-one onto the
+  exam's six scenarios, and the <a href="../reference/claude-architect-roadmap.html">architect course</a>
+  plus <a href="../lessons/0023-mock-exam-1.html">the mocks</a> are warmed up and waiting.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-11-the-bill.html">◂ Chapter 11</a>
+  <a class="next" href="../reference/story-roadmap.html">The Story ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 12 · complete · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-10</a> ·
+  the laws: <a href="../reference/foundations-of-claude.html">ten</a> · the exam: <a href="../reference/claude-architect-roadmap.html">track 1</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-12 · Headless & scheduled: -p, JSON, /goal, routines</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-12 · Phase C — Power user</p>
+<h1>Headless & scheduled: -p, JSON, /goal, routines</h1>
+<p class="subtitle">Claude Code as a programmable component, not a conversation.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p><strong>Headless</strong> (0012-verified): <code>claude -p "prompt"</code> runs
+non-interactive; <code>--output-format json</code> makes it scriptable — the official
+pattern for languages and pipelines without an SDK. Compose with <code>-c</code>/
+<code>-r</code> for continuity.</p>
+<p><strong>The automation stack</strong> (official pages, hands-on):</p>
+<ul>
+  <li><strong><code>/goal</code></strong> — keep Claude working toward a goal across
+  turns, not just one prompt.</li>
+  <li><strong>Routines &amp; schedules</strong> — run prompts on a schedule (web/desktop
+  pages).</li>
+  <li><strong>Channels</strong> — push events into running sessions; Slack integration
+  rides this rail.</li>
+</ul>
+<p>Operator's rule from Track 1: unattended power needs contained permission modes and
+budgets — automation without fences is an outage scheduler.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Scriptable, non-interactive output comes from:",
+  "answers": [
+   "--output-format json",
+   "--quiet --silent",
+   "tee alone",
+   "redirected stderr"
+  ],
+  "correct": 0,
+  "why": "claude -p with JSON output is the composable, pipeline-friendly form \u2014 the official pattern outside the SDKs."
+ },
+ {
+  "q": "/goal keeps Claude:",
+  "answers": [
+   "working toward a goal",
+   "kept from ever stopping",
+   "kept inside plan mode",
+   "spending without any limits"
+  ],
+  "correct": 0,
+  "why": "Goal-pursuit across turns \u2014 still your job to budget and fence it."
+ },
+ {
+  "q": "Unattended automation primarily needs:",
+  "answers": [
+   "contained permission modes",
+   "bigger max_tokens caps",
+   "a faster terminal",
+   "plain manual mode"
+  ],
+  "correct": 0,
+  "why": "Track 1's law: auto power without fences (permission modes, budgets, stopping conditions) schedules outages."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Script a real chore: a shell script running <code>claude -p "summarize today's
+  commits" --output-format json</code>, extracting the text field. Schedule it (cron or
+  the official routines). Report the first output.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/headless">Run Claude Code programmatically — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-11-parallel-work.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-12 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

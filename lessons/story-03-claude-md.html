@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 3 · Marco keeps asking</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 3 of 12</p>
+<h1>Marco keeps asking</h1>
+<p class="subtitle">In which the same question, asked four times, gives birth to a file.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: CLAUDE.md · memory craft · /context · auto memory</span>
+  <span>Project gains: a CLAUDE.md that onboards anyone</span>
+</div>
+
+<h2>Week two: the pattern</h2>
+
+<p>Monday: "How do I run the tests?" — there are no tests. "How do I run it at all?"
+Tuesday: "Which Python are we on?" Wednesday: "Where do tasks live?" — in
+<code>tasks.json</code>, same as Monday. Thursday, Marco asks about the quotes bug
+<em>again</em>, and you watch Priya's eye twitch.</p>
+
+<p>She doesn't snap. She writes one line on the whiteboard and underlines it twice:</p>
+
+<blockquote><p><strong>Anything explained twice becomes documentation.</strong></p></blockquote>
+
+<p>Then, to you: "Claude Code has a memory file. Make Marco unnecessary." Marco,
+delightfully unaware he's the villain of this chapter, says "cool."</p>
+
+<h2>The file is born</h2>
+
+<p>You run <code>/init</code> and Claude drafts a CLAUDE.md — accurate, generic,
+useless, three times longer than it needs to be. The craft, you realize, isn't
+generating one; it's <em>cutting it down to what's true and load-bearing</em>:</p>
+
+<pre><code># Tracker
+
+A tiny issue-tracker CLI. Python 3, stdlib only.
+
+## Commands
+- Run: `python tracker.py add|list|close ...`
+- Data lives in `tasks.json` (atomic writes; corrupt input backs up, never destroys)
+
+## Conventions
+- One behavior per commit; conventional messages ("add: …", "fix: …")
+- Write JSON atomically — temp file, then replace
+- Test before asking for review
+
+## Do not
+- Add dependencies without asking Priya
+- Commit tasks.json</code></pre>
+
+<p>Fifteen lines. Specific over vague ("Test before asking for review" beats "be
+careful"). And the section Priya insists on: <strong>Do not</strong> — because the
+file's real job isn't reminding what to do, it's preventing the mistakes your team
+actually makes.</p>
+
+<h2>What the file is — and is not</h2>
+
+<p>That evening you add a note to yourself, and it's the chapter's payload:</p>
+
+<blockquote><p>CLAUDE.md is <strong>context, not enforcement</strong>. It makes good
+behavior <em>likely</em>. It cannot make anything <em>certain</em> — "Do not commit
+tasks.json" is a convention here, and one day Chapter 7 will turn it into a real
+guardrail. Memory guides; rules enforce.</p></blockquote>
+
+<p>You also learn the scope ladder by living it: this file is the <strong>project</strong>
+scope — committed, shared, loud for everyone. Your own cross-project habits would live
+in <code>~/.claude/CLAUDE.md</code> (user scope). A personal note about hating tabs
+would be <code>CLAUDE.local.md</code> — gitignored, yours. And when Claude keeps
+forgetting you prefer <code>fix:</code> prefixes? You stop re-typing it — that's the
+rule: <em>same correction twice, it goes in the file.</em></p>
+
+<p>Quietly, in the background, <strong>auto memory</strong> has been doing its own
+version of this — Claude's own notes about the project, loaded each session. You check
+everything with <code>/context</code> and see, for the first time, exactly what your
+sessions know: your fifteen lines, the auto-memory, the files open. What's loaded is
+what's real.</p>
+
+<h2>Friday proof</h2>
+
+<p>New contractor, first hour, zero questions about Python version or where data
+lives. Marco asks a <em>new</em> question — progress, of a kind. Priya reads the file,
+deletes one line you over-wrote, and says nothing, which from her is a standing ovation.</p>
+
+<div class="callout win">
+  <span class="callout-title">What Chapter 3 taught</span>
+  CLAUDE.md as team memory: under 200 lines, specific, with a Do-not section; the
+  scope ladder (project / user / local); "explained twice → documented"; /context to
+  audit what actually loads; and the law that will organize everything to come —
+  <strong>memory is context, not enforcement</strong>.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Run <code>/init</code>; then cut its output to ≤15 lines of what's true:
+    run commands, conventions, and a <strong>Do not</strong> section with 2–3 real
+    rules.</li>
+    <li>Commit it.</li>
+    <li>Start a fresh session; ask "what are this project's conventions?" — the answer
+    should come from your file.</li>
+    <li>Run <code>/context</code>; confirm CLAUDE.md is loaded; note the biggest token
+    item.</li>
+    <li>Catch yourself re-explaining something this week? Add it to the file — the
+    twice-rule in action.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> a tight CLAUDE.md committed, proven loaded via
+  /context, and a fresh session correctly answering "how do I run this?" Report it —
+  in <a href="../reference/story-roadmap.html">Chapter 4</a>, a Friday chore gets so
+  repetitive you teach Claude to do it with one word, and meet skills.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-02-the-demo.html">◂ Chapter 2</a>
+  <a class="next" href="story-04-the-friday-chore.html">Chapter 4 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 3 · concepts grounded in CC-05 and lesson 0009 ·
+  <a href="../reference/claude-code-guide-roadmap.html">the manual</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

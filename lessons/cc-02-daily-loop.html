@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-02 · The daily loop: sessions, /commands, workflows</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">CC-02 · Phase A — The first week</p>
+<h1>The daily loop: sessions, /commands, workflows</h1>
+<p class="subtitle">From first contact to daily driver — the habits that make sessions cheap and context clean.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+
+<p>Three session tools prevent 90% of beginner mess:</p>
+<ul>
+  <li><strong><code>/clear</code></strong> — start fresh when the task changes. Old context
+  bills tokens and rots focus (Track 1's Law 7 applies per session).</li>
+  <li><strong><code>claude -c</code></strong> — continue the most recent session; <strong><code>claude -r</code></strong> — resume from a list. Context you already paid for is worth resuming; a new task is worth <code>/clear</code>.</li>
+  <li><strong><code>/status</code> and <code>/context</code></strong> — inspect what loaded:
+  settings sources, memory files, token usage. Operators look before they steer.</li>
+</ul>
+<p>The built-in <code>/commands</code> run fixed logic (<code>/help</code>, <code>/compact</code>,
+<code>/memory</code>, <code>/permissions</code>, <code>/init</code>…); bundled skills like
+<code>/code-review</code> and <code>/debug</code> orchestrate tools instead. Checkpointing
+lets you rewind file changes when a session went wrong. The <em>common workflows</em> doc
+is the official pattern book — explore first, then change, then verify.</p>
+
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "A new, unrelated task begins. The operator's move is:",
+  "answers": [
+   "/clear and start fresh",
+   "-c to continue anyway",
+   "never exit the session",
+   "/exit and reinstall it"
+  ],
+  "correct": 0,
+  "why": "Old context bills tokens and dilutes focus. /clear is cheap; resuming (-c/-r) is for continuing what you already paid for."
+ },
+ {
+  "q": "Which command shows what actually loaded this session?",
+  "answers": [
+   "/context",
+   "/sudo",
+   "/load",
+   "/inspect"
+  ],
+  "correct": 0,
+  "why": "/context shows the loaded memory files and usage; /status shows settings sources and session state. Look before you steer."
+ },
+ {
+  "q": "claude -r does what?",
+  "answers": [
+   "resumes a listed session",
+   "runs in readonly only",
+   "reinstalls the whole CLI",
+   "reindexes the whole repo"
+  ],
+  "correct": 0,
+  "why": "-r resumes a chosen past session; -c continues the most recent one; -p runs one-shot."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>In a real project: run <code>/context</code> and note the biggest context item;
+  <code>/clear</code>; ask one small task; exit; <code>claude -c</code> and confirm the
+  history survived; then <code>claude -p "what did we just do?"</code>. Report which of
+  the three resume-vs-clear calls felt right and why.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/common-workflows">Common workflows — official docs</a></strong> — the official page this
+lesson structures. Read it alongside the drill, and report what you did to your agent.</p>
+
+<div class="lesson-nav">
+  <a href="cc-01-getting-started.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  CC-02 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

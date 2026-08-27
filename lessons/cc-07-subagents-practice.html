@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-07 · Subagents in practice</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-07 · Phase B — Core user</p>
+<h1>Subagents in practice</h1>
+<p class="subtitle">Description-driven delegation, the built-ins, and agent view for the fleet.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>0011's mechanics on your machine. Delegation is <strong>description-driven</strong>
+— write the description like a tool description (when, when-not, "use proactively").
+Required frontmatter: <code>name</code> (lowercase-hyphens) + <code>description</code>;
+optional <code>tools</code> allowlist, <code>model</code>, <code>maxTurns</code>,
+<code>skills</code>, <code>isolation: worktree</code>. Edits hot-reload in seconds.</p>
+<ul>
+  <li><strong>Built-ins</strong>: <em>Explore</em> (read-only, thoroughness levels),
+  <em>Plan</em> (read-only context gathering), <em>General-purpose</em> (all tools).</li>
+  <li><strong>Limits</strong>: 20 concurrent subagents, 3 layers of nesting by default.</li>
+  <li><strong>Agent view</strong> (official page): manage multiple running agents —
+  Phase C's fleet command starts here.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Delegation fires on:",
+  "answers": [
+   "the description field",
+   "the model tier",
+   "the file name",
+   "the tools list"
+  ],
+  "correct": 0,
+  "why": "Description-driven \u2014 same law as tool selection (0006/0011)."
+ },
+ {
+  "q": "Default concurrent subagent limit:",
+  "answers": [
+   "twenty running",
+   "five running",
+   "one hundred",
+   "unlimited always"
+  ],
+  "correct": 0,
+  "why": "20 concurrent, 3 nesting levels deep by default \u2014 both adjustable via environment variables."
+ },
+ {
+  "q": "Explore is:",
+  "answers": [
+   "read-only codebase search",
+   "full-write editing mode",
+   "a server-side tool",
+   "an IDE plugin"
+  ],
+  "correct": 0,
+  "why": "Explore: read-only (Write/Edit denied), fast codebase search with thoroughness levels; Plan gathers context in plan mode."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Create <code>.claude/agents/&lt;name&gt;.md</code> for a real recurring subtask
+  (reviewer, docs-writer) with a four-question description and a tight tool list. Delegate
+  to it explicitly, then let it volunteer. Report both behaviors.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/sub-agents">Create custom subagents — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-06-skills.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-07 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

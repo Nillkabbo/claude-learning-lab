@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-08 · MCP in Claude Code</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-08 · Phase B — Core user</p>
+<h1>MCP in Claude Code</h1>
+<p class="subtitle">Connect the protocol's tools, resources, and prompts — with trust boundaries on.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>Claude Code is an MCP client: connect servers (local or remote) and their tools
+join your session. What to hold onto from Track 1:</p>
+<ul>
+  <li><strong>Three primitives</strong>: tools (model-executed actions), resources (data
+  the client reads), prompts (templates you invoke).</li>
+  <li><strong>The trust model</strong> (0021): servers are untrusted code+metadata —
+  consent before local installs (the exact, untruncated command), progressive scopes,
+  never token passthrough, never session auth.</li>
+  <li><strong>Org control</strong>: managed settings can control which MCP servers are
+  allowed at all (official admin page).</li>
+</ul>
+<p>The quickstart page walks a first connection end-to-end; the connector page covers
+remote servers and auth.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "One-click local MCP installs must first:",
+  "answers": [
+   "show the exact command",
+   "run it sandboxed immediately",
+   "verify the publisher's checksum",
+   "request admin credentials once"
+  ],
+  "correct": 0,
+  "why": "The consent dialog shows the full untruncated command \u2014 local servers run with your privileges (0021)."
+ },
+ {
+  "q": "MCP scopes should be:",
+  "answers": [
+   "minimal, then elevated",
+   "wildcard for convenience",
+   "granted all upfront",
+   "shared across users"
+  ],
+  "correct": 0,
+  "why": "Progressive least-privilege: minimal initial scopes, targeted elevation when privileged operations are attempted."
+ },
+ {
+  "q": "MCP servers give you:",
+  "answers": [
+   "tools and resources",
+   "a second Claude",
+   "free token credits",
+   "raw GPU acceleration"
+  ],
+  "correct": 0,
+  "why": "Tools, resources, and prompt templates \u2014 the protocol's three primitives (0005-era verification)."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Connect one real MCP server (the quickstart's example or one you need). List its
+  tools, use one, then run <code>/context</code> to see the token cost of the
+  definitions. Report the cost and whether the tool earned it.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/mcp">Connect to MCP servers — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-07-subagents-practice.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-08 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

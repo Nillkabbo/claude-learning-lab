@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0002 · System prompts &amp; prefilling</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0002 · Phase 1 — The API core</p>
+<h1>System prompts &amp; prefilling</h1>
+<p class="subtitle">Policy lives above the conversation — and one classic trick is now retired.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes</span>
+  <span>Exam: Prompt Engineering · 20%</span>
+  <span>No coding needed</span>
+</div>
+
+<p>Recall <a href="0001-anatomy-of-a-claude-request.html">Lesson 0001</a>: the API is stateless,
+so every request carries the whole conversation. There's one field that sits <em>above</em>
+the conversation — the <strong>system prompt</strong>. Today you'll learn what belongs there,
+how its power changed with newer models, and why the old "prefill the assistant's reply"
+trick now returns a hard error. That last one is exactly the kind of migration trade-off
+the architect exam loves.</p>
+
+<h2>The system prompt is policy, not conversation</h2>
+
+<p>A user message says: <em>here is this task</em>. The system prompt says: <em>here is who
+you are and the rules for every task</em>. Role, tone, scope, compliance rules, output
+format policy — standing decisions that shouldn't be re-litigated turn by turn. Even one
+sentence of role-setting measurably focuses behavior; Anthropic's own example is simply
+"You are a helpful coding assistant specializing in Python."</p>
+
+<table>
+  <thead><tr><th>Belongs in the <code>system</code> prompt</th><th>Belongs in a <code>user</code> turn</th></tr></thead>
+  <tbody>
+    <tr><td>Role and identity ("You are Tangerine Bank's assistant")</td><td>The actual task or question</td></tr>
+    <tr><td>Standing tone and format policy ("Respond directly without preamble")</td><td>Documents, data, and context for this turn</td></tr>
+    <tr><td>Compliance and safety boundaries ("never discuss competitors")</td><td>Mid-conversation reminders and nudges</td></tr>
+    <tr><td>Tool-usage policy ("use parallel tool calls when independent")</td><td>Per-turn exceptions to the defaults</td></tr>
+  </tbody>
+</table>
+
+<p>Because the API is stateless, the system prompt is <strong>resent on every call</strong> —
+it's part of your input tokens every single time. That's fine for policy (it must never
+fall out of view), and it's also why per-task data does <em>not</em> belong there: it would
+ride along forever, billing tokens and diluting focus.</p>
+
+<div class="callout warn">
+  <span class="callout-title">The 2026 twist — newer models over-respond</span>
+  Newer Opus models are <strong>more responsive to the system prompt</strong> than previous
+  generations. Legacy "anti-laziness" idioms — <code>CRITICAL: You MUST use this tool
+  whenever…</code> — were crutches for older models and now cause <strong>over-triggering</strong>
+  (the model dutifully over-uses the thing you shouted about). The official fix: soften to
+  plain phrasing — "Use this tool when…". Lesson for the exam: <em>prompt idioms have model-version
+  half-lives</em>, and migrating prompts means dialing intensity back, not up.
+</div>
+
+<h2>Prefilling — the retired trick you must still recognize</h2>
+
+<p><strong>Prefilling</strong> was a classic technique: end your <code>messages</code> array
+with a <em>partial assistant turn</em>, and the model would continue from it. Two famous uses:</p>
+
+<ul>
+  <li><strong>Skip the preamble</strong> — prefill the assistant turn with a word or bracket so the reply starts mid-format.</li>
+  <li><strong>Force a shape</strong> — prefill <code>{</code> so the answer has to be JSON.</li>
+</ul>
+
+<pre><code>// Legacy pattern — worked on earlier models
+"messages": [
+  { "role": "user",      "content": "Give me the account status JSON." },
+  { "role": "assistant", "content": "{" }   <span style="color:#8a2323">← the prefill: continue from here</span>
+]</code></pre>
+
+<p><strong>On Claude 4.6 and later models (including Sonnet 5, Mythos 5, Fable 5) this is
+now a 400 error.</strong> Requests to those models must end with a <code>user</code> message.
+Earlier models still accept prefills, which is precisely why the exam includes them: real
+codebases still carry the pattern, and an architect must recognize it and know the
+migration paths.</p>
+
+<table>
+  <thead><tr><th>Old prefill use</th><th>Modern replacement</th></tr></thead>
+  <tbody>
+    <tr><td>Prefill a word to skip preamble</td><td>System prompt: "Respond directly without preamble."</td></tr>
+    <tr><td>Prefill <code>{</code> to force JSON</td><td><strong>Structured outputs</strong> — schema-enforced (<a href="../reference/claude-architect-roadmap.html">Lesson 0004</a>)</td></tr>
+    <tr><td>Prefill reminders mid-conversation</td><td>Move the reminder into the <strong>user turn</strong> (or hydrate via tools / context compaction)</td></tr>
+  </tbody>
+</table>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now <strong>modernize a legacy integration on sight</strong>: spot the trailing
+  assistant turn, know why it 400s on current models, soften the shouted system-prompt
+  rules that old team wrote, and name the right replacement for each prefill use. That's
+  a complete migration review — worth real exam points.
+</div>
+
+<div class="callout note">
+  <span class="callout-title">Scope note</span>
+  Adding assistant messages <em>elsewhere</em> in the conversation (real history from
+  earlier turns) is unaffected — it's specifically the request <strong>ending</strong> with an
+  assistant message that modern models reject as a prefill attempt.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory, as always.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this now risks:",
+    "answers": [
+      "calling the tool excessively",
+      "refusing to call tools",
+      "ignoring the system prompt",
+      "returning a 400 error"
+    ],
+    "correct": 0,
+    "why": "Newer Opus models are more responsive to the system prompt, so aggressive anti-laziness idioms over-trigger. The official migration advice is to soften to plain phrasing like 'Use this tool when…'."
+  },
+  {
+    "q": "Your request ends with a partial assistant turn, sent to Claude Sonnet 4.6 or later. What happens?",
+    "answers": [
+      "It returns a 400 error",
+      "It continues from that text",
+      "It ignores the final turn",
+      "It appends a user message"
+    ],
+    "correct": 0,
+    "why": "Claude 4.6+ rejects trailing assistant messages (prefill attempts) with a 400 error — requests must end with a user message. Earlier models still accept prefills."
+  },
+  {
+    "q": "You need rigidly schema-valid JSON from a modern model. The recommended tool is:",
+    "answers": [
+      "structured outputs",
+      "response prefilling",
+      "stop sequences",
+      "higher temperature"
+    ],
+    "correct": 0,
+    "why": "Structured outputs constrain the response to a schema — the official prefill replacement. Prefilling returns a 400 on modern models; stop sequences and temperature don't enforce shape."
+  },
+  {
+    "q": "A reminder that was once a prefilled assistant turn should now be placed:",
+    "answers": [
+      "in the user turn",
+      "in the system prompt",
+      "in the model identifier",
+      "in the tool description"
+    ],
+    "correct": 0,
+    "why": "Official guidance: refreshable mid-conversation nudges move into the user turn (or arrive via tools/compaction). The system prompt is for standing policy, not per-turn reminders."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — modernize the airline bot</span>
+  <p>A 2025-era integration hits two problems on a current model: a 400 error, and a
+  status-summary tool firing on every message. Here's the whole request:</p>
+  <pre><code>{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 1024,
+  "system": "You are Apex Airlines' assistant. CRITICAL: You MUST ALWAYS call
+             status_summary. You MUST NEVER add preamble. Output JSON only.",
+  "messages": [
+    { "role": "user", "content": "Rebook me on the morning flight." },
+    { "role": "assistant", "content": "{" }
+  ]
+}</code></pre>
+  <p><strong>On paper:</strong> (1) explain the 400, (2) rewrite the system prompt so the
+  tool rule won't over-trigger, (3) say where the "JSON only" requirement should go
+  instead.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> The request ends with an assistant message — a prefill. Claude 4.6+
+    rejects that with a 400; requests must end with a user turn.</p>
+    <p><strong>(2)</strong> Soften, don't shout: "You are Apex Airlines' assistant. Use
+    status_summary when the passenger asks about a flight's status." Newer models are more
+    responsive to system prompts, so the ALL-CAPS rule would keep firing the tool even for
+    rebooking requests.</p>
+    <p><strong>(3)</strong> "JSON only" is a format requirement with a shape — that's
+    <strong>structured outputs</strong> territory (a schema), with "respond directly without
+    preamble" in the system prompt for tone. If your rewrite kept JSON instructions in the
+    system prompt <em>and</em> named structured outputs as the enforcement mechanism, full marks.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/system-prompts">System prompts — official prompting best practices</a></strong>
+and, for the prefill ruling,
+<a href="https://platform.claude.com/docs/en/build-with-claude/working-with-messages">Using the Messages API</a>.
+Skim <a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs">Structured outputs</a>
+to preview Lesson 0004.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Confused about why a <em>more powerful</em> model needs <em>softer</em> instructions, or
+  about what exactly counts as a prefill? Ask the agent now. When you're ready, say
+  <em>"next lesson"</em> for 0003 · Output control — temperature, max tokens, stop reasons.
+</div>
+
+<div class="lesson-nav">
+  <a href="0001-anatomy-of-a-claude-request.html">◂ 0001 · The anatomy of a Claude request</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0002 · Claude Architect course · grounded in
+  <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/system-prompts">system prompt guidance</a>,
+  <a href="https://platform.claude.com/docs/en/api/errors">API errors</a>, and
+  <a href="https://platform.claude.com/docs/en/build-with-claude/working-with-messages">Messages API docs</a> (prefill unsupported on Claude 4.6+)
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

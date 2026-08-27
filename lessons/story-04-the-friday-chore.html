@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 4 · The Friday chore</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 4 of 12</p>
+<h1>The Friday chore</h1>
+<p class="subtitle">In which the third identical release teaches Claude to do it in one word.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: skills · $ARGUMENTS · allowed-tools</span>
+  <span>Project gains: the close command, a /release skill, v0.2</span>
+</div>
+
+<h2>Friday, again</h2>
+
+<p>Third Friday in a row. The release ritual: run the suite, bump the version, update
+the changelog, tag, push. Six steps, zero surprises, and — the part that finally breaks
+you — Priya watching you type them out by hand, twice.</p>
+
+<p>"You know what a skill is?" she asks. You don't. "A procedure you write down once,
+with the discipline baked in, that becomes a command. Teach it the release."</p>
+
+<h2>The procedure becomes a word</h2>
+
+<p>First, the release needs something to release: <code>close</code>, from Priya's
+original spec, is still missing. One pointed ask, one read diff, done —
+<code>python tracker.py close 3</code> marks a task done and <code>list</code> shows it
+struck through.</p>
+
+<p>Then you create <code>.claude/skills/release/SKILL.md</code>:</p>
+
+<pre><code>---
+description: Runs the full release ritual for Tracker. Use when asked to release or bump.
+argument-hint: "[version, e.g. v0.2]"
+allowed-tools: Bash(git *), Bash(python *)
+---
+Run the tests first; ABORT the release if any fail.
+Then: bump the version in tracker.py, prepend a dated changelog entry to
+CHANGELOG.md, commit with "release: &lt;version&gt;", tag the version, push with
+tags. Announce nothing — I do that.</code></pre>
+
+<p>Every line is a decision you made once so you'd never make it badly at 4:55 p.m.
+again. The frontmatter does real work: <code>argument-hint</code> reminds Future You of
+the syntax; <code>allowed-tools</code> grants exactly the commands this ritual needs —
+a per-turn grant, gone with your next message, nothing permanent leaked.</p>
+
+<p>Then: <code>/release v0.2</code>. Claude runs the suite — and <em>aborts</em>,
+because a test from your afternoon is red. The discipline you wrote down refuses to let
+you ship broken. You fix the test, run it again, and watch six steps happen correctly,
+fast, in order, while you drink your coffee like someone whose Fridays got 20 minutes
+longer.</p>
+
+<div class="callout note">
+  <span class="callout-title">What just happened, named</span>
+  A skill is institutional memory as an executable. The value isn't the typing saved —
+  it's that the <em>checks travel with the procedure</em>. Your "abort if tests fail"
+  line is a policy no busy Friday can forget.
+</div>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Add <code>close</code> (small pointed ask; read the diff).</li>
+    <li>Create <code>.claude/skills/release/SKILL.md</code> with the frontmatter above,
+    adapted to your repo.</li>
+    <li>Break one test on purpose; run <code>/release v0.2</code>; watch it abort.</li>
+    <li>Fix the test; re-run; verify the tag and changelog landed.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> <code>close</code> working, a real v0.2 released by
+  your skill, one witnessed abort-on-red-test. Report it — next chapter, a test fails
+  <em>sometimes</em>, and you'll need help looking in two places at once.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-03-claude-md.html">◂ Chapter 3</a>
+  <a class="next" href="story-05-the-flaky-test-hunt.html">Chapter 5 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 4 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-06</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

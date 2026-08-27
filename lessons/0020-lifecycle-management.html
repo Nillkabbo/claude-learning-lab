@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0020 · Lifecycle management</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0020 · Phase 5 — Professional depth (CCAR-P)</p>
+<h1>Lifecycle management: handoff, observe, iterate</h1>
+<p class="subtitle">"The last mile often becomes most of the journey." — Anthropic, on shipping agents</p>
+
+<div class="meta">
+  <span class="accent">≈ 14 minutes</span>
+  <span>Exam: CCAR-P · Stakeholder Comm. &amp; Lifecycle · 14%</span>
+  <span>Completes the lifecycle domain</span>
+</div>
+
+<p><a href="0019-discovery-and-scoping.html">0019</a> ended discovery with six artifacts.
+The lifecycle's back half — <strong>handoff → monitoring → iteration</strong> — is where
+solutions live or die, and Anthropic's own production post is blunt: the gap between
+prototype and production "is often wider than anticipated," because in agentic systems
+"minor changes cascade into large behavioral changes." Today you learn to run what you
+shipped.</p>
+
+<h2>Handoff: transferring the mental model</h2>
+
+<p>The anti-pattern is the departing architect taking the design's reasoning with them.
+The fix: <strong>artifacts carry the mental model</strong>. A complete handoff package:</p>
+
+<ul>
+  <li><strong>The discovery set</strong> (0019) — criteria, constraints, posture, and the
+  recorded reasons losing options lost: future maintainers inherit the <em>why</em>.</li>
+  <li><strong>The runbook</strong> — 0018's degradation ladder <em>is</em> the incident
+  playbook: each failure mode with its designed exit, its owner, and its escalation path.
+  Uncertain-state procedures (0007) spelled out: verify-don't-retry, with the idempotency
+  key's role documented.</li>
+  <li><strong>The eval suite</strong> (0016) — ops can rerun it; changes become safe to
+  make because they're gated by something.</li>
+  <li><strong>The policy map</strong> — who may change what: permission rules, managed
+  settings, hook allowlists (0009/0010's trust model, applied to humans).</li>
+  <li><strong>Session/resume mechanics</strong> — where checkpoints live, how resume
+  works (0012's sessions; 0015's durable execution), so long-runners survive redeploys.</li>
+</ul>
+
+<h2>Observe: three planes</h2>
+
+<table>
+  <thead><tr><th>Plane</th><th>What you watch</th><th>With what</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Business</strong></td><td>Deflection ↔ CSAT (paired!), escalation accuracy, handle time</td><td>0018's metric set — never one number alone</td></tr>
+    <tr><td><strong>Behavioral</strong></td><td>Decision patterns, interaction structures, failure reasons — "all without monitoring the contents of individual conversations"</td><td>Production tracing (0015: it's how "not finding obvious information" got diagnosed)</td></tr>
+    <tr><td><strong>Consumption</strong></td><td>Token usage by model / workspace / API key / service tier — cached vs uncached input, cache creation, output; spend against limits; audit events</td><td><strong>Admin API</strong>: Usage Report + Cost endpoints, Activity Summaries; Compliance API (Enterprise) for audit logs</td></tr>
+  </tbody>
+</table>
+
+<p>One consumption tell worth training on: the <strong>cache-invalidation event is
+visible in the usage curve</strong>. Tuesday's tool redeploy (0017's hierarchy:
+tools → system → messages) shows up as a spike of uncached input — the write premium
+plus full-price reads — exactly when you shipped. If you can read that spike, you can
+price your release schedule.</p>
+
+<h2>Iterate: the change discipline</h2>
+
+<ol>
+  <li><strong>Changes cascade.</strong> "Small changes to the lead agent can
+  unpredictably change how subagents behave" — emergent behavior means every prompt
+  edit is a system edit.</li>
+  <li><strong>Evals gate the change.</strong> 0016's loop is the iteration protocol:
+  refine → test on the suite → <strong>held-out final validation</strong> → ship.
+  Without it, you're hot-fixing prose into a running production system.</li>
+  <li><strong>Deploy compatibly.</strong> Long-running, stateful agents mid-task can't
+  all be swapped at once — <strong>rainbow deployments</strong> shift traffic gradually
+  while old and new run side by side.</li>
+  <li><strong>Protect the runners.</strong> Checkpoints and resume, never
+  restart-from-zero; and when a tool fails in flight, tell the agent — adaptation "works
+  surprisingly well."</li>
+  <li><strong>Close the loop to discovery.</strong> When the business shifts, criteria
+  shift — the lifecycle is a circle, and 0019's artifacts get revised, not archived.</li>
+</ol>
+
+<pre class="diagram">
+        ┌──────────── discovery ────────────┐
+        │        (0019: artifacts)         │
+        ▼                                   │
+      design ──► handoff ──► monitor ──► iterate
+                 (runbook,    (3 planes,    (evals gate;
+                  policy map,  usage curves, rainbow deploys;
+                  why-ledger)  tracing)      checkpoints)
+        ▲                                   │
+        └──────── criteria shift ◄──────────┘
+</pre>
+
+<div class="callout win">
+  <span class="callout-title">The win — the lifecycle domain complete</span>
+  You can hand off a system whose reasoning survives its architect, watch it on three
+  planes (including reading cache-invalidation spikes in the usage curve), and change it
+  under discipline — evals gating, rainbow deployments, checkpoints protecting runners.
+  With 0019, that's the full CCAR-P Stakeholder Communication &amp; Lifecycle Management
+  domain.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Anthropic's production lesson about shipping agent systems:",
+    "answers": [
+      "the last mile dominates",
+      "prototypes usually ship directly",
+      "code beats prompts always",
+      "monitoring is optional initially"
+    ],
+    "correct": 0,
+    "why": "\"The last mile often becomes most of the journey\" — the prototype-to-production gap is wider than anticipated because minor changes cascade into large behavioral changes."
+  },
+  {
+    "q": "Deploying a breaking change to running agents uses:",
+    "answers": [
+      "rainbow parallel deployments",
+      "big-bang immediate rollovers",
+      "scheduled cluster-wide restarts",
+      "per-user manual migrations"
+    ],
+    "correct": 0,
+    "why": "Rainbow deployments gradually shift traffic while old and new versions run simultaneously — stateful mid-task agents can't all be swapped at once."
+  },
+  {
+    "q": "The Admin API usage report breaks token usage down by:",
+    "answers": [
+      "model, workspace, key, tier",
+      "sentiment, tone, latency, cost",
+      "prompt, completion, system, tools",
+      "date, region, language, browser"
+    ],
+    "correct": 0,
+    "why": "Usage (uncached/cached input, cache creation, output) by model, workspace, API key, and service tier — pair with the Cost API for spend, Activity Summaries and the Enterprise Compliance API for audit."
+  },
+  {
+    "q": "Privacy-preserving production tracing monitors:",
+    "answers": [
+      "decision patterns and interactions",
+      "verbatim conversation message contents",
+      "end-user identities and locations",
+      "raw tool call payloads"
+    ],
+    "correct": 0,
+    "why": "Anthropic monitors agent decision patterns and interaction structures \"without monitoring the contents of individual conversations\" — enough to diagnose failures, without becoming surveillance."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — the hospital handoff package (exam-style)</span>
+  <p>You're rotating off the 0019 intake assistant. Produce: (1) three runbook entries
+  (one per failure mode: EHR read outage, mid-write timeout, model overload); (2) the
+  three-plane dashboard — name the metric per plane and its alert threshold shape;
+  (3) the change process when a nurse requests softer symptom-question phrasing;
+  (4) what next Tuesday's tool-redeploy looks like in the usage curve, and what you tell
+  finance.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> EHR read outage → degradation ladder: say so, structured
+  fallback questions, nurse queue; owner: on-call ops; escalation: hospital systems team.
+  Mid-write timeout → verify via idempotency key before any retry; never blind-retry a
+  write; owner: app on-call. Model overload → queue with streamed notice, static FAQ
+  floor; never silence.</p>
+    <p><strong>(2)</strong> Business: deflection paired with CSAT (alert on divergence —
+  deflection up while CSAT falls = gaming). Behavioral: escalation accuracy ≥95%,
+  tracing of routing decisions (PHI lane hit rate 100% — a compliance alarm, not just
+  quality). Consumption: uncached-input ratio and daily spend by workspace/model; alert
+  on step-changes.</p>
+    <p><strong>(3)</strong> Not a hot edit: capture the request → update the script/prompt
+  → eval suite run (the nurse-facing criteria from discovery) → held-out validation →
+  rainbow deploy → watch escalation accuracy for a regression — emergent behavior means
+  "just phrasing" is a system change.</p>
+    <p><strong>(4)</strong> A spike of uncached input at deploy time: cache writes at
+  1.25× plus full-price reads until the new prefix settles (tools sit atop the
+  invalidation hierarchy). Tell finance: it's a predictable, one-time-per-release cost —
+  and the argument for batching tool changes rather than trickling them. If your answer
+  included "usage report by API key shows exactly which service ate the premium," you're
+  reading production data like an architect.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ Anthropic's <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">multi-agent production post</a> (reliability, tracing, rainbow deployments) and the <a href="https://platform.claude.com/docs/en/manage-claude/admin-api">Admin API docs</a> (+ <a href="https://platform.claude.com/docs/en/api/admin/usage_report">usage report reference</a>).</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Questions about what "good" ops looks like for agents vs classic services? Ask. Next:
+  <em>"next lesson"</em> for 0021 · Trust, security &amp; the MCP trust model — the
+  security capstone: injection, tool poisoning, and the trust boundaries you've been
+  stacking since 0007.
+</div>
+
+<div class="lesson-nav">
+  <a href="0019-discovery-and-scoping.html">◂ 0019 · Discovery &amp; scoping</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0020 · Claude Architect course · grounded in Anthropic's
+  <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">production engineering post</a> and the official
+  <a href="https://platform.claude.com/docs/en/manage-claude/admin-api">Admin API docs</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

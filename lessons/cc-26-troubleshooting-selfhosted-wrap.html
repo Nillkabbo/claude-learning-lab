@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-26 · Troubleshooting, self-hosting & the whole guide</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-26 · Phase F — Everywhere & everything</p>
+<h1>Troubleshooting, self-hosting & the whole guide</h1>
+<p class="subtitle">When it breaks, where it runs, and what you now know.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide · Phase F</span>
+  <span>Hands-on by design</span>
+</div>
+<p>The final cluster:</p>
+<ul>
+  <li><strong>Troubleshooting</strong> — dedicated pages for installation and login
+  problems, general troubleshooting, <em>debug your configuration</em>, and an error
+  reference. The operator's first move: reproduce, read the exact error, check
+  <code>/status</code> and <code>claude doctor</code> (CC-13's diagnostics).</li>
+  <li><strong>Self-hosted environments</strong> — cloud sessions running in
+  <em>your organization's infrastructure</em> (Team/Enterprise): overview, quickstart,
+  deploy to production, verify session identity — for orgs whose data must not leave.</li>
+</ul>
+<p><strong>The guide, complete:</strong> A the first week, B your project's co-pilot,
+C automation and parallelism, D team and enterprise, E the engine, F everywhere and
+everything. Every cluster of the official docscape now has a lesson; every lesson has a
+drill; the capstones (CC-20's toolkit, the Apex Project, the exam) are waiting for your
+hands.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "First stop for a broken install:",
+  "answers": [
+   "the troubleshooting docs",
+   "reinstalling the OS",
+   "resetting your account",
+   "opening new issues"
+  ],
+  "correct": 0,
+  "why": "Dedicated official pages: installation/login, general troubleshooting, debug your configuration, and the error reference."
+ },
+ {
+  "q": "Self-hosted environments run:",
+  "answers": [
+   "within your organization",
+   "inside Anthropic cloud",
+   "on personal laptops",
+   "inside browser tabs"
+  ],
+  "correct": 0,
+  "why": "Cloud sessions in your org's own infrastructure (Team/Enterprise) \u2014 for data that must not leave."
+ },
+ {
+  "q": "When configuration misbehaves, consult:",
+  "answers": [
+   "the error reference",
+   "the pricing page",
+   "the model cards",
+   "the community forum"
+  ],
+  "correct": 0,
+  "why": "Plus /status for loaded sources and claude doctor for rejected entries \u2014 diagnose before you change."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Break something on purpose in a scratch setup (a settings file with a trailing
+  comma), then find it using /status and claude doctor. Then skim the self-hosted
+  overview and note whether your org would ever need it. Report the diagnosis path you
+  followed — that's the muscle.</p>
+</div>
+<div class="callout win">
+  <span class="callout-title">Full docscape covered</span>
+  With Phase F, every cluster of the official docs has a lesson — the professional core
+  in Phases A–E, the platforms, interfaces, and long tail here. The guide is whole.
+  Report your platform drills to your agent, then go build.</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/troubleshooting">Troubleshooting — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-25-advanced-surfaces.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-26 · Claude Code Guide · sources: official docs + Track 1 lessons
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

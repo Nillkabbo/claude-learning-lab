@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0008 · Context management</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0008 · Phase 2 — Tools &amp; context (final lesson of the phase)</p>
+<h1>Context management: windows, compaction, and what you keep</h1>
+<p class="subtitle">Statelessness made you the owner of the conversation. Ownership turns out to be a budget problem.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Context Management · 15%</span>
+  <span>No coding needed</span>
+</div>
+
+<p><a href="0001-anatomy-of-a-claude-request.html">Lesson 0001</a>'s law — the API is
+stateless, your code owns the conversation — was a curiosity then. Now it's an
+architecture problem: long-running agents accumulate tool results, documents, and thinking,
+and <em>everything you keep competes for one window</em>. This 15% domain is the craft of
+deciding what stays.</p>
+
+<h2>The budget box</h2>
+
+<p>What counts toward the context window: the system prompt, <strong>all messages —
+including tool results, images, and documents</strong> — plus tool definitions and the
+current output. Two surcharges people forget:</p>
+
+<ul>
+  <li><strong>Thinking blocks persist on newer models.</strong> Opus 4.5+ and Sonnet 4.6+
+  keep prior thinking in history — re-billed as input on every later turn (earlier tiers
+  and Haiku auto-strip them).</li>
+  <li><strong>Cached tokens still count.</strong> Prompt caching "changes what you
+  <em>pay</em> for those tokens, not whether they count" toward the window.</li>
+</ul>
+
+<p>Current windows: <strong>1M tokens is the default</strong> on current models (Opus 5,
+Sonnet 5, Fable 5, Mythos 5…), 200K on the previous generation, with max output of 128K.
+And the overflow rules differ — memorize both:</p>
+
+<ul>
+  <li>Input alone exceeds the window → <strong>400 error</strong> ("prompt is too long"), on all models.</li>
+  <li>Input + <code>max_tokens</code> overflows on Claude 4.5+ → accepted, then generation
+  stops gracefully with <code>stop_reason: "model_context_window_exceeded"</code>.</li>
+</ul>
+
+<div class="callout warn">
+  <span class="callout-title">Context rot — why 1M isn't permission to hoard</span>
+  As tokens grow, "accuracy and recall degrade, a phenomenon known as <strong>context
+  rot</strong>." The docs' framing is the exam's framing: context is a finite resource with
+  <em>diminishing returns</em> — irrelevant content degrades model focus. A big window is
+  headroom for good curation, not an excuse to skip it.
+</div>
+
+<h2>The toolkit</h2>
+
+<table>
+  <thead><tr><th>Strategy</th><th>What it does</th><th>Key facts</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Compaction</strong> (server-side)</td><td>Summarizes earlier turns server-side so the conversation can continue past the limit</td><td>"The primary strategy for context management"; beta on Claude 4.6+. This is progressive summarization as a service: work from summary + recent turns. Client-side <code>compaction_control</code> is deprecated</td></tr>
+    <tr><td><strong>Context editing</strong> — tool result clearing</td><td>Automatically clears the oldest tool results past a threshold, replacing each with placeholder text</td><td><code>clear_tool_uses_20250919</code>; applied <em>before</em> the prompt reaches Claude (your client keeps full history); trigger default 100K input tokens, keep 3 recent tool-use/result pairs, <code>exclude_tools</code>, <code>clear_at_least</code>, <code>clear_tool_inputs</code></td></tr>
+    <tr><td><strong>Memory tool</strong></td><td>File-based memory Claude reads and writes</td><td>Enable alongside clearing: near the threshold Claude gets an <em>automatic warning</em> to preserve important info — it saves essentials to memory files <em>before</em> they're cleared, then retrieves just-in-time. Powers the multisession pattern: state that survives sessions, so "context recovery is fast when a new session starts"</td></tr>
+    <tr><td><strong>Thinking block clearing</strong></td><td>Strips old thinking blocks</td><td><code>clear_thinking_20251015</code>; defaults vary by model tier (newer models keep all thinking — the re-billing above); must be listed <em>first</em> in the edits array</td></tr>
+    <tr><td><strong>Context awareness</strong></td><td>API injects token-budget updates</td><td>Automatic on Sonnet 5/4.6/4.5 and Haiku 4.5 ("Token usage: 35000/200000; 165000 remaining"); Opus 4.7+ get opt-in <em>task budgets</em></td></tr>
+    <tr><td><strong>Tool-side reduction</strong></td><td>Shrink the tool bill</td><td>Fewer/consolidated tools (<a href="0006-designing-tool-interfaces.html">0006</a>), or the <strong>tool search tool</strong> — definitions loaded on demand instead of up front</td></tr>
+    <tr><td><strong>Token counting API</strong></td><td>Estimate before you send</td><td>Predict usage and preview editing savings (the docs show 70K → 25K after clearing)</td></tr>
+  </tbody>
+</table>
+
+<pre class="diagram">
+  THE LIFECYCLE OF A LONG-RUNNING AGENT'S CONTEXT
+
+  grow ──► trigger hit ──► warning fires ──► Claude saves essentials
+           (100K input)    (automatic)        to MEMORY FILES
+                                                      │
+  continue ◄── placeholders ◄── oldest tool results ◄──┘
+  (summary + recent turns +  cleared, memory on demand)
+</pre>
+
+<p>Two fine prints that make good exam questions: clearing tool results
+<strong>invalidates cached prefixes</strong> — which is exactly why <code>clear_at_least</code>
+exists (don't torch the cache to save a trickle); and every response reports
+<code>applied_edits</code>, so you can observe what was cleared.</p>
+
+<h2>Stale data, and the strategies above the API</h2>
+
+<p>Context strategies also fight <strong>staleness</strong>: cleared-with-placeholder keeps
+history honest about what's gone; memory files persist what matters; and <strong>retrieval
+(RAG)</strong> grounds answers in current sources fetched fresh rather than aged context.
+For very long horizons, Anthropic's engineering guidance (the "Effective context
+engineering" post below) rounds out the same toolkit with structured note-taking and
+<strong>sub-agent architectures</strong> — fresh contexts doing focused work, returning
+only results. That pattern gets its own lesson in Phase 4.</p>
+
+<div class="callout win">
+  <span class="callout-title">The win — Phase 2 complete</span>
+  You can now architect a long-running agent's entire context strategy: what counts (and
+  what re-bills), both overflow behaviors, server-side compaction as the primary tool,
+  clearing with tuned triggers and cache-aware <code>clear_at_least</code>, the
+  memory-before-clearing dance, thinking management, and tool-side reduction. You also
+  finished the tools sequence: the loop, the interface, the errors, and now the budget.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Input alone exceeds the context window. What happens?",
+    "answers": [
+      "A 400 error",
+      "Silent context truncation",
+      "Automatic server-side compaction",
+      "Stops at max_tokens"
+    ],
+    "correct": 0,
+    "why": "\"Prompt is too long\" — a 400, on all models. The graceful stop_reason model_context_window_exceeded only applies when input + max_tokens overflows on Claude 4.5+; compaction is a strategy you enable, not an automatic rescue."
+  },
+  {
+    "q": "Cached tokens and the context window:",
+    "answers": [
+      "still count fully",
+      "are always free",
+      "reset each turn",
+      "count as output"
+    ],
+    "correct": 0,
+    "why": "Caching \"changes what you pay for those tokens, not whether they count\" — all three usage fields (input, cache-read, cache-creation) count toward the window."
+  },
+  {
+    "q": "The memory tool pairs with tool-result clearing so Claude can:",
+    "answers": [
+      "save essentials before clearing",
+      "avoid all context limits",
+      "bill fewer output tokens",
+      "skip the trigger threshold"
+    ],
+    "correct": 0,
+    "why": "Near the threshold, Claude receives an automatic warning to preserve important information — and writes essentials to memory files before the results are cleared, retrieving them just-in-time afterward."
+  },
+  {
+    "q": "As context grows toward the window, accuracy and recall:",
+    "answers": [
+      "degrade",
+      "improve",
+      "stabilize",
+      "compound"
+    ],
+    "correct": 0,
+    "why": "Context rot: \"as tokens grow, accuracy and recall degrade.\" Bigger windows buy headroom for curation, not exemption from it."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — spec the shift agent's context (exam-style)</span>
+  <p>An Apex ops agent runs 8-hour shifts on Sonnet 5 (1M window). It calls
+  <code>web_search</code> and a 6,000-token <code>read_manual</code> tool constantly, must
+  remember client escalations for weeks, and finance is loud about token spend. It also has
+  40 tool definitions loaded.</p>
+  <p><strong>On paper:</strong> (1) pick your strategy stack and justify each piece;
+  (2) write the <code>context_management</code> config with sensible values;
+  (3) name the two extra moves for the 40-tool bill.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1) Stack:</strong> <em>server-side compaction</em> as the primary strategy
+    (shifts run past any limit, summaries carry the day's thread); <em>tool result clearing</em>
+    for the manual dumps and search noise (placeholder honesty, huge token savings);
+    <em>memory tool</em> enabled alongside, so near-threshold warnings turn client
+    escalations into files that survive for weeks — the multisession pattern; memory is
+    also where "stale vs current" gets managed by re-reading when needed.</p>
+    <p><strong>(2)</strong></p>
+    <pre><code>"context_management": {
+  "edits": [
+    { "type": "clear_thinking_20251015", "keep": "all" },
+    { "type": "clear_tool_uses_20250919",
+      "trigger": { "type": "input_tokens", "value": 200000 },
+      "keep": 3,
+      "clear_at_least": 20000 }
+  ]
+}</code></pre>
+    <p>Rationale: with 1M tokens, trigger at 200K leaves huge headroom before context rot
+    while keeping cache invalidation rare and worthwhile (<code>clear_at_least</code> 20K);
+    <code>keep: 3</code> preserves the working set of recent results. (Triggering at the
+    100K default is also defensible — the justification is what's graded.)</p>
+    <p><strong>(3)</strong> Consolidate the 40 definitions down (0006's consolidation
+    guidance), and/or adopt the <em>tool search tool</em> so definitions load on demand —
+    and use the token counting API to verify the savings.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/build-with-claude/context-windows">Context windows — official docs</a></strong>
+and <a href="https://platform.claude.com/docs/en/build-with-claude/context-editing">Context editing</a>.
+For the engineering view, Anthropic's
+<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a>.</p>
+
+<div class="callout note">
+  <span class="callout-title">Phase 2 complete — choose your next move</span>
+  Say <em>"phase review"</em> for a mixed quiz across 0005–0008, or <em>"next lesson"</em>
+  to open Phase 3 with 0009 · Claude Code essentials — CLAUDE.md, plan mode, permissions
+  (20% of the exam, and where this course gets hands-on). And as ever: the
+  <a href="phase-1-review.html">Phase 1 review</a> and every lesson quiz still want your
+  reported scores — that's what turns teaching into a calibrated curriculum.
+</div>
+
+<div class="lesson-nav">
+  <a href="0007-error-handling-in-agent-tools.html">◂ 0007 · Error handling</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0008 · Claude Architect course · grounded in
+  <a href="https://platform.claude.com/docs/en/build-with-claude/context-windows">Context windows</a> and
+  <a href="https://platform.claude.com/docs/en/build-with-claude/context-editing">Context editing</a> (official)
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

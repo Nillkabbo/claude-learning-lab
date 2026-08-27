@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-19 · Enterprise deployment & gateways</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-19 · Phase E — Master</p>
+<h1>Enterprise deployment & gateways</h1>
+<p class="subtitle">Claude Code where the org says it runs: clouds, gateways, policy.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>The org-scale surface (official pages):</p>
+<ul>
+  <li><strong>Clouds</strong> — Bedrock, Google Cloud's Agent Platform, Microsoft
+  Foundry: authenticate and run against enterprise cloud deployments (CC-01's auth
+  menu, at org scale).</li>
+  <li><strong>Gateways</strong> — run Claude Code through a gateway: the apps gateway
+  (Bedrock/AWS/GCP/Foundry behind it, with spend limits, deployment/ops guides) or
+  other LLM gateways (connect, roll out, protocol reference).</li>
+  <li><strong>Policy travels</strong> — managed settings deploy org-wide;
+  server-managed settings and MCP-server access control keep the fences standing
+  wherever the binary runs (CC-13/CC-14 at fleet size).</li>
+  <li><strong>Network realities</strong> — enterprise network configuration, corporate
+  launchers, dev containers: the official deployment pages are the checklist.</li>
+</ul>
+<p>The architecture eye from Track 1: a gateway is a trust boundary — apply 0021's
+review (consent, scopes, no passthrough) to every hop you add.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "A gateway is, architecturally:",
+  "answers": [
+   "a trust boundary",
+   "a token discount",
+   "a model upgrade",
+   "a caching layer"
+  ],
+  "correct": 0,
+  "why": "Every hop gets 0021's review: who authenticates, what passes through, what's logged."
+ },
+ {
+  "q": "Org-wide fences ride on:",
+  "answers": [
+   "the managed settings",
+   "each user's goodwill",
+   "the CLAUDE.md files",
+   "manual code review"
+  ],
+  "correct": 0,
+  "why": "Managed settings deploy policy that nothing below overrides (with named security exceptions)."
+ },
+ {
+  "q": "Supported enterprise clouds include:",
+  "answers": [
+   "Bedrock and Foundry",
+   "only one provider",
+   "none yet today",
+   "personal accounts only"
+  ],
+  "correct": 0,
+  "why": "Bedrock, Google Cloud's Agent Platform, and Microsoft Foundry \u2014 the auth menu from CC-01, at org scale."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>On paper for a fictional 200-dev org: pick cloud vs gateway, sketch the policy
+  chain (managed settings → server-managed → repo), and where spend limits live.
+  Report the one-line rationale per choice.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/deployment">Enterprise deployment — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-18-custom-tools-tool-search.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-19 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

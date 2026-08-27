@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0024 · Mock exam II — scenario trade-offs</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0024 · Phase 6 — Exam mastery (final lesson of the course)</p>
+<h1>Mock exam II: scenario trade-offs under the clock</h1>
+<p class="subtitle">The real exam "tests judgment more than recall." Here is that judgment, twelve times.</p>
+
+<div class="meta">
+  <span class="accent">12 scenarios</span>
+  <span>Timed: 24 minutes</span>
+  <span>Clear bar: ≥11/12</span>
+</div>
+
+<div class="callout warn">
+  <span class="callout-title">Conditions</span>
+  Twelve scenario stems, each asking for the architect's move. <strong>Set a 24-minute
+  timer</strong> (the real exam allows ~2 minutes per question). No lesson peeking; commit
+  to an answer per stem before moving. Explanations name the domain and lessons — read
+  them after. Then report: <em>"mock II: 10/12, missed 5 and 11"</em>.
+</div>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "1. Nightly job: 50,000 invoices sorted into three fixed categories. The best design is:",
+    "answers": ["batched workflow, no agent", "an autonomous agent loop", "orchestrator with many workers", "a single interactive call"],
+    "correct": 0,
+    "why": "[Agentic · 0013/0014/0017] Predictable steps = workflow, not agent; patient scale = Batch API's flat 50%; fixed categories = structured-output classification. Simplicity first."
+  },
+  {
+    "q": "2. After migrating to a current model, requests 400. They contain temperature 0 and a trailing assistant turn. You:",
+    "answers": ["remove both legacy behaviors", "raise the max_tokens instead", "prefill a longer opening", "switch to streaming output"],
+    "correct": 0,
+    "why": "[Prompt Eng. · 0002/0003] Both are retired: temperature ≠1.0 is a 400 on post-Opus-4.6 models, and trailing assistant turns (prefill) 400 on Claude 4.6+. Migrate the idioms, don't tune around them."
+  },
+  {
+    "q": "3. Committed team settings auto-run lint for everyone — yet a fresh clone still gets prompted. Because:",
+    "answers": ["allow rules need trust", "deny rules outrank them", "hooks disabled by default", "local settings override teams"],
+    "correct": 0,
+    "why": "[Claude Code · 0009/0010] Trust gating: allow rules from committed repo files apply only after each teammate trusts the folder — while deny/ask rules apply immediately. The asymmetry is the feature."
+  },
+  {
+    "q": "4. A payment tool times out after submission; charge status unknown. A junior proposes retrying immediately. You:",
+    "answers": ["verify charge, then retry", "retry with backoff only", "return failure to user", "escalate to finance immediately"],
+    "correct": 0,
+    "why": "[Tool Design · 0007] Uncertain state: the side effect may have fired. Verify via read-back (idempotency keys make future retries safe) before any retry — or you double-charge."
+  },
+  {
+    "q": "5. A long-running agent slows and drifts around 400K tokens of history. The right move is to:",
+    "answers": ["trigger compaction and memory clearing", "upgrade to a larger-window model", "raise the max_tokens and continue", "restart the conversation from scratch"],
+    "correct": 0,
+    "why": "[Context · 0008] Context rot: accuracy and recall degrade with tokens regardless of window size. Compaction is 'the primary strategy'; clearing + memory preserve what matters. Never restart — checkpoint and resume."
+  },
+  {
+    "q": "6. A prompt tweak moved your 20-case eval from 30% to 80%. The correct next step is to:",
+    "answers": ["iterate now; held-out before shipping", "ship immediately since it's proven", "build 500 cases before iterating", "disable evals to save tokens"],
+    "correct": 0,
+    "why": "[Agentic · 0016] Early effects are large — iterate on the small set, then validate on held-out data before shipping. Waiting for big evals ships blind; skipping validation overfits."
+  },
+  {
+    "q": "7. A research product explores three independent directions across huge sources, with high task value. You architect:",
+    "answers": ["spawn parallel workers, synthesize", "one agent searches sequentially", "route queries to Haiku", "vote using identical prompts"],
+    "correct": 0,
+    "why": "[Agentic · 0015] Parallel + context-exceeding + valuable = orchestrator-workers territory (the 15× economics can pay). Sequential single agents fail breadth-first queries; voting is for confidence, not coverage."
+  },
+  {
+    "q": "8. At install, a vendor's MCP server demands wildcard scopes. You:",
+    "answers": ["refuse; request minimal scopes", "accept; trust the vendor", "accept but monitor usage", "fork the server internally"],
+    "correct": 0,
+    "why": "[Tool Design/MCP · 0021] Scope inflation: one stolen wildcard token is everything. Progressive least-privilege — minimal initial scopes, targeted elevation when privileged operations are attempted, logged."
+  },
+  {
+    "q": "9. A schema requires delay_minutes within 0–300. Constrained decoding can't enforce it. The range belongs to:",
+    "answers": ["your code after parsing", "the compiled grammar itself", "the system prompt instructions", "a human reviewer manually"],
+    "correct": 0,
+    "why": "[Prompt Eng. · 0004] The validation layers: grammar guarantees shape (numerical constraints 400!); semantic rules are your code post-parse; humans review high-stakes/low-confidence. Each concern has an owner."
+  },
+  {
+    "q": "10. PR reviews flood the main session with 40-file reads. The fix is a:",
+    "answers": ["read-only subagent, summary back", "raise the context limit", "review inside main session", "disable the compaction warnings"],
+    "correct": 0,
+    "why": "[Claude Code · 0011] Side-task noise belongs in a disposable context: a read-only subagent explores and returns only the summary. The main context is expensive to lose — protect it."
+  },
+  {
+    "q": "11. The CFO wants the nightly eval bill cut ~40% without touching the interactive product. You reach for:",
+    "answers": ["batch the nightly suite", "batch both products equally", "cut thinking budgets everywhere", "downgrade all models permanently"],
+    "correct": 0,
+    "why": "[Agentic/cost · 0017] Batch's flat 50% applies to patient work only — never the latency-bound product (no streaming, 24h ceiling). Add cached stable prefixes on top; both stack."
+  },
+  {
+    "q": "12. A prompt fix must ship today; agents are mid-research. The correct path is:",
+    "answers": ["eval gate, rainbow deployment", "direct hot-swap right now", "restart everything from scratch", "defer to quarterly windows"],
+    "correct": 0,
+    "why": "[Agentic/lifecycle · 0020] Changes cascade, so evals gate first; then rainbow-deploy — old and new run side by side as traffic shifts, and checkpoints protect the mid-flight runners."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Scoring and what comes after</h2>
+
+<table>
+  <thead><tr><th>Score</th><th>Reading</th></tr></thead>
+  <tbody>
+    <tr><td><strong>11–12</strong></td><td>Clear — judgment is exam-ready on these twelve trade-offs</td></tr>
+    <tr><td><strong>9–10</strong></td><td>Near — reread the named lessons for your misses, retake both mocks in 48h</td></tr>
+    <tr><td><strong>≤8</strong></td><td>Not yet — space your review across the weak domains, then redo the phase quizzes before re-mocking</td></tr>
+  </tbody>
+</table>
+
+<div class="callout note">
+  <span class="callout-title">Booking the real thing — the logistics checklist</span>
+  Registration runs through the Anthropic Partner Academy and needs a <strong>work email
+  tied to a Claude Partner Network org</strong> (personal addresses are rejected — sort this
+  early). The exam is $125, 60 questions, 120 minutes, pass 720/1000, proctored by Pearson
+  VUE (OnVUE online or test center, government photo ID). Download and read the official
+  <a href="https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification">Exam Guide PDF</a>
+  before booking; verify the domain weights first-hand. The credential lasts 12 months
+  with free on-time renewal; up to four attempts per rolling year (waits escalate 14/30/90
+  days), each at full price.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The course is complete</span>
+  Twenty-four lessons, six phases, one review built, both mocks — every fact verified
+  against official documentation current as of August 2026. What remains is the part only
+  you can do: report your results (mocks, quizzes, capstone), close the gaps the reports
+  reveal, and sit the exam. This workspace stays yours for spaced review — the glossary,
+  the roadmap, and every lesson's quiz will re-quiz you whenever you return.
+</div>
+
+<div class="lesson-nav">
+  <a href="0023-mock-exam-1.html">◂ 0023 · Mock exam I</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0024 · Claude Architect course · complete curriculum · every scenario traces to verified content in lessons 0001–0021
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracker in 12 sprints — the do-it-with-me mode</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Sprint mode · the engagement fix</p>
+<h1>Tracker in 12 sprints</h1>
+<p class="subtitle">Ten minutes each. Three commands each. You paste the output; I coach the next three. This is how the doing finally starts.</p>
+
+<div class="meta">
+  <span class="accent">12 × 10 minutes</span>
+  <span>You run commands · I coach</span>
+  <span>Ends at: your Tracker v1.0</span>
+</div>
+
+<div class="callout warn">
+  <span class="callout-title">The rule of this mode</span>
+  No sprint is "done" until you've pasted its output to your agent. Not the right
+  output — <em>your</em> output. Wrong output is the best coaching material there is.
+  The <a href="story-roadmap.html">story chapters</a> remain the why; these sprints
+  are only the doing, shrunk until doing is easier than not.
+</div>
+
+<h2>Sprint 0 — the door (5 min)</h2>
+<pre><code>claude --version</code></pre>
+<p>Version prints? Skip to Sprint 1. Error? Run the install for your platform
+(<code>curl -fsSL https://claude.ai/install.sh | bash</code> on macOS/Linux), then
+<code>claude</code> once to log in. <strong>Paste:</strong> the version line (or the error).</p>
+
+<h2>Sprint 1 — the repo (10 min)</h2>
+<pre><code>mkdir my-tracker && cd my-tracker
+git init
+claude</code></pre>
+<p>Inside the session, type: <em>"Create a README saying this is a tiny issue-tracker
+CLI in Python. Just the README."</em> Approve the write (read it first). Exit, commit:
+<code>git add -A && git commit -m "add: readme"</code>.
+<strong>Paste:</strong> your <code>git log --oneline</code>.</p>
+
+<h2>Sprint 2 — the first behavior (10 min)</h2>
+<p><code>claude</code>, then: <em>"Add tracker.py with an `add` command:
+`python3 tracker.py add some text` appends {id, text, status} to tasks.json with
+auto-incrementing ids, prints the id. Under 40 lines."</em> Read the diff. Approve.
+Run it: <code>python3 tracker.py add survive sprint two</code>.
+<strong>Paste:</strong> the printed id + your one-line review of the diff.</p>
+
+<h2>Sprint 3 — break it on purpose (10 min)</h2>
+<pre><code>python3 tracker.py add fix the "login" bug</code></pre>
+<p>Quotes eat arguments (Ch 2's story). Back in <code>claude</code>, Shift+Tab to
+<em>plan</em> mode: <em>"That input breaks — plan a fix: join argv fragments, and make
+writes atomic (temp file + replace) so a failed write can't truncate tasks.json."</em>
+Read the plan, approve, read the diff. <strong>Paste:</strong> did the plan mention
+both fixes? Your call on anything you'd amend.</p>
+
+<h2>Sprint 4 — list + close (10 min)</h2>
+<p>Two pointed asks (separate prompts, read both diffs): <em>"add `list` — print
+id [status] text"</em>, then <em>"add `close &lt;id&gt;` — mark done; list shows [x]"</em>.
+Prove it: add three tasks, close one, list.
+<strong>Paste:</strong> the list output.</p>
+
+<h2>Sprint 5 — the file that teaches (10 min)</h2>
+<p>Run <code>/init</code>. Cut its draft to ≤15 lines: run commands, conventions,
+a <strong>Do not</strong> section (≥2 real rules). Commit.
+<strong>Paste:</strong> your CLAUDE.md's Do-not section.</p>
+
+<h2>Sprint 6 — the Friday chore (10 min)</h2>
+<p>Create <code>.claude/skills/release/SKILL.md</code> (copy the shape from the
+<a href="../tracker/.claude/skills/release/SKILL.md">worked example</a>, adapt it).
+In a session: <code>/release v0.2</code> — with one failing test on purpose first, to
+watch it abort. <strong>Paste:</strong> the abort, then the successful run.</p>
+
+<h2>Sprint 7 — the guardrails (10 min)</h2>
+<p>Write <code>.claude/settings.json</code> with allow/ask/deny (adapt the
+<a href="../tracker/.claude/settings.json">worked example</a>). Then try to make Claude
+run <code>git push origin main</code> and watch it refuse.
+<strong>Paste:</strong> the refusal.</p>
+
+<h2>Sprint 8 — tags + search (10 min)</h2>
+<p>Plan-first ask: <em>"add `tag &lt;id&gt; &lt;tag&gt;` and `search &lt;text&gt;` matching text and
+tags, case-insensitive."</em> Add <code>rotate keys #infra</code>, then
+<code>search infra</code>. <strong>Paste:</strong> the search hit. Tag v0.3.</p>
+
+<h2>Sprint 9 — the suite (10 min)</h2>
+<p>Ask for tests mirroring the <a href="../tracker/tests/test_tracker.py">worked
+example's</a> spirit: ids increment, quoted text survives, failed save never truncates.
+Run <code>python3 -m unittest discover</code> until green.
+<strong>Paste:</strong> the <code>OK</code> line.</p>
+
+<h2>Sprint 10 — CI (10 min)</h2>
+<p>Add <code>.github/workflows/ci.yml</code> (adapt the
+<a href="../tracker/.github/workflows/ci.yml">worked example</a>). Push to a fresh
+GitHub repo; watch the check run. <strong>Paste:</strong> the green check URL.</p>
+
+<h2>Sprint 11 — the night shift (10 min)</h2>
+<p>Copy-adapt <a href="../tracker/scripts/nightly.py">nightly.py</a>; run it in
+dry-run. Schedule it (cron line: <code>0 9 * * *</code>). Break one test before bed;
+read the morning report. <strong>Paste:</strong> the report.</p>
+
+<h2>Sprint 12 — v1.0, yours (10 min)</h2>
+<p><code>/release v1.0</code>. Then the graduation line, in your repo:
+<code>git log --oneline</code> — every commit yours, every diff read.
+<strong>Paste:</strong> the log. That paste is the ledger's first real entry, and the
+moment this whole workspace did what it was built for.</p>
+
+<footer class="course-footer">
+  Sprint mode · 12 × 10 minutes · paste outputs to your agent after every sprint ·
+  <a href="story-roadmap.html">the story (the why)</a> ·
+  <a href="../tracker/README.md">the worked example (the answer key)</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

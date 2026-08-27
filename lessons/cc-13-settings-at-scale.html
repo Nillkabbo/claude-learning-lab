@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-13 · Settings at scale: scopes and managed policy</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-13 · Phase D — Team & enterprise</p>
+<h1>Settings at scale: scopes and managed policy</h1>
+<p class="subtitle">One product, many machines, one org — who wins, and on purpose.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>0010's verified ladder at org size. Files: <code>~/.claude/settings.json</code>
+(you, everywhere) → <code>.claude/settings.json</code> (repo, committed) →
+<code>.claude/settings.local.json</code> (you, this repo) → <strong>managed settings</strong>
+(org-deployed; nothing you set overrides it, with named security exceptions where
+stricter-locals win). Same key: highest level wins; permission <strong>lists merge</strong>.</p>
+<ul>
+  <li><strong>Trust gating</strong>: allow rules from committed files apply only after
+  each teammate trusts the folder; deny/ask apply immediately. First-day safety is a
+  feature, not friction.</li>
+  <li><strong>Strict JSON</strong> — comments and trailing commas mean a settings error;
+  <code>claude doctor</code> lists rejected entries, <code>/status</code> shows sources.</li>
+  <li><strong>Cloud sessions</strong> read committed + server-managed settings only —
+  local files stay local.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Highest-precedence settings come from:",
+  "answers": [
+   "managed settings",
+   "local settings",
+   "committed settings",
+   "user settings"
+  ],
+  "correct": 0,
+  "why": "Managed (org) > CLI > local > shared project > user \u2014 with security exceptions where stricter lower values win."
+ },
+ {
+  "q": "Permission lists across scopes:",
+  "answers": [
+   "they merge together",
+   "highest only wins",
+   "lowest only wins",
+   "conflict and error"
+  ],
+  "correct": 0,
+  "why": "Lists accumulate across scopes rather than overriding \u2014 an allow anywhere is live (after trust), deny beats it in evaluation."
+ },
+ {
+  "q": "A new teammate clones the repo. Allow rules:",
+  "answers": [
+   "wait for folder trust",
+   "apply immediately on clone",
+   "never apply at all",
+   "require admin approval first"
+  ],
+  "correct": 0,
+  "why": "Trust gating: committed allow rules activate per-teammate after trust; deny/ask apply immediately."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Author a team <code>.claude/settings.json</code> for a real repo: allow your
+  build/test commands, ask for pushes, deny secrets paths. Have a colleague (or a second
+  clone) confirm the trust-gating experience. Report the diffs from expectations.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/settings">Claude Code settings — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-12-headless-automation.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-13 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

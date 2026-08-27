@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary · Claude Architect</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Reference · Shared vocabulary</p>
+<h1>Claude Architect glossary</h1>
+<p class="subtitle">Every lesson uses these terms exactly this way. Grows as the course grows.</p>
+
+<div class="meta">
+  <span>52 terms</span>
+  <span>Updated 2026-08-26</span>
+</div>
+
+<dl class="glossary">
+  <dt>Auto memory</dt>
+  <dd>Notes Claude Code writes itself (user, feedback, project, reference types), stored per-project with a <code>MEMORY.md</code> index. Like CLAUDE.md: context, not enforced configuration.</dd>
+
+  <dt>Agent</dt>
+  <dd>A model running in a loop where <em>it</em> decides the next action (often calling tools) until a task is done — contrast with a <em>workflow</em>, where your code decides the steps.</dd>
+
+  <dt>Agent SDK</dt>
+  <dd>"Claude Code as a library" (Python/TypeScript): the same tools, agent loop, and context management as Claude Code, running in your process via <code>query()</code>. Siblings: Client SDK (you build the loop), CLI (terminal harness), Managed Agents (Anthropic hosts agent + sandbox). Other languages: CLI subprocess with JSON output.</dd>
+
+  <dt>Agentic system</dt>
+  <dd>Anthropic's umbrella for systems combining LLMs and tools. Two flavors by control-flow ownership: <strong>workflows</strong> ("orchestrated through predefined code paths") and <strong>agents</strong> ("LLMs dynamically direct their own processes and tool usage"). Golden rule: simplest solution possible, complexity only when demonstrably needed.</dd>
+
+  <dt>Agentic loop</dt>
+  <dd>The repeating cycle: send context → model responds (possibly with tool calls) → execute tools → append results → send again. Ends when the model stops calling tools or a limit is hit.</dd>
+
+  <dt>Batch API</dt>
+  <dd>An API mode for submitting many requests together: flat <strong>50% of standard prices</strong> (stacks with caching), most done &lt;1h with a 24h expiry, 100K requests / 256 MB per batch, results as one unordered <code>.jsonl</code> (join by <code>custom_id</code>), no streaming, failures isolated and unbilled. For evals, moderation, and bulk work — never latency-bound products.</dd>
+
+  <dt>Cache breakpoint</dt>
+  <dd>A marker (max 4 per request; automatic caching consumes one) placed on the last block that stays identical across requests. Invalidation hierarchy: tools → system → messages — a change at any level kills that level and everything after it (tool-definition changes kill the whole cache; tool_choice changes touch messages only). Writes: 1.25× (5-min TTL) or 2× (1-hour); reads: 0.1×.</dd>
+
+  <dt>CLAUDE.md</dt>
+  <dd>A markdown file Claude Code reads automatically for project instructions — commands, conventions, context. Lives at project root (and user level for global preferences).</dd>
+
+  <dt>Compaction</dt>
+  <dd>Summarizing an older conversation to free context window space while keeping the gist. Claude Code does this automatically near the window limit.</dd>
+
+  <dt>Content block</dt>
+  <dd>An item in a message's <code>content</code> list. A reply can contain multiple blocks of different types — e.g. a <code>text</code> block, then a <code>tool_use</code> block.</dd>
+
+  <dt>Confused deputy</dt>
+  <dd>The MCP catalog's namesake attack: a privileged intermediary (e.g., an OAuth proxy with a static client ID plus a lingering consent cookie) persuaded to act on an attacker's request without fresh consent. Mitigation: per-client consent registries, exact redirect matching, state set only after approval.</dd>
+
+  <dt>Token passthrough</dt>
+  <dd>The explicitly forbidden MCP anti-pattern: a server forwarding client-issued tokens downstream without validating they were issued to the server. Breaks audit trails, circumvents controls, and enables lateral movement. Servers MUST hold their own tokens.</dd>
+
+  <dt>Context window</dt>
+  <dd>The maximum tokens (input + output) a model can consider in one request. Everything — system prompt, history, tool results, documents — competes for it.</dd>
+
+  <dt>Escalation</dt>
+  <dd>Design pattern for handing control from the model to a human or stricter process when confidence is low, stakes are high, or policy requires it.</dd>
+
+  <dt>Few-shot example</dt>
+  <dd>Input/output examples placed in the prompt to show the model the pattern you want. Costs tokens; buys consistency.</dd>
+
+  <dt>Gate (workflow)</dt>
+  <dd>A programmatic check between chained steps ensuring intermediate output is on spec before continuing — structured outputs plus semantic rules. What separates a chain from a hopeful sequence.</dd>
+
+  <dt>Sectioning vs voting</dt>
+  <dd>Parallelization's two flavors: sectioning splits independent subtasks that run concurrently and merge; voting runs the same task multiple times with a threshold deciding (a precision/recall business decision).</dd>
+
+  <dt>LLM-as-judge</dt>
+  <dd>Using a model to grade outputs against a rubric (Likert/binary/ordinal). Official best practices: judge with a <em>different</em> model than the generator; a single call scoring 0.0–1.0 + pass/fail proved most consistent; humans still review what automation misses (e.g., source-selection bias).</dd>
+
+  <dt>Idempotency key</dt>
+  <dd>A client-generated key making an operation safe to retry: the server charges/acts at most once per key. The structural fix for "timed out — did the side effect fire?" — turns uncertain retries into safe ones.</dd>
+
+  <dt>Hook (Claude Code)</dt>
+  <dd>A user-defined shell command that runs automatically at a lifecycle point (e.g. before a tool runs) to enforce policy deterministically.</dd>
+
+  <dt>max_tokens</dt>
+  <dd>Required request field capping the response length. An undersized cap truncates output — one root of "incomplete-looking" answers.</dd>
+
+  <dt>MCP — Model Context Protocol</dt>
+  <dd>An open protocol for connecting models to external tools, resources, and prompt templates via servers. Standardizes what tool integrations look like.</dd>
+
+  <dt>Messages array</dt>
+  <dd>The <code>messages</code> field of an API request: the full conversation as alternating <code>user</code>/<code>assistant</code> turns. Because the API is stateless, this array <em>is</em> the conversation.</dd>
+
+  <dt>Orchestrator–workers</dt>
+  <dd>Agentic pattern: a lead model splits the task, delegates pieces to worker instances, and synthesizes results. Scales parallelizable work; adds coordination overhead.</dd>
+
+  <dt>Prefill (response prefilling)</dt>
+  <dd>Legacy technique: end <code>messages</code> with a partial assistant turn so generation continues from it — used to skip preambles or force formats. <strong>Unsupported on Claude 4.6 and later models</strong> (returns a 400 error; requests must end with a user message). Modern replacements: system-prompt phrasing and structured outputs.</dd>
+
+  <dt>Prompt chaining</dt>
+  <dd>Decomposing a task into a fixed sequence of model calls, each with a focused prompt, passing output forward. Cheaper and more debuggable than one mega-prompt.</dd>
+
+  <dt>Provenance</dt>
+  <dd>Traceability of every output claim to its source — in multi-agent systems, often a dedicated citation stage attributing claims, and artifacts + lightweight references preserving where findings came from. The exam groups it with multi-agent workflows.</dd>
+
+  <dt>Rainbow deployment</dt>
+  <dd>Releasing agent-system versions by gradually shifting traffic while old and new versions run simultaneously — because long-running, stateful agents mid-task can't all be swapped at once.</dd>
+
+  <dt>Permission rule</dt>
+  <dd>Claude Code's guarantee layer: <code>Tool(specifier)</code> entries in allow/ask/deny lists, evaluated deny→ask→allow with first match winning. Lists merge across scopes; deny/ask from committed files apply without trust gating, allow needs trust. Stronger than CLAUDE.md, weaker than PreToolUse hooks (exit 2 blocks before rules run).</dd>
+
+  <dt>Progressive summarization</dt>
+  <dd>Context strategy of repeatedly compressing older history into a compact running summary, then working from summary + recent turns.</dd>
+
+  <dt>Router</dt>
+  <dd>A model call (or rule) that classifies input and directs it to the specialized handler that should handle it. Keeps each handler prompt small and sharp.</dd>
+
+  <dt>Statelessness</dt>
+  <dd>The defining property of the Messages API: the model remembers nothing between requests. Your client owns and resends the entire history every call. (Contrast: Claude Code <em>sessions</em>, which manage history for you.)</dd>
+
+  <dt>Effort</dt>
+  <dd><code>output_config.effort</code> — reasoning-depth dial (<code>low</code> → <code>max</code>) trading latency and cost for depth. Not a length control: it doesn't reliably shorten long answers.</dd>
+
+  <dt>Stop reason</dt>
+  <dd>Response field saying why generation ended: <code>end_turn</code> (finished), <code>max_tokens</code> (truncated by your cap), <code>stop_sequence</code> (your custom brake fired), <code>refusal</code> (declined on safety), <code>tool_use</code> (wants a tool called). Drives what your code does next.</dd>
+
+  <dt>Skill (Claude Code)</dt>
+  <dd>A folder with <code>SKILL.md</code> (plus supporting files) that teaches Claude Code a procedure, invocable as <code>/name</code> or auto-loaded when relevant. Custom commands merged into skills; frontmatter includes <code>allowed-tools</code> (per-turn grant), <code>context: fork</code> (isolated subagent run), <code>disable-model-invocation</code>. Precedence: enterprise &gt; personal &gt; project.</dd>
+
+  <dt>Stop sequence</dt>
+  <dd>A custom string in <code>stop_sequences</code> that halts generation when the model produces it; the matched text is reported in the response's <code>stop_sequence</code> field. Used for multi-part generation, machine-readable spans, and turn-taking.</dd>
+
+  <dt>Constrained decoding</dt>
+  <dd>The mechanism behind structured outputs: the JSON schema compiles into a grammar, and token generation is constrained to it during sampling — schema compliance is enforced, not checked afterward.</dd>
+
+  <dt>Strict tool use</dt>
+  <dd>Setting <code>"strict": true</code> on a tool definition to guarantee schema validation on tool names and inputs — the tool-call sibling of JSON structured outputs; combinable with it.</dd>
+
+  <dt>Discovery (lifecycle)</dt>
+  <dd>The first CCAR-P lifecycle phase (discovery → design → handoff → monitoring): producing artifacts, not vibes — numeric success criteria, constraint inventory, ladder-scoped capability, product posture, failure catalog with costs, expert-written interaction scripts. Stakeholder Communication &amp; Lifecycle Management = 14% of CCAR-P.</dd>
+
+  <dt>Deflection rate</dt>
+  <dd>The share of support inquiries resolved without a human (official target zone: 70–80%). Paired with CSAT (≥4/5) — never optimized alone, or the agent gets cheap and bad.</dd>
+
+  <dt>Graceful degradation</dt>
+  <dd>Designed behavior for every failure: tool down → polite decline + alternatives; stale data → say so + cached answers; uncertain side effects → verify before retry. The failure modes must never be silence or fabrication.</dd>
+
+  <dt>Fork (Claude Code)</dt>
+  <dd>A subagent variant that inherits the entire parent conversation — prompt cache included — cheaper for tasks needing the same context. Fresh subagents start minimal (own system prompt, task message, CLAUDE.md, git status); either way only the final result returns to the main transcript.</dd>
+
+  <dt>Structured output</dt>
+  <dd>Constraining model output to a schema via <code>output_config.format</code> (<code>type: "json_schema"</code>), enforced by <a href="#glossary">constrained decoding</a>. Guarantees shape (types, enums, required fields); semantic rules (ranges, lengths) remain your code's job, and high-stakes outputs get human review.</dd>
+
+  <dt>Subagent</dt>
+  <dd>A separate agent instance with its own context and tools, spawned to handle a subtask (used heavily in Claude Code) — keeps the main context clean.</dd>
+
+  <dt>System prompt</dt>
+  <dd>The top-level instruction field defining role, rules, and tone. Persistent across the whole conversation — unlike a user message, it isn't "conversation", it's policy.</dd>
+
+  <dt>Temperature</dt>
+  <dd>Legacy sampling dial: lower ≈ more consistent outputs (never deterministic, even at 0). <strong>Deprecated</strong> on models released after Claude Opus 4.6 — only <code>1.0</code> accepted, other values 400 (<code>top_k</code> rejected likewise). Consistency now comes from instructions, examples, and structured outputs.</dd>
+
+  <dt>Server tool</dt>
+  <dd>A tool that runs on Anthropic's infrastructure (<code>web_search</code>, <code>web_fetch</code>, <code>code_execution</code>) — results arrive in-band without your code executing anything. Contrast: client tools, which you execute in the tool_result loop.</dd>
+
+  <dt>Uncertain state</dt>
+  <dd>The error class where a side effect may or may not have fired (e.g., payment timeout after submission). Correct handling: report UNKNOWN, demand verification before retry — never "failed, try again."</dd>
+
+  <dt>Token</dt>
+  <dd>The unit models read and write in, and the unit you pay in — roughly a word fragment. Input and output tokens are priced differently.</dd>
+
+  <dt>Tool choice</dt>
+  <dd>The <code>tool_choice</code> parameter: <code>auto</code> (model decides; accepts <code>disable_parallel_tool_use</code>), <code>any</code> (some tool must be called), <code>tool</code> (a specific named tool must be), <code>none</code>. Steering without prompting.</dd>
+
+  <dt>Tool description</dt>
+  <dd>The primary interface of a tool: per official guidance "by far the most important factor in tool performance." Answers what it does, when to use and when not, parameter meanings, and limitations. Aim for 3–4+ sentences.</dd>
+
+  <dt>Tool use</dt>
+  <dd>Letting the model call functions you define: it emits a <code>tool_use</code> block, your code executes and returns a <code>tool_result</code>, and the loop continues.</dd>
+</dl>
+
+<footer class="course-footer">
+  Claude Architect course · reference/glossary.html ·
+  definitions grounded in <a href="https://docs.claude.com/en/home">Claude docs</a>,
+  <a href="https://code.claude.com/docs/en/overview">Claude Code docs</a>, and
+  <a href="https://modelcontextprotocol.io">MCP</a>.
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

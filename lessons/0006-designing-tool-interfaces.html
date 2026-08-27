@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0006 · Designing tool interfaces</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0006 · Phase 2 — Tools &amp; context</p>
+<h1>Designing tool interfaces models use correctly</h1>
+<p class="subtitle">A tool definition is UX for a non-human user — and the description is the interface.</p>
+
+<div class="meta">
+  <span class="accent">≈ 14 minutes</span>
+  <span>Exam: Tool Design &amp; MCP · 18%</span>
+  <span>No coding needed</span>
+</div>
+
+<p><a href="0005-tool-use-fundamentals.html">Lesson 0005</a> taught the loop's mechanics.
+Today is the craft: why does Claude use one tool flawlessly and fumble another? The model
+chooses tools by <em>reading</em> — name, description, schema. That readable surface is a
+user interface, and you are its designer. The official docs are blunt about where the
+leverage is: <strong>"Provide extremely detailed descriptions. This is by far the most
+important factor in tool performance."</strong></p>
+
+<h2>The description is the interface</h2>
+
+<p>A working description answers four questions. Aim for <strong>at least 3–4 sentences</strong>,
+more for complex tools:</p>
+<ol>
+  <li><strong>What it does</strong> — precisely, including units and formats of what it returns.</li>
+  <li><strong>When to use it — and when not to.</strong> The negative space prevents mis-selection.</li>
+  <li><strong>What each parameter means</strong> and how it changes behavior.</li>
+  <li><strong>Caveats and limitations</strong> — what the tool does <em>not</em> return or do.</li>
+</ol>
+
+<table>
+  <thead><tr><th>Poor (leaves Claude guessing)</th><th>Good (answers all four)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>"Gets the stock price for a ticker."</code><br><br>One line. No parameter meaning, no scope, no boundaries — "many open questions about the tool's behavior and usage."</td>
+      <td>Gets the latest trade price for a publicly traded company on a major US stock exchange. Input must be a valid ticker symbol. Use when the user asks about the current or most recent price. Returns the price in USD only — it will not provide any other information about the stock or company.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Notice the good version spends its sentences on <em>decision support</em>: validity,
+scope, currency, and the explicit "will not." A model that knows what a tool <em>doesn't</em>
+do stops reaching for it when it shouldn't — that's mis-selection engineering.</p>
+
+<h2>Naming and consolidation</h2>
+
+<ul>
+  <li><strong>Namespace meaningfully:</strong> <code>github_list_prs</code>,
+  <code>slack_send_message</code> — service prefix plus plain verb. This matters
+  <em>especially</em> when tool search is involved, and names must match
+  <code>^[a-zA-Z0-9_-]{1,64}$</code>.</li>
+  <li><strong>Consolidate related operations.</strong> Not <code>create_pr</code> +
+  <code>review_pr</code> + <code>merge_pr</code>, but <em>one</em> tool with an
+  <code>action</code> parameter. Official reasoning: "fewer, more capable tools reduce
+  selection ambiguity" — and each avoided definition also cuts the 264–804-token
+  overhead from Lesson 0005.</li>
+</ul>
+
+<div class="callout warn">
+  <span class="callout-title">The trade-off exam candidates miss</span>
+  Consolidation has a failure mode: the mega-tool whose <code>action</code> enum hides a
+  second schema ("for action X these params matter, for Y those"). The cure is the four-question
+  description applied <em>per action</em>, and enums kept honest. Sprawl and mega-tools are the
+  two ends of the same bad axis; the sweet spot is few tools, each with a complete interface.
+</div>
+
+<h2>Schemas that decide</h2>
+
+<ul>
+  <li><strong>Every parameter gets a description</strong> with format hints:
+  <code>"City and state, e.g. San Francisco, CA"</code>. Remember Lesson 0005's nuance —
+  Opus asks when a param is ambiguous, Sonnet may <em>infer</em>. Descriptions that remove
+  ambiguity protect you from both.</li>
+  <li><strong>Close open worlds with enums</strong> — <code>"enum": ["celsius", "fahrenheit"]</code>
+  — and still describe what the values mean. This is Lesson 0004's enum support doing double
+  duty inside tool schemas, with <code>strict: true</code> guaranteeing the call's shape.</li>
+  <li><strong><code>input_examples</code> for complex tools</strong> — nested objects, optional
+  parameters, format-sensitive inputs. Two rules: each example <em>must</em> validate against the
+  <code>input_schema</code> (invalid ones → <strong>400 error</strong>), and they work on client
+  tools, not server tools. Cost: ~20–50 tokens per simple example, 100–200 for nested ones —
+  another place description quality comes first, examples second.</li>
+</ul>
+
+<h2>Results are context</h2>
+
+<p>The loop's step 3 is yours, and so is its output shape. Official guidance: <strong>"design
+tool responses to return only high-signal information."</strong></p>
+
+<ul>
+  <li>Return <strong>semantic, stable IDs</strong> (slugs, UUIDs), not opaque internal references.</li>
+  <li>Include <strong>only the fields Claude needs next</strong> — not the raw API dump.</li>
+  <li>"Bloated responses waste context" — and worse: by Lesson 0001's statelessness, every
+  token in a <code>tool_result</code> is <strong>re-billed as input on every subsequent turn</strong>
+  of that conversation. Chatty tools are a permanent tax, not a one-time cost.</li>
+</ul>
+
+<div class="callout note">
+  <span class="callout-title">Design principle — the confirmation gate</span>
+  Irreversible or external-side-effect actions (booking, sending, paying, deleting) need a
+  <strong>confirmation gate in your execution loop</strong> — step 3 of Lesson 0005's diagram is
+  <em>your code</em>, so human-in-the-loop approval lives there, not in the model's goodwill.
+  This principle returns with real machinery in Phase 3 as Claude Code's permission system.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now do a senior-review audit of any tool definition on six axes: description
+  completeness (the four questions), naming, consolidation balance, enum closure, result
+  signal-to-weight, and confirmation gating for irreversible actions. That checklist maps
+  almost one-to-one onto the exam's tool-design questions.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Per official docs, the single most important factor in tool performance is:",
+    "answers": [
+      "the description quality",
+      "the model's intelligence",
+      "the schema's strictness",
+      "the namespacing prefix"
+    ],
+    "correct": 0,
+    "why": "\"Provide extremely detailed descriptions. This is by far the most important factor in tool performance.\" Model choice and strictness matter, but they can't rescue an interface the model can't understand."
+  },
+  {
+    "q": "An input_examples entry that violates the tool's input_schema produces:",
+    "answers": [
+      "a 400 error",
+      "a strict warning",
+      "silent example dropping",
+      "an inferred correction"
+    ],
+    "correct": 0,
+    "why": "Every example must validate against the input_schema — invalid examples 400 at request time. input_examples also don't apply to server tools like web search."
+  },
+  {
+    "q": "Per official guidance, related operations like create/review/merge PR should be:",
+    "answers": [
+      "one tool with actions",
+      "three separately named tools",
+      "server tools whenever possible",
+      "tools with disabled parallelism"
+    ],
+    "correct": 0,
+    "why": "Consolidate into one tool with an action parameter — fewer, more capable tools reduce selection ambiguity and cut the per-request token overhead of shipping extra definitions."
+  },
+  {
+    "q": "Tool results should be designed to return:",
+    "answers": [
+      "only high-signal information",
+      "the full payload",
+      "verbose audit logs",
+      "complete database rows"
+    ],
+    "correct": 0,
+    "why": "\"Design tool responses to return only high-signal information\" — semantic IDs and next-step fields only. Bloated results waste context and re-bill as input on every later turn."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — audit the booking tool</span>
+  <p>A teammate ships this tool and complains "Claude keeps misusing it":</p>
+  <pre><code>{
+  "name": "flight",
+  "description": "Books a flight.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "from": { "type": "string" },
+      "to":   { "type": "string" },
+      "cabin": { "type": "string",
+                 "description": "The cabin." }
+    },
+    "required": ["from", "to", "cabin"]
+  }
+}</code></pre>
+  <p>Execution returns the airline GDS's raw 4,000-token response. It also charges the
+  corporate card immediately.</p>
+  <p><strong>On paper:</strong> (1) audit it against the six axes from this lesson;
+  (2) rewrite the description with all four questions answered; (3) fix the
+  <code>cabin</code> parameter; (4) specify the result shape and where the confirmation
+  gate belongs.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1) Audit:</strong> description fails all four questions (no when/when-not,
+    no parameter meanings, no limitations — "Books a flight" answers nothing a chooser needs);
+    <code>name</code> isn't namespaced or verb-like; <code>cabin</code> is an open string where
+    the world is closed; the 4,000-token raw result violates high-signal design; and an
+    immediate charge with no gate is the confirmation failure.</p>
+    <p><strong>(2)</strong> Model answer — <em>"Books a revenue flight on Apex Airlines'
+    inventory and immediately charges the corporate card. Use when the user has explicitly
+    confirmed a specific itinerary. Do not use for fare search or holds — use search_flights.
+    Inputs are IATA airport codes (e.g., AUS, JFK), not city names. Returns only the booking
+    reference and final price; it does not return seat assignments."</em></p>
+    <p><strong>(3)</strong> <code>"cabin": { "type": "string", "enum": ["economy",
+    "premium_economy", "business", "first"], "description": "Cabin class; premium_economy is
+    not offered on regional jets." }</code> — closed world, described values.</p>
+    <p><strong>(4)</strong> Return <code>{ booking_ref, price_usd, cabin }</code> — semantic,
+    next-step-sized. The confirmation gate belongs in <strong>your execution code</strong>
+    (step 3 of the loop): require explicit user confirmation before charging, regardless of
+    what the model decides. If your audit caught that the model can't be trusted to be the
+    gatekeeper — only the interface — you've got the architect's instinct this domain tests.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools">Define tools — official docs</a></strong>.
+The description anatomy, consolidation guidance, and input_examples rules all live here.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Want to workshop a tool from your own work, or debate sprawl-vs-mega-tool on a real
+  example? Bring it to the agent. Next: say <em>"next lesson"</em> for 0007 · Error
+  handling in agent tools — transient vs permanent, structured errors, uncertain state.
+  And the <a href="phase-1-review.html">Phase 1 review</a> still wants your score.
+</div>
+
+<div class="lesson-nav">
+  <a href="0005-tool-use-fundamentals.html">◂ 0005 · Tool use fundamentals</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0006 · Claude Architect course · grounded in
+  <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools">Define tools (official)</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

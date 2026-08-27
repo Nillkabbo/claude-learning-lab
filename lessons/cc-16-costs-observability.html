@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-16 · Costs & observability</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-16 · Phase D — Team & enterprise</p>
+<h1>Costs & observability</h1>
+<p class="subtitle">Usage you can see, spend you can cap, teams you can steer.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>Track 1's economics (0017/0020), Claude Code edition:</p>
+<ul>
+  <li><strong>Monitoring via OpenTelemetry</strong> (official page) — usage telemetry
+  into your stack: the consumption plane of 0020, wired.</li>
+  <li><strong>Team analytics</strong> (official page) — usage across the org: who, what,
+  how much; the manager's three-plane dashboard starts here.</li>
+  <li><strong>Spend limits</strong> — the gateways docs define spend-limit configuration
+  for org-scale cost control; per-workspace cost tracking exists for Console-auth'd
+  usage (a Claude Code workspace is auto-created).</li>
+  <li><strong>Session habits</strong> still dominate: <code>/clear</code> between tasks,
+  <code>/context</code> awareness, lean tool sets, right-sized models.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Claude Code telemetry ships via:",
+  "answers": [
+   "OpenTelemetry exports",
+   "email digests",
+   "print statements",
+   "third-party cookies"
+  ],
+  "correct": 0,
+  "why": "OTel is the official monitoring rail \u2014 usage into your observability stack."
+ },
+ {
+  "q": "Console-auth'd usage gets:",
+  "answers": [
+   "a dedicated workspace",
+   "truly unlimited credits",
+   "no cost tracking",
+   "manual invoices only"
+  ],
+  "correct": 0,
+  "why": "A 'Claude Code' workspace is auto-created for cost tracking (quickstart)."
+ },
+ {
+  "q": "The cheapest session habit is:",
+  "answers": [
+   "/clear between tasks",
+   "never clearing ever",
+   "maximum context always",
+   "bypass mode always"
+  ],
+  "correct": 0,
+  "why": "Stale context bills and rots; /clear is the cheapest lever you own (CC-02/CC-04)."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Turn on OTel export (or read the analytics dashboard) for a week of your own
+  usage. Identify your top cost driver and apply one lever from CC-04. Report the
+  before/after.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/costs">Usage and costs — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-15-cicd.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-16 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

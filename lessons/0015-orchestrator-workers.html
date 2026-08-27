@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0015 · Orchestrator-workers &amp; multi-agent design</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0015 · Phase 4 — Agentic architecture · 27%</p>
+<h1>Orchestrator-workers &amp; multi-agent design</h1>
+<p class="subtitle">The fifth pattern — plus the production numbers Anthropic published about running it.</p>
+
+<div class="meta">
+  <span class="accent">≈ 16 minutes</span>
+  <span>Exam: Agentic Architecture · 27%</span>
+  <span>Sources: two engineering posts</span>
+</div>
+
+<p><a href="0013-workflows-vs-agents.html">0013</a> previewed orchestrator-workers as the
+workflow that borrows the agent's best trick; today it gets the full treatment, grounded
+in something rare: Anthropic's engineering post on
+<a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">building their own multi-agent Research system</a>
+— with real numbers, real failure modes, and the coordination lessons the exam's
+"multi-agent workflows… provenance" area is built from.</p>
+
+<h2>The pattern</h2>
+
+<p>A <strong>central LLM dynamically decomposes</strong> the task, delegates subtasks to
+specialized workers, and synthesizes their results. Unlike chaining or routing, the steps
+<em>aren't predefined</em> — that flexibility is the point (the essay's example: code
+changes needing "coordinated changes across many files"). Anthropic's Research system is
+the pattern at production scale:</p>
+
+<pre class="diagram">
+  query ──► LEAD AGENT (orchestrator)
+              │ thinks through approach, SAVES PLAN TO MEMORY
+              │ (context >200K truncates — the plan must survive)
+              ├──► [subagent 1] ── search, evaluate, compress ──┐
+              ├──► [subagent 2] ── search, evaluate, compress ──┼── synthesize
+              └──► [subagent N] ── search, evaluate, compress ──┘   │ re-plan if needed ▲
+                                                                    ▼
+            final findings ──► CITATION AGENT ──► cited report to user
+                                (every claim attributed to a source)
+</pre>
+
+<p>"The essence of search is compression": each subagent explores its own context window
+and <strong>condenses the most important tokens</strong> for the lead — 0008's context
+economics as an organizational chart. Note the last stage: a dedicated
+<strong>citation agent</strong> attributing claims to sources — <em>provenance built into
+the architecture</em>, not bolted on.</p>
+
+<h2>The economics (memorize the shape)</h2>
+
+<ul>
+  <li><strong>It works:</strong> Opus 4 lead + Sonnet 4 workers beat single-agent Opus 4
+  by <strong>90.2%</strong> on Anthropic's internal research eval — breadth-first queries
+  with independent directions benefit most.</li>
+  <li><strong>Why it works:</strong> on the BrowseComp eval, <strong>token usage alone
+  explained 80% of performance variance</strong> (with tool-call count and model choice,
+  three factors covered 95%). Multi-agent architectures are, bluntly, a machine for
+  <em>spending more tokens in parallel</em> — and newer models multiply the value of each
+  token.</li>
+  <li><strong>What it costs:</strong> agents use ~4× the tokens of chat; multi-agent
+  systems ~<strong>15×</strong>. "Economic viability requires tasks where the value of the
+  task is high enough to pay for the increased performance."</li>
+  <li><strong>When-not:</strong> tasks needing <em>shared context</em> across agents, or
+  with heavy interdependencies — "most coding tasks involve fewer truly parallelizable
+  tasks than research." When-yes: heavy parallelization, information exceeding single
+  context windows, numerous complex tools.</li>
+</ul>
+
+<h2>The delegation craft</h2>
+
+<p>Anthropic's early failure modes are the exam's scenario seeds: agents spawning
+<strong>50 subagents for simple queries</strong>, endless searches for nonexistent
+sources, duplicated work from vague instructions (two subagents redundantly
+investigating 2025 supply chains while one covered the 2021 chip crisis). The fixes:</p>
+
+<ul>
+  <li><strong>Teach the orchestrator to delegate:</strong> every subagent task specifies
+  an <strong>objective, output format, tool/source guidance, and task boundaries</strong> —
+  0011's description-driven delegation, with the stakes raised.</li>
+  <li><strong>Scale effort to complexity</strong> (embedded as prompt rules): simple
+  fact-finding = 1 agent, 3–10 tool calls; comparisons = 2–4 subagents, 10–15 calls each;
+  complex research = 10+ subagents with divided responsibilities.</li>
+  <li><strong>Parallelize twice:</strong> the lead spawns 3–5 subagents in parallel
+  <em>and</em> subagents call 3+ tools in parallel — cutting research time
+  <strong>up to 90%</strong>.</li>
+  <li><strong>Start wide, then narrow:</strong> short broad queries first, then drill —
+  agents otherwise default to long, over-specific queries that return nothing.</li>
+  <li><strong>Let agents improve the tools:</strong> their tool-testing agent rewrote a
+  flawed tool's description and cut future agents' task completion time by
+  <strong>40%</strong> — ACI as a self-improving loop.</li>
+</ul>
+
+<h2>Coordination, provenance, and the telephone game</h2>
+
+<div class="callout note">
+  <span class="callout-title">The filesystem pattern — the appendix gem</span>
+  Subagents can write <strong>artifacts to a filesystem</strong> and pass lightweight
+  references back to the coordinator, instead of funneling everything through
+  conversation — "to minimize the <strong>game of telephone</strong>." Higher fidelity,
+  fewer tokens, and outputs that outlive the run. Pair with: summarize completed phases
+  to external memory; spawn fresh subagents with careful handoffs when contexts fill
+  (0008's long-horizon playbook, confirmed at production scale).
+</div>
+
+<h2>Production realities</h2>
+
+<ul>
+  <li><strong>Errors compound.</strong> A minor failure can derail an agent's whole
+  trajectory — so: durable execution, <strong>checkpoints and resume</strong>, never
+  restart-from-zero. And "letting the agent know when a tool is failing… works
+  surprisingly well" (0007's instructive errors, validated).</li>
+  <li><strong>Evaluation can't be path-based</strong> — identical inputs legitimately
+  take different paths. Judge <em>outcomes</em> and reasonable process; for state-mutating
+  agents, evaluate <strong>end states at checkpoints</strong>. (0016 is entirely this.)</li>
+  <li><strong>Deployment is delicate:</strong> agents mid-run can't all be swapped at
+  once — Anthropic uses <strong>rainbow deployments</strong>, old and new versions
+  running side by side as traffic shifts.</li>
+  <li><strong>Emergent behavior:</strong> small orchestrator changes ripple into worker
+  behavior unpredictably — the best prompts are "frameworks for collaboration… division
+  of labor, problem-solving approaches, and effort budgets," not rigid scripts.</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now design a multi-agent system with the full checklist: justify it with the
+  economics (80% variance / 15× tokens), decompose with proper task descriptions, scale
+  effort by complexity, parallelize at both levels, route artifacts through the filesystem,
+  build provenance in (the citation stage), and plan for compounding errors with
+  checkpoints and rainbow deploys.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Multi-agent systems excel when tasks involve:",
+    "answers": [
+      "heavy parallelization beyond single contexts",
+      "shared mutable state across agents",
+      "strictly sequential and dependent subtasks",
+      "one shared context across agents"
+    ],
+    "correct": 0,
+    "why": "Heavy parallelization, information exceeding single context windows, and many complex tools. Shared context or tight interdependencies are explicit when-NOTs — coordination costs eat the gains."
+  },
+  {
+    "q": "In Anthropic's BrowseComp analysis, token usage alone explained:",
+    "answers": [
+      "80%",
+      "90.2%",
+      "95%",
+      "15×"
+    ],
+    "correct": 0,
+    "why": "80% of performance variance from token usage alone (95% across three factors with tool calls and model choice). 90.2% is the multi-agent eval win; 15× is the token cost vs chat."
+  },
+  {
+    "q": "A delegated subagent task must specify:",
+    "answers": [
+      "objective, format, tools, and boundaries",
+      "names, dates, owners, and deadlines",
+      "prompts, keys, roles, and salaries",
+      "epochs, layers, weights, and biases"
+    ],
+    "correct": 0,
+    "why": "Objective, output format, tool/source guidance, and clear task boundaries — without them agents duplicate work, leave gaps, or chase the same sources (the semiconductor lesson)."
+  },
+  {
+    "q": "Subagent results written to a filesystem minimize:",
+    "answers": [
+      "the game of telephone",
+      "any need for orchestration",
+      "per-subagent total tool calls",
+      "parallel tool call latency"
+    ],
+    "correct": 0,
+    "why": "Artifacts persist independently and pass lightweight references back to the coordinator — higher fidelity and lower token overhead than copying large outputs through conversation history."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — architect the due-diligence feature (exam-style)</span>
+  <p>Apex wants a "research this acquisition target" feature: given a company, produce a
+  cited report covering market, financials, legal exposure, and tech stack — with a hard
+  budget ceiling and a requirement that every claim carries its source.</p>
+  <p><strong>On paper:</strong> (1) justify multi-agent (or argue against) using the
+  economics; (2) write the task description for ONE subagent (all four elements);
+  (3) apply effort scaling for "quick profile" vs "full deep-dive" tiers; (4) design the
+  artifact/provenance flow; (5) state what happens when a subagent times out.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> Justified: breadth-first, four independent directions,
+  sources exceeding any single context, high task value (an acquisition decision can pay
+  15× tokens). If the ask were "summarize this one filing," a single call wins.</p>
+    <p><strong>(2)</strong> Model: <em>"Objective: assess legal exposure for {company} —
+  litigation, sanctions, regulatory actions. Output format: markdown findings file at
+  <code>/artifacts/legal.md</code>, each claim followed by [source: URL]. Tools/sources:
+  web_search broad-first, then narrow; prefer court records and regulators over SEO
+  content farms. Boundaries: legal only — no financial or market analysis; stop at 12
+  tool calls."</em> Objective, format, tools, boundaries — all four present.</p>
+    <p><strong>(3)</strong> Quick profile: 1–2 subagents, 3–10 calls each. Deep-dive: 4+
+  subagents (one per area, divided responsibilities), 10–15 calls each — the embedded
+  scaling rules, applied as product tiers.</p>
+    <p><strong>(4)</strong> Workers write <code>/artifacts/&lt;area&gt;.md</code> with
+  inline source attribution; the lead receives lightweight references, synthesizes; a
+  final citation pass verifies every claim's [source: URL] — provenance as a pipeline
+  stage, like Anthropic's CitationAgent.</p>
+    <p><strong>(5)</strong> Checkpoint + resume, never restart: the lead learns the
+  subagent failed (instructive error — 0007), re-spawns only that area with the task
+  narrowed to what's missing, and the budget ceiling caps re-attempts. If your answer
+  ended with the artifact files still on disk for the resumed run to reuse — you've
+  internalized why the filesystem pattern exists.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">How we built our multi-agent research system</a></strong> — read it twice: once for the numbers, once for the failure modes. Plus the orchestrator-workers section of <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a>.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  The economics deserve a fight: when is 15× tokens obviously worth it, and when is it
+  agent-washing? Bring a real decision to the agent. Next: <em>"next lesson"</em> for
+  0016 · Evaluation &amp; feedback loops — small samples, LLM-as-judge, and why
+  path-based evals die on agents.
+</div>
+
+<div class="lesson-nav">
+  <a href="0014-composition-patterns.html">◂ 0014 · Composition patterns</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0015 · Claude Architect course · grounded in Anthropic's
+  <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">multi-agent research system post</a> and
+  <a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

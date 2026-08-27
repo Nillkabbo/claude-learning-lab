@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2–5 review — mixed retrieval</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Review · Phases 2–5</p>
+<h1>Phase 2–5 review: mixed retrieval</h1>
+<p class="subtitle">Twelve questions spanning tools, context, Claude Code, agentic architecture, and professional depth.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes</span>
+  <span>Covers lessons 0005–0021</span>
+  <span>Interleaved on purpose</span>
+</div>
+
+<p>The companion to the <a href="phase-1-review.html">Phase 1 review</a>: same rules,
+later material. From memory, no peeking; explanations name the lesson. Together with
+<a href="0023-mock-exam-1.html">Mock I</a>, this is your mixed-retrieval surface for the
+whole curriculum — report your score to the agent either way.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "A response arrives with stop_reason \"tool_use\". Your code should:",
+    "answers": ["execute tools, then continue", "end the conversation immediately", "retry with higher effort", "truncate the tool outputs"],
+    "correct": 0,
+    "why": "(0005) The loop's signal: execute the tool_use blocks and send back tool_result in a user message — the conversation continues by design."
+  },
+  {
+    "q": "Consolidating create_pr / review_pr / merge_pr into one tool means:",
+    "answers": ["one tool with actions", "three tools share names", "server tools replace clients", "parallelism gets fully disabled"],
+    "correct": 0,
+    "why": "(0006) One tool with an action parameter — 'fewer, more capable tools reduce selection ambiguity' and cut the per-request tool overhead."
+  },
+  {
+    "q": "tool_result blocks must immediately follow:",
+    "answers": ["their matching tool_use blocks", "the system prompt definition", "the final assistant message", "the previous user message"],
+    "correct": 0,
+    "why": "(0007) Ordering is a 400 if wrong — results first in the user message, immediately after their tool_use, matched by tool_use_id."
+  },
+  {
+    "q": "Server-side compaction is officially:",
+    "answers": ["the primary context strategy", "a deprecated client-side hack", "for Claude Code only", "a memory file replacement"],
+    "correct": 0,
+    "why": "(0008) 'The primary strategy for context management' — the client-side compaction_control alternative is deprecated."
+  },
+  {
+    "q": "A bare-tool deny rule (e.g., just WebFetch) does what?",
+    "answers": ["hides the tool entirely", "prompts for each use", "asks once per session", "blocks only dangerous args"],
+    "correct": 0,
+    "why": "(0009) A bare-tool deny removes the tool from Claude's context entirely — Claude never sees it. Scoped rules leave the tool visible."
+  },
+  {
+    "q": "A PreToolUse hook exiting with code 2:",
+    "answers": ["blocks regardless of JSON", "allows if JSON allows", "defers to deny rules", "logs and continues on"],
+    "correct": 0,
+    "why": "(0010) Exit 2 is a blocking error whether or not JSON is printed — even a JSON \"allow\" can't override it."
+  },
+  {
+    "q": "A fork, versus a fresh subagent:",
+    "answers": ["inherits the full conversation", "starts completely from scratch", "skips all tool access", "runs without any permissions"],
+    "correct": 0,
+    "why": "(0011) Forks inherit the entire conversation, prompt cache included — cheaper when the task needs the same context; tool calls still stay out of your transcript."
+  },
+  {
+    "q": "For a language with no SDK (Go, say), the official pattern is:",
+    "answers": ["CLI subprocess with JSON", "reimplement the loop yourself", "managed agents via REST", "wait for Go support"],
+    "correct": 0,
+    "why": "(0012) Run the CLI with -p and --output-format json. The SDK exists only for Python and TypeScript."
+  },
+  {
+    "q": "Agents, per Anthropic, trade what for task performance?",
+    "answers": ["latency and cost", "safety and compliance", "context for accuracy", "tools for simplicity"],
+    "correct": 0,
+    "why": "(0013) Agentic systems 'trade latency and cost for better task performance' — if nobody can say what the performance buys, the complexity is unfinanced."
+  },
+  {
+    "q": "LLM-graded evaluations should use:",
+    "answers": ["a different judging model", "the same generating model", "the cheapest available model", "human graders exclusively always"],
+    "correct": 0,
+    "why": "(0016) Cross-model judging: the grader that made the mistake can't see it — every official example judges with a different model than the generator."
+  },
+  {
+    "q": "Cache writes with the 5-minute TTL are billed at:",
+    "answers": ["1.25× the base input", "0.1× the base input", "2× the base input", "50% of standard prices"],
+    "correct": 0,
+    "why": "(0017) Writes: 1.25× (5-minute) or 2× (1-hour); reads: 0.1×; Batch: flat 50% — and caching stacks with batch."
+  },
+  {
+    "q": "Session IDs, per the MCP security spec:",
+    "answers": ["must never authenticate users", "should authenticate all requests", "must use sequential values", "can replace OAuth flows"],
+    "correct": 0,
+    "why": "(0021) Servers MUST NOT use sessions for authentication — use secure non-deterministic IDs, bound to user identity."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Reading your score</h2>
+<p>Missed mostly 1–4 → redo <a href="0005-tool-use-fundamentals.html">0005</a>–<a href="0008-context-management.html">0008</a>;
+5–8 → <a href="0009-claude-code-essentials.html">0009</a>–<a href="0012-agent-sdk.html">0012</a>;
+9–12 → <a href="0013-workflows-vs-agents.html">0013</a>–<a href="0021-trust-security-mcp.html">0021</a>.
+Then report: <em>"phase 2–5 review: 9/12, missed 4, 8, 11"</em> — it goes in
+<a href="../RESULTS.md">RESULTS.md</a> and becomes a learning record.</p>
+
+<div class="lesson-nav">
+  <a href="phase-1-review.html">◂ Phase 1 review</a>
+  <a class="next" href="0023-mock-exam-1.html">Mock exam I ▸</a>
+</div>
+
+<footer class="course-footer">
+  Phase 2–5 review · Claude Architect course · interleaved retrieval over lessons 0005–0021
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

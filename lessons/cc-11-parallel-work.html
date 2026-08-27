@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-11 · Parallel work: worktrees, agent view, session teams</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-11 · Phase C — Power user</p>
+<h1>Parallel work: worktrees, agent view, session teams</h1>
+<p class="subtitle">Many Claudes, many branches, one operator.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>The official parallel stack (from the docs map, explored hands-on):</p>
+<ul>
+  <li><strong>Worktrees</strong> — run parallel sessions in isolated git worktrees: each
+  session works its own branch and checkout, so file conflicts are structurally
+  impossible. Subagents can request <code>isolation: worktree</code> too.</li>
+  <li><strong>Agent view</strong> — the fleet console: manage multiple running agents,
+  their states and outputs, from one place.</li>
+  <li><strong>Orchestrate teams of sessions &amp; message your other sessions</strong> —
+  sessions that coordinate: one plans, others execute, messages pass between them
+  (the official dynamic-workflows pages).</li>
+</ul>
+<p>This is Track 1's orchestrator-workers pattern (0015) at the tooling layer — same
+laws: isolation before parallelism, synthesis after, budgets everywhere.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Worktrees give each session:",
+  "answers": [
+   "an isolated checkout",
+   "a separate account",
+   "a bigger window",
+   "a faster model"
+  ],
+  "correct": 0,
+  "why": "Git worktree = own branch + own working copy; parallel sessions can't trample each other's files."
+ },
+ {
+  "q": "Agent view is for:",
+  "answers": [
+   "managing multiple agents",
+   "editing agent files",
+   "browsing the web",
+   "configuring MCP servers"
+  ],
+  "correct": 0,
+  "why": "The fleet console: states, outputs, control \u2014 multiple running agents from one place."
+ },
+ {
+  "q": "The pattern underneath session teams:",
+  "answers": [
+   "the orchestrator-workers pattern",
+   "just prompt chaining",
+   "pure voting only",
+   "one single-call retry"
+  ],
+  "correct": 0,
+  "why": "0015's pattern at the tooling layer: isolation before parallelism, synthesis after."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>In a scratch repo: open two sessions in two worktrees, give them independent
+  tasks on the same file, merge both. Then try agent view if on a supporting build.
+  Report the merge experience.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/parallel-agents">Run agents in parallel — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-10-plugins.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-11 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

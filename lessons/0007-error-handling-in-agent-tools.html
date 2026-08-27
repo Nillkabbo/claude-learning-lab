@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0007 · Error handling in agent tools</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0007 · Phase 2 — Tools &amp; context</p>
+<h1>Error handling in agent tools</h1>
+<p class="subtitle">Errors aren't exceptions here — they're messages the model reads to decide what happens next.</p>
+
+<div class="meta">
+  <span class="accent">≈ 14 minutes</span>
+  <span>Exam: Tool Design &amp; MCP · 18%</span>
+  <span>No coding needed</span>
+</div>
+
+<p>In ordinary code, errors are for programmers — stack traces, log lines, nobody's
+decision. In the <a href="0005-tool-use-fundamentals.html">tool loop</a>, an error becomes
+part of the conversation: Claude <em>reads</em> it and chooses the next move. That makes
+error design a branch of prompt design — and the exam's "error handling in agent tools"
+area is exactly this judgment. Three things to master: the mechanics of signaling, the
+classification that drives behavior, and the state you can't see.</p>
+
+<h2>Signal with <code>is_error</code>, never exceptions</h2>
+
+<p>Don't raise exceptions through the API. Return the failure <em>in the channel the model
+reads</em> — a <code>tool_result</code> with <code>is_error: true</code>:</p>
+
+<pre><code>{ "role": "user", "content": [
+  { "type": "tool_result",
+    "tool_use_id": "toolu_01A09q90",
+    "content": "ConnectionError: the weather service API is not available (HTTP 500)",
+    "is_error": true }
+]}</code></pre>
+
+<p>Claude incorporates the error into its response — telling the user, suggesting a retry
+later, or routing around the failure. Two adjacent behaviors worth knowing:</p>
+<ul>
+  <li><strong>Invalid tool calls self-correct:</strong> if Claude requests a tool with bad or
+  missing parameters, it typically <strong>retries 2–3 times with corrections</strong> before
+  apologizing — and you can help it along with errors like <code>"Error: Missing required
+  'location' parameter"</code>.</li>
+  <li><strong>Or don't have the problem at all:</strong> <code>strict: true</code> on the
+  definition guarantees schema-valid inputs (<a href="0004-structured-outputs.html">Lesson 0004</a>),
+  eliminating invalid calls at the source.</li>
+</ul>
+
+<h2>The classification that drives behavior</h2>
+
+<p>The official principle: <strong>"write instructive error messages"</strong> — what went
+wrong <em>and what to try next</em>. The classification underneath:</p>
+
+<table>
+  <thead><tr><th>Class</th><th>Examples</th><th>The message should</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Transient</strong> (retryable)</td><td>Rate limit, HTTP 5xx, read timeout</td><td>Say it's retryable and give parameters: <em>"Rate limit exceeded. Retry after 60 seconds."</em></td></tr>
+    <tr><td><strong>Permanent</strong> (adapt)</td><td>Invalid input, not found, forbidden</td><td>Point to the alternative: <em>"No such airport code; use search_airports first"</em></td></tr>
+    <tr><td><strong>Uncertain</strong> (verify)</td><td>Timeout <em>after</em> a side effect may have fired</td><td>Say the outcome is unknown: see below — this is the architect's trap</td></tr>
+  </tbody>
+</table>
+
+<p>A transient error without retry guidance invites the model to guess (hammer the API or
+give up). A permanent error phrased as "failed, try again" invites pointless retries. The
+message text <em>is</em> the control logic.</p>
+
+<h2>The trap: uncertain state</h2>
+
+<div class="callout warn">
+  <span class="callout-title">Where real money gets lost</span>
+  Your payment tool times out. Did the charge fire? <strong>You don't know.</strong> If the
+  error says "failed, retry," the model retries — and double-charges. The correct result:
+  <em>"Request timed out after submission; charge status UNKNOWN. Do not retry — verify
+  with get_charge_status before any retry or rebooking."</em> The error must distinguish
+  <strong>failed cleanly</strong> from <strong>state unknown</strong>.
+</div>
+
+<p>The stronger fix is structural: <strong>idempotency keys</strong>. If the payment
+accepts a client-generated key and charges at most once per key, then "retry" becomes
+safe by construction and your error messages can be simpler. When the exam asks how to
+make retries safe against side effects, that's the answer.</p>
+
+<h2>Formatting rules that 400</h2>
+
+<ul>
+  <li><code>tool_result</code> blocks must <strong>immediately follow</strong> their
+  corresponding <code>tool_use</code> blocks in history.</li>
+  <li>Inside the user message, <code>tool_result</code> blocks come <strong>first</strong> —
+  any accompanying text goes after them.</li>
+  <li>The tell-tale API error when you get this wrong:
+  <em>"tool_use ids were found without tool_result blocks immediately after"</em> — that's
+  ordering, not content.</li>
+</ul>
+
+<h2>MCP's two-lane error system</h2>
+
+<p>MCP formalizes the split you've been improvising:</p>
+<ul>
+  <li><strong>Protocol errors</strong> — standard JSON-RPC errors: unknown tool, invalid
+  arguments. These are <em>communication failures</em>; they don't reach the model as
+  recoverable content.</li>
+  <li><strong>Tool execution errors</strong> — the tool ran but failed: reported
+  <em>in-band</em> with <code>isError: true</code> inside a successful response,
+  deliberately routed so the LLM can see and recover from them.</li>
+</ul>
+<p>The classic implementation bug (a real pattern in the wild): returning execution errors
+as protocol errors — which hides them from the model and kills its ability to adapt. And
+note the corollary: an MCP call can return HTTP 200 and still have <em>failed</em>; a
+single status check never covers both lanes.</p>
+
+<div class="callout note">
+  <span class="callout-title">Security note</span>
+  Tool results often carry untrusted external content — fetched pages, emails, uploads.
+  Keep that content <strong>inside <code>tool_result</code> blocks</strong>, not in system
+  prompts or plain user text. It's the containment boundary against indirect prompt
+  injection, and it returns with machinery in Phase 3.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now design a complete error surface: <code>is_error</code> signaling with
+  instructive text, the transient/permanent/uncertain classification driving model
+  behavior, idempotency making retries safe by construction, correct ordering, and the
+  MCP protocol-vs-execution mapping. That's the full "error handling in agent tools"
+  exam area, end to end.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "How should a tool execution failure reach the model?",
+    "answers": [
+      "an is_error result",
+      "a thrown exception",
+      "an empty tool_result",
+      "a JSON-RPC error"
+    ],
+    "correct": 0,
+    "why": "Return the failure as a tool_result with is_error: true and instructive content — the channel Claude reads and can adapt to. Exceptions never cross the API; JSON-RPC errors are the MCP protocol lane, not execution failures."
+  },
+  {
+    "q": "\"Rate limit exceeded. Retry after 60 seconds.\" works because it:",
+    "answers": [
+      "makes retryability explicit",
+      "shortens the message",
+      "avoids mentioning errors",
+      "blames the caller"
+    ],
+    "correct": 0,
+    "why": "Official guidance: write instructive errors — what went wrong AND what to try next. Transient errors must state they're retryable, with parameters, or the model guesses."
+  },
+  {
+    "q": "A payment call times out after possibly charging the card. The result should say:",
+    "answers": [
+      "verify outcome before retrying",
+      "retry immediately with backoff",
+      "the charge surely failed",
+      "users must rebook manually"
+    ],
+    "correct": 0,
+    "why": "Uncertain state: the side effect may have fired, so the message must say the outcome is UNKNOWN and demand verification before any retry — otherwise the model double-charges. Idempotency keys are the structural fix."
+  },
+  {
+    "q": "In MCP, a tool that ran but failed reports via:",
+    "answers": [
+      "an in-band isError flag",
+      "a JSON-RPC protocol error",
+      "an HTTP status code",
+      "a raised SDK exception"
+    ],
+    "correct": 0,
+    "why": "Execution errors travel in-band — isError: true inside a successful response — so the LLM can recover. Protocol errors (JSON-RPC) are for unknown tools and invalid arguments: communication failures, not recoverable content."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — classify and write four failures</span>
+  <p>Apex Airlines' agent hits four failures in one hour. For each, classify it
+  (transient / permanent / uncertain / protocol error) and write the exact
+  <code>tool_result</code> content you'd return:</p>
+  <ol>
+    <li><code>search_flights</code> returns HTTP 429 with header <code>Retry-After: 30</code>.</li>
+    <li><code>get_weather</code> is called with <code>"AUST"</code> — not a valid IATA code.</li>
+    <li><code>charge_card</code> times out after submission; status unknown.</li>
+    <li>The orchestrator calls <code>flight_search</code> — a tool name that doesn't exist on the MCP server.</li>
+  </ol>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <ol>
+      <li><strong>Transient.</strong> <em>"Rate limit exceeded. Retry after 30 seconds."</em> —
+      reuse the server's own retry parameter.</li>
+      <li><strong>Permanent.</strong> <em>"Invalid IATA airport code 'AUST'. Use exactly three
+      letters (e.g., AUS). Call search_airports if unsure of the code."</em> — the alternative
+      path is named, so the model adapts instead of guessing again.</li>
+      <li><strong>Uncertain.</strong> <em>"Timed out after submission; charge status UNKNOWN.
+      Do not retry. Verify with get_charge_status before rebooking."</em> — and the structural
+      fix is an idempotency key so future retries are safe by construction.</li>
+      <li><strong>Protocol error.</strong> This never becomes a tool_result at all — the MCP
+      server answers with a JSON-RPC error (unknown tool). It's a communication failure;
+      if you found yourself "writing content" for it, revisit the two lanes.</li>
+    </ol>
+    <p>Four for four? You've got the judgment this exam area tests — the same
+    classification, applied under different costumes.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls">Handle tool calls — official docs</a></strong>,
+plus the <a href="https://modelcontextprotocol.io/specification/2025-11-25/server/tools">MCP spec's Tools page</a>
+for the protocol-vs-execution error split.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  The uncertain-state case rewards argument — when <em>would</em> you retry blindly, what
+  breaks, who pays? Ask the agent. Next: say <em>"next lesson"</em> for 0008 · Context
+  management — windows, compaction, progressive summarization, retrieval (the 15% domain
+  that secretly powers everything else).
+</div>
+
+<div class="lesson-nav">
+  <a href="0006-designing-tool-interfaces.html">◂ 0006 · Designing tool interfaces</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0007 · Claude Architect course · grounded in
+  <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls">Handle tool calls (official)</a> and the
+  <a href="https://modelcontextprotocol.io/specification/2025-11-25/server/tools">MCP specification</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

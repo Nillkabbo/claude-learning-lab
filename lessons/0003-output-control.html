@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0003 · Output control</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0003 · Phase 1 — The API core</p>
+<h1>Output control: max tokens, stop reasons &amp; the dials that replaced temperature</h1>
+<p class="subtitle">Generation doesn't just "end" — it ends for a reason. Your code should know which one.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes</span>
+  <span>Exam: Prompt Engineering · 20%</span>
+  <span>No coding needed</span>
+</div>
+
+<p><a href="0002-system-prompts-and-prefilling.html">Lesson 0002</a> controlled the voice
+<em>before</em> generation. Today you control generation itself: how long it runs, why it
+stops, and what the modern dials are — because the most famous dial of all,
+<strong>temperature, is now deprecated</strong>. Migrations like this are pure architect-exam
+material.</p>
+
+<h2>The stop_reason switchboard</h2>
+
+<p>Every response carries a <code>stop_reason</code> — the API's control-flow signal. It's
+not trivia; it's what your code branches on:</p>
+
+<table>
+  <thead><tr><th><code>stop_reason</code></th><th>Means</th><th>What your code does</th></tr></thead>
+  <tbody>
+    <tr><td><code>end_turn</code></td><td>Model finished naturally</td><td>Use the output</td></tr>
+    <tr><td><code>max_tokens</code></td><td>You cut it off mid-thought</td><td>Raise the cap, continue, or redesign — the output is truncated</td></tr>
+    <tr><td><code>stop_sequence</code></td><td>A custom stop string matched</td><td>Take over: parse, continue, or hand off — a <code>stop_sequence</code> field reports the matched text</td></tr>
+    <tr><td><code>tool_use</code></td><td>Model wants a tool called</td><td>Execute and loop (Lesson 0005)</td></tr>
+    <tr><td><code>refusal</code></td><td>Model declined on safety grounds</td><td>Route to your safety/escalation path — don't retry blindly</td></tr>
+  </tbody>
+</table>
+
+<p>The exam-grade insight: <strong>a truncated answer is usually a
+<code>max_tokens</code> problem, not a model problem</strong>. "The model got lazy / forgot
+the conclusion / cut the JSON in half" — check the stop reason before blaming the model.</p>
+
+<h2>max_tokens: the required dial</h2>
+
+<p>Still required, still the cap on generated tokens. Three architect-grade facts:</p>
+<ul>
+  <li><strong>Undersizing is silent.</strong> The response simply ends, <code>stop_reason:
+  "max_tokens"</code>, and half a JSON payload in <code>content</code>. Budget for the task's
+  <em>full</em> output, not its average.</li>
+  <li><strong>The thinking budget counts against it.</strong> With extended thinking enabled,
+  <code>budget_tokens</code> (minimum 1,024) comes out of your <code>max_tokens</code> — a
+  classic "why is my visible answer truncated?" trap.</li>
+  <li><strong><code>max_tokens: 0</code> pre-warms the prompt cache</strong> without generating —
+  a cost-engineering move you'll revisit in Phase 4.</li>
+</ul>
+
+<h2>stop_sequences: the manual brake</h2>
+
+<pre><code>{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 1024,
+  "stop_sequences": ["\nUser:", "END_OF_REPORT"],
+  ...
+}</code></pre>
+
+<p>Pass an array of custom strings. If the model produces one, generation halts,
+<code>stop_reason</code> becomes <code>"stop_sequence"</code>, and the response's
+<code>stop_sequence</code> field holds the matched text. Uses: multi-part generation
+(stop after section one, do work, continue), delimiting machine-readable spans, and
+turn-taking controls in conversational systems.</p>
+
+<h2>Temperature: retired</h2>
+
+<div class="callout warn">
+  <span class="callout-title">Deprecated — the exam will test this migration</span>
+  Models released <strong>after Claude Opus 4.6</strong> accept only <code>temperature: 1.0</code>.
+  Any other value returns a <strong>400 error</strong>. <code>top_k</code> is likewise rejected, and
+  <code>top_p</code> only accepts ≥ 0.99 (compatibility mode). Legacy code sending
+  <code>temperature: 0</code> breaks outright on modern models — recognize it on sight.
+</div>
+
+<p>Two things to remember about the old dial, because half the exam's distractors live here:</p>
+<ul>
+  <li><strong>Even <code>temperature: 0</code> was never deterministic</strong> — lower values made
+  outputs more <em>consistent</em>, not identical. Anyone promising exact reproducibility was wrong
+  in 2025 and is wronger now.</li>
+  <li><strong>Consistency now comes from prompt structure</strong>: precise format specifications,
+  concrete examples ("more effective than abstract instructions"), retrieval grounding, prompt
+  chaining — and, for anything schema-shaped, <strong>structured outputs</strong> (Lesson 0004).</li>
+</ul>
+
+<h2>The new dials: thinking and effort</h2>
+
+<p>What replaced temperature's slot in the mental model are depth controls, not randomness controls:</p>
+<table>
+  <thead><tr><th>Dial</th><th>Values</th><th>Trades off</th></tr></thead>
+  <tbody>
+    <tr><td><code>thinking</code></td><td><code>disabled</code> · <code>enabled</code> (with <code>budget_tokens</code>) · <code>adaptive</code></td><td>Reasoning depth vs latency and tokens (budget counts against <code>max_tokens</code>)</td></tr>
+    <tr><td><code>output_config.effort</code></td><td><code>low</code> · <code>medium</code> · <code>high</code> · <code>xhigh</code> · <code>max</code></td><td>Reasoning depth vs latency and cost</td></tr>
+  </tbody>
+</table>
+
+<div class="callout note">
+  <span class="callout-title">Scope note</span>
+  Effort controls <em>how hard the model reasons</em>, not how long the answer is — on current
+  Opus models, long responses don't reliably shrink by lowering effort. For shorter answers,
+  prompt for conciseness. We'll go deep on thinking and effort in Phase 4's cost/latency lesson.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now triage any failed generation like an architect: read <code>stop_reason</code>
+  first (<code>max_tokens</code>? truncate-bug. <code>refusal</code>? policy path.
+  <code>stop_sequence</code>? your brake fired), spot the deprecated-parameter 400 instantly,
+  and name the modern consistency tools for each case.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "A nightly report comes back cut off mid-sentence. Which stop_reason do you expect?",
+    "answers": [
+      "max_tokens",
+      "end_turn",
+      "refusal",
+      "tool_use"
+    ],
+    "correct": 0,
+    "why": "Truncation means the cap fired, not that the model finished (end_turn) or declined (refusal). Raise max_tokens — remembering that any thinking budget also counts against it."
+  },
+  {
+    "q": "Legacy code sends temperature 0.2 to a model released after Claude Opus 4.6. Result?",
+    "answers": [
+      "A 400 error",
+      "Deterministic, consistent outputs",
+      "Faster, cheaper responses",
+      "A truncated response"
+    ],
+    "correct": 0,
+    "why": "Post-Opus-4.6 models accept only temperature 1.0; anything else returns a 400. top_k is rejected the same way, and top_p below 0.99 too."
+  },
+  {
+    "q": "stop_reason is \"stop_sequence\". Where does the API report the matched text?",
+    "answers": [
+      "the stop_sequence field",
+      "the system prompt",
+      "the usage object",
+      "the content blocks"
+    ],
+    "correct": 0,
+    "why": "The response carries a stop_sequence field holding the matched string — that's how your code knows which custom brake fired."
+  },
+  {
+    "q": "On current models, the reliable way to get schema-valid JSON is:",
+    "answers": [
+      "structured outputs",
+      "temperature zero",
+      "stop sequences",
+      "longer thinking"
+    ],
+    "correct": 0,
+    "why": "output_config.format with a JSON schema gives guaranteed schema compliance — the official replacement for both prefill hacks and temperature-zero consistency rituals."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — fix the migrated report generator</span>
+  <p>A report generator ran fine on an old model. After migrating to
+  <code>claude-sonnet-4-6</code>, two symptoms appear: some requests fail outright with a
+  400; the ones that succeed return reports that end mid-sentence. The request:</p>
+  <pre><code>{
+  "model": "claude-sonnet-4-6",
+  "max_tokens": 512,
+  "temperature": 0,
+  "system": "You are Apex Airlines' analytics assistant. Output the daily report as JSON.",
+  "messages": [ { "role": "user", "content": "Generate today's daily ops report." } ]
+}</code></pre>
+  <p><strong>On paper:</strong> (1) explain the 400s, (2) explain the mid-sentence endings
+  (name the exact stop_reason), (3) fix the JSON requirement properly.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> <code>temperature: 0</code> is a 400 on post-Opus-4.6 models —
+    delete the parameter (or set 1.0). The dial is retired; consistency must come from
+    elsewhere.</p>
+    <p><strong>(2)</strong> <code>stop_reason: "max_tokens"</code> — a 512 cap can't hold a
+    daily report. Raise it to fit the task's full output, and note that if thinking is ever
+    enabled, its budget eats into this same cap.</p>
+    <p><strong>(3)</strong> "Output the report as JSON" as a system-prompt sentence is
+    advisory, not enforced — the proper fix is <strong>structured outputs</strong>
+    (<code>output_config.format</code> with a schema), which guarantees compliance. If you
+    also said "and stop blaming the model for truncation," you've internalized today's win.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/api/messages/create">Create a Message — API reference</a></strong>
+(the parameters table: max_tokens, stop_sequences, temperature deprecation, thinking,
+output_config). For the consistency toolkit:
+<a href="https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency">Increase output consistency</a>.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  If the thinking-budget-counts-against-max_tokens idea or the temperature deprecation
+  surprised you, ask the agent to unpack it. When ready, say <em>"next lesson"</em> for
+  0004 · Structured outputs — forcing shape on the answer.
+</div>
+
+<div class="lesson-nav">
+  <a href="0002-system-prompts-and-prefilling.html">◂ 0002 · System prompts &amp; prefilling</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0003 · Claude Architect course · grounded in the
+  <a href="https://platform.claude.com/docs/en/api/messages">Messages API reference</a> and
+  <a href="https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency">official consistency guidance</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

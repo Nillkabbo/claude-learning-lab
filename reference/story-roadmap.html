@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Story — Build Tracker with Claude Code</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Track 3 · The Story</p>
+<h1>The Story: you, a team, and one real project</h1>
+<p class="subtitle">Twelve chapters. One codebase. By the final page, the entire project exists — built by you, with Claude Code at every step.</p>
+
+<div class="meta">
+  <span class="accent">12 chapters · 1 project · ALL DELIVERED</span>
+  <span>Story-driven, hands-on every chapter</span>
+  <span>The CC lessons remain your reference manual</span>
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The promise (this is the goal)</span>
+  You are a new developer at a small company. Over twelve chapters of story — Mondays
+  and demos, bugs and 2am pages — you build <strong>Tracker</strong>, a real issue-tracker
+  CLI, and a <strong>personal toolkit</strong> around it: memory, skills, subagents, hooks,
+  MCP, CI. At the end: a finished project, a shipped toolkit, and every Claude Code
+  concept <em>attached to the day you needed it</em>. That's when concepts stick.
+</div>
+
+<h2>The project: Tracker</h2>
+<p>A small, genuinely useful issue-tracker CLI (<code>tracker add "fix the login"</code>,
+<code>tracker list</code>, <code>tracker close 3</code>…) that grows real features,
+real tests, real CI, and a real release — chapter by chapter, as the story demands.
+Small enough to finish. Rich enough to need everything Claude Code offers.</p>
+
+<div class="callout win">
+  <span class="callout-title">The worked example exists — TRACKER: COMPLETE (v1.0, verified)</span>
+  The <a href="../tracker/README.md">complete reference Tracker</a> lives in
+  <code>tracker/</code>: the full CLI, the 10-test green suite, CI, the release/sync
+  skills, the detective agent, Chapter 7's guardrails + audit hook, the night shift,
+  runbook, cost ledger, and the plugin skeleton — committed and tagged
+  <code>v1.0.0</code> (<code>python3 tracker/check.py</code> prints the proof).
+  It is the story's <strong>answer key</strong>: walk the chapters, build YOURS, and
+  compare against this one at every checkpoint.
+</div>
+
+<h2>The chapters</h2>
+<table>
+  <thead><tr><th>#</th><th>The story</th><th>The concepts</th><th>Your project gains</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><a href="../lessons/story-01-first-day.html">First day at Meridian</a></td><td>Install, auth, the session, asking, modes</td><td>The repo, the skeleton, first commit</td></tr>
+    <tr><td>2</td><td><a href="../lessons/story-02-the-demo.html">The Thursday demo</a></td><td>Plan mode, reading diffs, checkpointing</td><td>A fixed bug, v0.1 tagged</td></tr>
+    <tr><td>3</td><td><a href="../lessons/story-03-claude-md.html">Marco keeps asking</a></td><td>CLAUDE.md, memory craft, /context</td><td>A CLAUDE.md that onboards anyone</td></tr>
+    <tr><td>4</td><td><a href="../lessons/story-04-the-friday-chore.html">The Friday chore</a></td><td>Skills (slash commands), $ARGUMENTS</td><td>A <code>/release</code> skill</td></tr>
+    <tr><td>5</td><td><a href="../lessons/story-05-the-flaky-test-hunt.html">The flaky test hunt</a></td><td>Subagents, delegation, parallel exploration</td><td>A reviewer subagent</td></tr>
+    <tr><td>6</td><td><a href="../lessons/story-06-the-outside-world.html">The outside world</a></td><td>MCP servers, trust review</td><td>An MCP integration</td></tr>
+    <tr><td>7</td><td><a href="../lessons/story-07-the-near-miss.html">The near-miss</a></td><td>Hooks, permission rules, enforcement layers</td><td>Guardrails that fail safe</td></tr>
+    <tr><td>8</td><td><a href="../lessons/story-08-two-features.html">Two features, one Friday</a></td><td>Worktrees, parallel sessions</td><td>Tags + search, merged clean</td></tr>
+    <tr><td>9</td><td><a href="../lessons/story-09-the-review-bottleneck.html">The review bottleneck</a></td><td>CI, code review, ultrareview</td><td>A pipeline that reviews PRs</td></tr>
+    <tr><td>10</td><td><a href="../lessons/story-10-the-2am-page.html">The 2am page</a></td><td>Headless, scheduled tasks, budgets</td><td>A nightly babysitter</td></tr>
+    <tr><td>11</td><td><a href="../lessons/story-11-the-bill.html">The bill arrives</a></td><td>Costs, observability, team settings</td><td>A cost dashboard habit</td></tr>
+    <tr><td>12</td><td><a href="../lessons/story-12-your-legacy.html">Your legacy</a></td><td>Plugins, packaging</td><td><strong>The toolkit, shipped — journey complete</strong></td></tr>
+  </tbody>
+</table>
+
+<h2>The cast</h2>
+<ul>
+  <li><strong>You</strong> — new developer at Meridian Labs, keen to prove it.</li>
+  <li><strong>Priya</strong> — your lead: calm, exacting, allergic to re-explaining things.</li>
+  <li><strong>Marco</strong> — the intern: enthusiastic, endlessly curious, zero memory for conventions.</li>
+  <li><strong>Claude</strong> — your pair. Fast, capable, and — as you'll learn — exactly as trustworthy as your guardrails make it.</li>
+</ul>
+
+<h2>How to read</h2>
+<ul>
+  <li>One chapter per sitting. The story is short; the <strong>hands-on step is the chapter</strong> — do it in your real <code>tracker/</code> repo.</li>
+  <li>Each chapter ends with a <strong>checkpoint</strong>: what your repo must contain before Chapter N+1 makes sense.</li>
+  <li>When you want depth behind a concept, the <a href="claude-code-guide-roadmap.html">26-lesson CC guide</a> is the manual behind the story; the <a href="foundations-of-claude.html">ten laws</a> are the physics.</li>
+  <li>Report each checkpoint to your agent — that's the story's save file.</li>
+</ul>
+
+<footer class="course-footer">
+  The Story · track 3 · the project-first path through Claude Code ·
+  <a href="claude-code-guide-roadmap.html">the manual</a> · <a href="foundations-of-claude.html">the laws</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

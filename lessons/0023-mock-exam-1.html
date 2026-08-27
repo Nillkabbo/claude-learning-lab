@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0023 · Mock exam I — mixed retrieval</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0023 · Phase 6 — Exam mastery</p>
+<h1>Mock exam I: mixed retrieval, all five domains</h1>
+<p class="subtitle">Twenty questions, exam-proportioned, no order, no mercy. This is where coverage meets recall.</p>
+
+<div class="meta">
+  <span class="accent">20 questions</span>
+  <span>Proportioned to CCAR-F weights</span>
+  <span>Pass bar: ≥85% (17/20)</span>
+</div>
+
+<div class="callout warn">
+  <span class="callout-title">Exam conditions — read first</span>
+  The real CCAR-F is 60 questions in 120 minutes (~2 min/question) across five weighted
+  domains. This mock is one-third size, same shape: <strong>Agentic Architecture ×6,
+  Claude Code ×4, Prompt Engineering ×4, Tool Design &amp; MCP ×3, Context Management ×3</strong>.
+  First attempt: untimed, no lesson peeking — retrieval from memory is the entire point.
+  Retake later under a 40-minute timer. Every explanation names its domain and lesson;
+  read them <em>after</em> answering, and <strong>report your score to the agent</strong> —
+  it becomes your first real learning record and calibrates Mock II.
+</div>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "1. A follow-up request after a completed exchange must contain:",
+    "answers": ["The full prior conversation", "Just the new question", "A stored session identifier", "The previous response only"],
+    "correct": 0,
+    "why": "[Prompt Engineering · 0001] The API is stateless — your client resends the entire history as the messages array, every call."
+  },
+  {
+    "q": "2. Permission rules are evaluated in which order?",
+    "answers": ["deny, ask, allow", "allow, ask, deny", "ask, allow, deny", "allow, deny, ask"],
+    "correct": 0,
+    "why": "[Claude Code · 0009] Deny, then ask, then allow — first match decides. A broad deny can't carry allowlist exceptions."
+  },
+  {
+    "q": "3. Workflows differ from agents because workflows:",
+    "answers": ["use predefined code paths", "let models direct themselves", "require human approval always", "run tools unprompted always"],
+    "correct": 0,
+    "why": "[Agentic Architecture · 0013] \"Orchestrated through predefined code paths\" vs agents dynamically directing their own processes — who owns control flow is the dividing line."
+  },
+  {
+    "q": "4. The single biggest factor in tool performance is:",
+    "answers": ["the description quality", "the model's intelligence", "the schema's strictness", "the namespacing prefix"],
+    "correct": 0,
+    "why": "[Tool Design · 0006] \"Provide extremely detailed descriptions. This is by far the most important factor in tool performance.\""
+  },
+  {
+    "q": "5. Cached tokens and the context window:",
+    "answers": ["still count fully", "are always free", "reset each turn", "count as output"],
+    "correct": 0,
+    "why": "[Context Management · 0008] Caching \"changes what you pay for those tokens, not whether they count\" — all usage fields count toward the window."
+  },
+  {
+    "q": "6. A request ending with a partial assistant turn, on Claude Sonnet 4.6+:",
+    "answers": ["It returns a 400 error", "It continues from that text", "It ignores the final turn", "It appends a user message"],
+    "correct": 0,
+    "why": "[Prompt Engineering · 0002] Prefilling is unsupported on Claude 4.6+ — requests must end with a user message."
+  },
+  {
+    "q": "7. In Anthropic's analysis, token usage alone explained how much of multi-agent performance variance?",
+    "answers": ["80%", "90.2%", "95%", "15×"],
+    "correct": 0,
+    "why": "[Agentic Architecture · 0015] 80% from token usage alone on BrowseComp (95% across three factors). 90.2% is the multi-agent eval win; 15× is the token cost."
+  },
+  {
+    "q": "8. CLAUDE.md files are officially:",
+    "answers": ["context, not enforcement", "hard security policy", "strict configuration files", "immutable team policy"],
+    "correct": 0,
+    "why": "[Claude Code · 0009] \"Context, not enforced configuration\" — guarantees live in permission rules and hooks, never memory files."
+  },
+  {
+    "q": "9. In MCP, a tool that ran but failed reports via:",
+    "answers": ["an in-band isError flag", "a JSON-RPC protocol error", "an HTTP status code", "a raised SDK exception"],
+    "correct": 0,
+    "why": "[Tool Design · 0007] Execution errors travel in-band — isError: true inside a successful response — so the LLM can recover. Protocol errors are the other lane."
+  },
+  {
+    "q": "10. Near the clearing threshold, the memory tool lets Claude:",
+    "answers": ["save essentials before clearing", "avoid all context limits", "bill fewer output tokens", "skip the trigger threshold"],
+    "correct": 0,
+    "why": "[Context Management · 0008] The automatic preserve-warning fires near the trigger; Claude saves essentials to memory files before tool results are cleared."
+  },
+  {
+    "q": "11. Evaluator-optimizer loops pay off when:",
+    "answers": ["criteria are clear, refinement helps", "outputs cannot be evaluated reliably", "single calls already work fine", "latency matters above everything else"],
+    "correct": 0,
+    "why": "[Agentic Architecture · 0014] Both conditions required: a formulable judge AND demonstrable improvement — otherwise you're just paying twice."
+  },
+  {
+    "q": "12. ALL-CAPS 'You MUST' rules in system prompts, on newer Opus models:",
+    "answers": ["cause over-triggering now", "fix old laziness", "return 400 errors", "have no effect"],
+    "correct": 0,
+    "why": "[Prompt Engineering · 0002] Newer models are more responsive to system prompts — legacy anti-laziness idioms over-trigger. Soften to plain phrasing."
+  },
+  {
+    "q": "13. Delegation to a subagent is primarily decided by:",
+    "answers": ["the description field", "the model parameter", "the tools allowlist", "the frontmatter name"],
+    "correct": 0,
+    "why": "[Claude Code · 0011] Delegation is description-driven — the same craft as tool descriptions in 0006."
+  },
+  {
+    "q": "14. MCP servers must not accept tokens:",
+    "answers": ["not issued to them", "from dynamic client registration", "lacking any scope information", "expiring within one hour"],
+    "correct": 0,
+    "why": "[Tool Design · 0021] Token passthrough is the forbidden anti-pattern — servers hold their own tokens, keeping audit trails and controls intact."
+  },
+  {
+    "q": "15. Privacy-driven routing sends sensitive data:",
+    "answers": ["only to approved models", "to the cheapest model", "to human reviewers first", "nowhere without encryption keys"],
+    "correct": 0,
+    "why": "[Agentic Architecture · 0014] Routing as policy enforcement: sensitive inputs flow only to approved, certified models."
+  },
+  {
+    "q": "16. Reliable schema-valid JSON on modern models comes from:",
+    "answers": ["structured outputs", "temperature zero", "stop sequences", "longer thinking"],
+    "correct": 0,
+    "why": "[Prompt Engineering · 0004] Constrained decoding via output_config.format guarantees compliance — temperature zero is a 400 and prefill is retired."
+  },
+  {
+    "q": "17. An allowed-tools grant lasts:",
+    "answers": ["until the next message", "for the whole session", "for the entire repository", "until permissions are disabled"],
+    "correct": 0,
+    "why": "[Claude Code · 0010] The per-turn grant clears when you send your next message."
+  },
+  {
+    "q": "18. The official escalation-accuracy target for support workflows is:",
+    "answers": ["95% or higher", "70–80% or higher", "50% with retries", "100% always required"],
+    "correct": 0,
+    "why": "[Agentic Architecture · 0018] \"Aim for an escalation accuracy of 95% or higher\" — paired with 70–80% deflection and CSAT ≥ 4/5."
+  },
+  {
+    "q": "19. Input alone exceeding the context window:",
+    "answers": ["returns a 400 error", "triggers automatic server-side compaction", "stops at the cap", "silently truncates oldest turns"],
+    "correct": 0,
+    "why": "[Context Management · 0008] \"Prompt is too long\" — a 400, on all models. Compaction is a strategy you enable; the graceful stop only applies to input+max_tokens overflow."
+  },
+  {
+    "q": "20. The recommended starting solution for any LLM application is:",
+    "answers": ["the simplest one possible", "an autonomous agent loop", "a multi-agent orchestrator system", "the most sophisticated framework"],
+    "correct": 0,
+    "why": "[Agentic Architecture · 0013] \"Find the simplest solution possible… This might mean not building agentic systems at all.\""
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Scoring guide</h2>
+
+<table>
+  <thead><tr><th>Score</th><th>Reading</th><th>Next</th></tr></thead>
+  <tbody>
+    <tr><td><strong>17–20 (≥85%)</strong></td><td>At the mission bar across domains</td><td>Take Mock II under time; then book the real exam</td></tr>
+    <tr><td><strong>13–16</strong></td><td>Solid, with localized gaps</td><td>Revisit the lessons named in your misses; retake in 48h</td></tr>
+    <tr><td><strong>≤12</strong></td><td>Storage strength hasn't consolidated yet</td><td>Space it: reread the weak domains' lessons, redo their quizzes, retry in a week</td></tr>
+  </tbody>
+</table>
+
+<h2>Domain map</h2>
+
+<table>
+  <thead><tr><th>Domain (exam weight)</th><th>Questions</th><th>Revisit if missed</th></tr></thead>
+  <tbody>
+    <tr><td>Agentic Architecture (27%)</td><td>3, 7, 11, 15, 18, 20</td><td><a href="0013-workflows-vs-agents.html">0013</a> · <a href="0014-composition-patterns.html">0014</a> · <a href="0015-orchestrator-workers.html">0015</a> · <a href="0018-workflow-design.html">0018</a></td></tr>
+    <tr><td>Claude Code Configuration (20%)</td><td>2, 8, 13, 17</td><td><a href="0009-claude-code-essentials.html">0009</a> · <a href="0010-claude-code-in-the-team.html">0010</a> · <a href="0011-subagents-and-skills.html">0011</a></td></tr>
+    <tr><td>Prompt Engineering (20%)</td><td>1, 6, 12, 16</td><td><a href="0001-anatomy-of-a-claude-request.html">0001</a> · <a href="0002-system-prompts-and-prefilling.html">0002</a> · <a href="0004-structured-outputs.html">0004</a></td></tr>
+    <tr><td>Tool Design &amp; MCP (18%)</td><td>4, 9, 14</td><td><a href="0006-designing-tool-interfaces.html">0006</a> · <a href="0007-error-handling-in-agent-tools.html">0007</a> · <a href="0021-trust-security-mcp.html">0021</a></td></tr>
+    <tr><td>Context Management (15%)</td><td>5, 10, 19</td><td><a href="0008-context-management.html">0008</a></td></tr>
+  </tbody>
+</table>
+
+<p><strong>Report your score to the agent</strong> — total and missed question numbers
+(e.g., <em>"mock I: 16/20, missed 7, 14, 19, 5"</em>). That report writes your first
+learning record, calibrates Mock II's difficulty, and targets exactly the re-teaching
+the domain map above sketches.</p>
+
+<div class="lesson-nav">
+  <a href="0022-capstone.html">◂ 0022 · Capstone</a>
+  <a class="next" href="0024-mock-exam-2.html">0024 · Mock exam II ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0023 · Claude Architect course · every question traces to a verified fact in lessons 0001–0021
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

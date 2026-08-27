@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-22 · Claude Code on the web: routines & ultrareview</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-22 · Phase F — Everywhere & everything</p>
+<h1>Claude Code on the web: routines & ultrareview</h1>
+<p class="subtitle">The cloud surface — where sessions outlive your laptop.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide · Phase F</span>
+  <span>Hands-on by design</span>
+</div>
+<p>The web surface lives at <strong>claude.ai/code</strong>, and sessions are
+first-class citizens across surfaces: <strong><code>--cloud</code></strong> and
+<strong><code>--teleport</code></strong> move sessions between web and terminal; you
+manage, share, and even auto-fix pull requests from the cloud.</p>
+<ul>
+  <li><strong>Routines</strong> — "a saved Claude Code configuration: a prompt, one or
+  more repositories, and a set of connectors, packaged once and run automatically."
+  Pro/Max/Team/Enterprise; created from the web (claude.ai/code/routines), the desktop
+  app, or the CLI — all writing to the same account. Fire on schedules, GitHub events,
+  or API calls; mobile push notifications ping your phone.</li>
+  <li><strong>Ultrareview</strong> — <code>/code-review ultra</code>: a deep, multi-agent
+  review in the cloud — <em>a fleet of reviewer agents in remote sandboxes reviewing
+  your branch in parallel</em> (security, correctness, …) to find and verify bugs
+  before you merge.</li>
+  <li><strong>Scheduled tasks</strong> — re-run a prompt on an interval: poll a
+  deployment, babysit a PR, check a long build.</li>
+</ul>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "A routine packages:",
+  "answers": [
+   "prompt, repos, connectors",
+   "tools, hooks, agents",
+   "keys, tokens, scopes",
+   "diffs, commits, pushes"
+  ],
+  "correct": 0,
+  "why": "The official definition: a saved configuration of prompt + repositories + connectors, run automatically."
+ },
+ {
+  "q": "Ultrareview runs:",
+  "answers": [
+   "a parallel reviewer fleet",
+   "a single sequential reviewer",
+   "one local bash loop",
+   "a docs generation pass"
+  ],
+  "correct": 0,
+  "why": "A fleet of reviewer agents in remote sandboxes, reviewing in parallel (security, correctness) to verify bugs before merge."
+ },
+ {
+  "q": "Sessions move between web and terminal via:",
+  "answers": [
+   "--cloud and --teleport",
+   "--web and --back",
+   "--move and --push",
+   "--sync and --pull"
+  ],
+  "correct": 0,
+  "why": "The two official flags for carrying sessions across surfaces."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>If you have a Pro/Max/Team account: create one routine for a real weekly chore
+  (even "summarize the week's commits"), and run /code-review ultra on one open PR.
+  Report both outputs.</p>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/claude-code-on-the-web">Claude Code on the web — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-21-every-platform.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-22 · Claude Code Guide · sources: official docs + Track 1 lessons
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

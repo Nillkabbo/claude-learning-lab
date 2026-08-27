@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-14 · Security deep-dive: sandboxing and data</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-14 · Phase D — Team & enterprise</p>
+<h1>Security deep-dive: sandboxing and data</h1>
+<p class="subtitle">What runs where, what leaves, and which walls are real.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>Track 1's enforcement layers, plus Claude Code's own walls:</p>
+<ul>
+  <li><strong>Sandboxed Bash</strong> — the sandboxed Bash tool runs commands in a
+  restricted environment; sandbox substitution can stand in for whole-tool Bash asks
+  (<code>autoAllowBashIfSandboxed</code>), while explicit denies and dangerous paths
+  still apply. Choose a sandbox environment per platform (official pages).</li>
+  <li><strong>Permissions are the guarantee layer</strong> — deny→ask→allow, first
+  match; a bare-tool deny hides the tool entirely.</li>
+  <li><strong>Data boundaries</strong> — the official Security and Data Usage pages:
+  what's sent, retention, and <strong>zero data retention</strong> for orgs that need it.
+  MCP servers stay untrusted (0021): consent, progressive scopes, no passthrough.</li>
+</ul>
+<p>The audit posture from 0018/0021 transfers directly: list every boundary, name the
+enforced layer behind it, and test that a broken gate fails loud.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "Sandboxed Bash runs commands:",
+  "answers": [
+   "in a restricted environment",
+   "as root, fully unsandboxed",
+   "only in plan mode",
+   "on a remote cluster"
+  ],
+  "correct": 0,
+  "why": "A restricted environment \u2014 and sandbox substitution can replace Bash asks, with denies still enforced."
+ },
+ {
+  "q": "A bare-tool deny rule:",
+  "answers": [
+   "hides the tool entirely",
+   "prompts once per session",
+   "only logs the usage",
+   "is merely advisory only"
+  ],
+  "correct": 0,
+  "why": "Claude never even sees the tool \u2014 context-level removal, stronger than a scoped rule."
+ },
+ {
+  "q": "For strict data guarantees, orgs use:",
+  "answers": [
+   "zero data retention",
+   "longer cache TTLs",
+   "local models only",
+   "audit logs alone"
+  ],
+  "correct": 0,
+  "why": "ZDR is the official option; the Security and Data Usage pages define what's sent and kept."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Threat-model your own setup: list every boundary (filesystem, network, secrets,
+  CI). For each, name the enforced layer (deny rule, sandbox, ZDR, consent). Find one gap
+  and close it. Report the before/after.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/security">Security — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-13-settings-at-scale.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-14 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC-10 · Plugins: packaging power</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<p class="kicker">CC-10 · Phase C — Power user</p>
+<h1>Plugins: packaging power</h1>
+<p class="subtitle">Skills, agents, hooks, and MCP servers — shipped as one installable unit.</p>
+<div class="meta">
+  <span class="accent">≈ 12 minutes + drill</span>
+  <span>Claude Code Guide</span>
+  <span>Hands-on by design</span>
+</div>
+<p>Plugins bundle the whole artifact map: skills, agents, hooks, and MCP servers,
+  namespaced (<code>plugin-name:skill-name</code>). The lifecycle to know:</p>
+<ul>
+  <li><strong>Discover and install</strong> from marketplaces; orgs can run their own —
+  and constrain versions, recommend plugins from the CLI, or recommend for the whole org
+  (official distribution pages).</li>
+  <li><strong>Create</strong>: a plugin is a directory with the artifacts you already
+  know how to write (Phases B and C), plus a marketplace manifest to publish.</li>
+  <li><strong>Trust and control</strong>: plugin hooks run while enabled; org policy can
+  <code>allowManagedHooksOnly</code>; <code>${{CLAUDE_PLUGIN_ROOT}}</code> and
+  <code>${{CLAUDE_PLUGIN_DATA}}</code> give plugins portable paths.</li>
+</ul>
+<p>Before writing your own, audit one popular plugin: what it ships, what it hooks, what
+it asks for. The audit habit transfers.</p>
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+ {
+  "q": "A plugin can bundle:",
+  "answers": [
+   "skills, agents, hooks",
+   "only slash commands",
+   "only MCP servers",
+   "only UI themes"
+  ],
+  "correct": 0,
+  "why": "The whole artifact map ships as one namespaced unit \u2014 plus MCP servers."
+ },
+ {
+  "q": "Plugin artifacts are invoked as:",
+  "answers": [
+   "plugin-name:skill-name",
+   "skill-name@plugin-name",
+   "slash:plugin:skill-name",
+   "plugin(skill-name)"
+  ],
+  "correct": 0,
+  "why": "Namespaced invocation (0010) \u2014 collisions are impossible and sources are visible."
+ },
+ {
+  "q": "For hard org control over hooks:",
+  "answers": [
+   "allowManagedHooksOnly",
+   "disableAllHooksAnyway",
+   "uninstallEverySinglePlugin",
+   "deleteEveryHookFile"
+  ],
+  "correct": 0,
+  "why": "Managed settings can restrict hooks to managed-only; disableAllHooks from outside managed settings can't touch managed hooks."
+ }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+<h2>Your turn — the drill</h2>
+<div class="callout exercise">
+  <span class="callout-title">Exercise</span>
+  <p>Install one plugin from a public marketplace; run <code>/status</code> to see what
+  it added; use one skill from it. Then sketch (on paper) the plugin you'd ship for your
+  team's workflow — CC-20 builds it.</p>
+</div>
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://code.claude.com/docs/en/plugins">Discover and install plugins — official docs</a></strong> — read it alongside the drill, and report what you did to your agent.</p>
+<div class="lesson-nav">
+  <a href="cc-09-hooks-in-anger.html">◂ Previous</a>
+  <a class="next" href="../reference/claude-code-guide-roadmap.html">CC Guide roadmap ▸</a>
+</div>
+<footer class="course-footer">
+  CC-10 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
+</footer>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

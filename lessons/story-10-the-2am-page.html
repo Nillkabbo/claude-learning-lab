@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 10 · The 2 a.m. page</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">The Story · Chapter 10 of 12</p>
+<h1>The 2 a.m. page</h1>
+<p class="subtitle">In which the nightly job breaks while you sleep, and nobody has to wake up to learn that.</p>
+
+<div class="meta">
+  <span class="accent">≈ 10 minutes + hands-on</span>
+  <span>Concepts: headless mode · scheduled tasks · budgets &amp; fences</span>
+  <span>Project gains: a nightly babysitter, a runbook entry</span>
+</div>
+
+<h2>The page</h2>
+
+<p>2:07 a.m. Your phone buzzes: the nightly <code>/sync</code> job — pull GitHub
+issues, reconcile tasks — failed. Upstream API hiccup, probably. Nobody's dying. But by
+the old world, one of you would have padded to a laptop at 2 a.m. to confirm
+<em>probably</em>.</p>
+
+<p>In the new world, the job already knew. Your scheduled task didn't just fail — it
+<em>ran the playbook</em>: retried once with backoff, checked the API status page,
+filed its own issue ("nightly sync failed 02:00, upstream 503, retried, still red —
+will retry next window"), and pinged your phone with a summary instead of an alarm.
+You read four lines, mutter "upstream," and go back to sleep. In the morning it's
+green: the next window synced clean, the issue auto-closed with a comment.</p>
+
+<h2>What the night-shift is made of</h2>
+
+<p>Three pieces, all of which you've met in daylight:</p>
+
+<ul>
+  <li><strong>Headless runs</strong> — <code>claude -p "run the sync and handle
+  failures per runbook" --output-format json</code>: Claude Code as a scriptable
+  component. The JSON matters; grep-able logs are how 2 a.m. you debugs 9 a.m. logic.</li>
+  <li><strong>Scheduled tasks</strong> — the same prompt on an interval (cron, the
+  desktop scheduler, or a routines-style trigger): poll, babysit, reconcile.</li>
+  <li><strong>Fences</strong> — the part that lets you actually sleep: read-only-ish
+  allow-list, a spend cap, a retry budget, a stopping condition. Unattended power
+  without fences isn't automation, it's an outage scheduler with extra steps.</li>
+</ul>
+
+<p>And one piece of paper: the failure you added to the <strong>runbook</strong> —
+symptom, playbook, owner — which is what the headless run followed. The runbook isn't
+documentation theater; it's the script your night-shift executes.</p>
+
+<div class="callout warn">
+  <span class="callout-title">The trap this chapter guards against</span>
+  The temptation is always "let it retry forever and page me only if it's really
+  bad." Define <em>really bad</em> in advance: two failed windows, or any write
+  failure — those page a human. Everything else files an issue and waits for dawn.
+  Budgets decide at noon so 2 a.m. doesn't have to.
+</div>
+
+<h2>Morning</h2>
+
+<p>Priya sees the issue, the retries, the auto-close — the whole incident
+self-contained. "Who was on call?" she asks. "Nobody," you say. "That was the point."
+She looks at you a moment too long, then: "Put the same pattern on the release
+verifier."</p>
+
+<h2>Your turn — the chapter's hands-on</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Do it in your real repo</span>
+  <ol>
+    <li>Write a small nightly script: <code>claude -p</code> + JSON output — e.g., run
+    the suite, summarize failures, file a note on red.</li>
+    <li>Schedule it (cron or the desktop scheduler).</li>
+    <li>Add the fences explicitly: allow-list, spend cap, retry budget, and the
+    page-a-human condition in writing.</li>
+    <li>Break something on purpose before a scheduled run; read the morning report;
+    confirm the playbook ran.</li>
+    <li>Add the failure pattern to your runbook.</li>
+  </ol>
+  <p><strong>Checkpoint:</strong> one scheduled, fenced, headless job that survived a
+  deliberate failure and reported it usefully. Report it — next chapter, the
+  monthly invoice arrives, and it's your turn to explain it.</p>
+</div>
+
+<div class="lesson-nav">
+  <a href="story-09-the-review-bottleneck.html">◂ Chapter 9</a>
+  <a class="next" href="story-11-the-bill.html">Chapter 11 ▸</a>
+</div>
+
+<footer class="course-footer">
+  The Story · chapter 10 · the manual: <a href="../reference/claude-code-guide-roadmap.html">CC-12</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

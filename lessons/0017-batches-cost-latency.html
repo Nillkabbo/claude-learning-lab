@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0017 · Batches, cost &amp; latency</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0017 · Phase 4 — Agentic architecture · 27%</p>
+<h1>Batches, cost &amp; latency engineering</h1>
+<p class="subtitle">The bill is an architecture artifact. Here is every lever, and the two biggest ones.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: cost/latency trade-offs · Message Batches</span>
+  <span>Arithmetic included</span>
+</div>
+
+<p>You've been collecting cost levers since <a href="0001-anatomy-of-a-claude-request.html">0001</a>
+(input tokens re-bill every turn). Today they assemble into the lever map, plus the two
+biggest levers with their verified numbers: the <strong>Message Batches API</strong> and
+<strong>prompt caching</strong>. The exam's "cost/latency trade-offs" questions are this
+lesson wearing a scenario.</p>
+
+<h2>The lever map (everything you already own)</h2>
+
+<table>
+  <thead><tr><th>Lever</th><th>The trade</th><th>From</th></tr></thead>
+  <tbody>
+    <tr><td>Model choice &amp; routing tiers</td><td>Capability vs price (Haiku easy, Sonnet hard)</td><td><a href="0014-composition-patterns.html">0014</a></td></tr>
+    <tr><td><code>effort</code> / <code>thinking</code> budget</td><td>Reasoning depth vs latency &amp; tokens (budget counts against <code>max_tokens</code>)</td><td><a href="0003-output-control.html">0003</a></td></tr>
+    <tr><td><code>max_tokens</code> sizing</td><td>Truncation vs over-provision</td><td><a href="0003-output-control.html">0003</a></td></tr>
+    <tr><td>Tool hygiene</td><td>Every tool bills ~264–804 tokens/request; bloated results re-bill every turn</td><td><a href="0005-tool-use-fundamentals.html">0005</a> · <a href="0006-designing-tool-interfaces.html">0006</a></td></tr>
+    <tr><td>Context management</td><td>Clearing (cache-aware <code>clear_at_least</code>), thinking-block clearing</td><td><a href="0008-context-management.html">0008</a></td></tr>
+    <tr><td>Multi-agent economics</td><td>~15× tokens — only for tasks that can pay</td><td><a href="0015-orchestrator-workers.html">0015</a></td></tr>
+    <tr><td>Structured-output grammars</td><td>Compile once, cached 24h; format changes invalidate prompt cache</td><td><a href="0004-structured-outputs.html">0004</a></td></tr>
+    <tr><td><strong>Message Batches</strong></td><td><strong>50% off</strong>, for non-interactive work</td><td>today</td></tr>
+    <tr><td><strong>Prompt caching</strong></td><td><strong>Reads at 0.1×</strong>, for repetition</td><td>today</td></tr>
+  </tbody>
+</table>
+
+<h2>Message Batches: 50% off anything patient</h2>
+
+<ul>
+  <li><strong>Pricing:</strong> "All usage is charged at <strong>50% of the standard API
+  prices</strong>" — and it <em>stacks with prompt caching</em>.</li>
+  <li><strong>Timing:</strong> most batches finish in under an hour; the hard ceiling is
+  24 hours (expired work isn't billed). Results stay downloadable for 29 days.</li>
+  <li><strong>Size:</strong> 100,000 requests or 256&nbsp;MB per batch, whichever comes first.</li>
+  <li><strong>Mechanics:</strong> submit a <code>requests</code> array where each entry
+  carries a unique <code>custom_id</code>; poll until <code>ended</code>; fetch one
+  <code>.jsonl</code> file. <strong>Results may not match input order</strong> — the
+  <code>custom_id</code> is your join key.</li>
+  <li><strong>Failure model:</strong> not all-or-nothing — one failed request doesn't
+  affect the rest, and errored/canceled/expired requests are unbilled.</li>
+  <li><strong>Constraints:</strong> no streaming; <code>max_tokens</code> must be ≥ 1
+  (the 0-token cache pre-warm trick doesn't apply); separate rate limits from the
+  Messages API.</li>
+  <li><strong>Use for:</strong> exactly the workloads 0016 created — large-scale
+  evaluations — plus moderation sweeps, bulk analysis, bulk generation. Anything
+  where "immediate responses are not required."</li>
+</ul>
+
+<h2>Prompt caching: repetition at 0.1×</h2>
+
+<p>The multipliers (they stack with batch and other modifiers):</p>
+
+<table>
+  <thead><tr><th>Operation</th><th>Price vs base input</th></tr></thead>
+  <tbody>
+    <tr><td>Cache write, 5-minute TTL</td><td><strong>1.25×</strong> (a 25% premium)</td></tr>
+    <tr><td>Cache write, 1-hour TTL</td><td><strong>2×</strong></td></tr>
+    <tr><td><strong>Cache read (hit or refresh)</strong></td><td><strong>0.1×</strong> — 90% off</td></tr>
+  </tbody>
+</table>
+
+<p><strong>The craft rules:</strong></p>
+<ul>
+  <li><strong>Static first, dynamic last</strong> — cached content at the prompt's
+  beginning; put the breakpoint on the last block that stays identical across requests
+  (never on the timestamp or the incoming user message).</li>
+  <li><strong>Up to 4 breakpoints</strong>, ordered by change frequency (and automatic
+  caching consumes one slot). Minimum cacheable size varies by model — 512 to 4,096
+  tokens; shorter prompts just process uncached, no error.</li>
+  <li><strong>TTL:</strong> 5 minutes by default, <em>refreshed free each use</em> — the
+  clock includes response generation time. The 1-hour TTL costs double on writes; when
+  mixing, 1-hour breakpoints must come before 5-minute ones.</li>
+  <li><strong>The invalidation hierarchy — memorize this:</strong>
+  <strong>tools → system → messages</strong>. A change at any level invalidates that
+  level and everything after it. Change a tool definition: all three die. Toggle
+  <code>tool_choice</code> or swap an image: messages only. This one hierarchy explains
+  0004's "changing the format invalidates your prompt cache" and 0008's
+  <code>clear_at_least</code> (clearing tool results rewrites messages — don't torch the
+  cache for a small save).</li>
+</ul>
+
+<h2>The arithmetic, worked once</h2>
+
+<div class="callout note">
+  <span class="callout-title">Nightly eval suite — 80,000 requests, stable 2,000-token system + tools</span>
+  Naive synchronous: 80,000 × base input price.<br>
+  Batched: × <strong>0.5</strong>.<br>
+  Batched + cached prefix: the 2,000-token stable prefix reads at × <strong>0.1</strong>
+  (after the first write at 1.25×), stacked with the batch discount.<br>
+  Shape of the win: <em>half off for patience, 90% off the repeated part for stability</em>
+  — and they multiply. Interactive work keeps only the caching lever; latency-bound work
+  keeps neither and pays full freight for speed.
+</div>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can now read any bill and pick levers: batch the patient work, cache the stable
+  prefixes (static-first, breakpoint on the last stable block, 4 slots by change
+  frequency), size thinking/effort to the task, keep tool sets lean, and route tiers.
+  Cost engineering as a design activity, not a panic.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "Message Batches usage is billed at:",
+    "answers": [
+      "50% of standard prices",
+      "10% of standard prices",
+      "1.25 times standard prices",
+      "25% of cached prices"
+    ],
+    "correct": 0,
+    "why": "A flat 50% of standard API prices — and it stacks with prompt caching discounts. Most batches finish within an hour; 24 hours is the hard expiry."
+  },
+  {
+    "q": "Cache reads are billed at:",
+    "answers": [
+      "0.1× the base input",
+      "0.5× the base input",
+      "1.25× the base input",
+      "2× the base input"
+    ],
+    "correct": 0,
+    "why": "0.1× base input — 90% off — which is why repetition + stable prefixes are the biggest lever in interactive systems. Writes cost 1.25× (5-min) or 2× (1-hour)."
+  },
+  {
+    "q": "Changing a tool definition invalidates:",
+    "answers": [
+      "tools, system, and messages",
+      "messages only, nothing earlier",
+      "the system prompt only",
+      "nothing if under 1024"
+    ],
+    "correct": 0,
+    "why": "The hierarchy is tools → system → messages: a change at any level invalidates that level and everything after it. Tool-definition changes sit at the top and kill the whole cache; tool_choice changes touch messages only."
+  },
+  {
+    "q": "Batch results arrive:",
+    "answers": [
+      "as one file, unordered",
+      "streamed live while generating",
+      "in strict submission order",
+      "only when all succeed"
+    ],
+    "correct": 0,
+    "why": "One .jsonl file (no streaming), possibly out of order — join results by custom_id. And it's not all-or-nothing: one failed request doesn't affect the rest."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — engineer three bills (exam-style)</span>
+  <p>(a) Nightly 80K-document classification eval with a stable rubric and tool set.
+  (b) An interactive tutor: 3,000-token curriculum that never changes, then a growing
+  conversation. (c) A team that redeploys its tool definitions every Tuesday.</p>
+  <p><strong>On paper:</strong> for each — batch or not; the cache design (breakpoint
+  placement, TTL choice); the multiplier arithmetic shape; and the one trap to avoid.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(a)</strong> Batch, ×0.5. Cache the stable rubric+tools prefix: first
+    request writes (1.25×), the rest read (0.1×) — stacked. Trap: leaving a timestamp in
+    the system prompt, which mutates the "stable" prefix every run and kills the cache
+    at the hierarchy's top.</p>
+    <p><strong>(b)</strong> No batch — latency is the product. Static-first: tools →
+    curriculum → breakpoint → conversation. Each turn's history is the growing prefix:
+    earlier turns read at 0.1×, only the new suffix pays full price. 5-minute TTL
+    refreshes free while the session is active; 1-hour TTL only for sparse-return users,
+    budgeted against the 2× write. Trap: images or tool_choice churn mid-conversation
+    invalidating messages.</p>
+    <p><strong>(c)</strong> Weekly tool changes invalidate <em>everything</em> (top of
+    the hierarchy) — so don't build the business case on cache savings crossing Tuesday
+    deploys; schedule tool releases, keep descriptions stable in between (0010's
+    name/description nuance in the grammar cache is the same instinct), and expect the
+    first post-deploy request to eat the write premium. If your answer quantified (c) as
+    "one full-price + write-premium day per week, cached reads the rest," you're doing
+    architect arithmetic.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/build-with-claude/batch-processing">Message Batches</a></strong> and
+<a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Prompt caching</a> —
+the two pages whose numbers this lesson quotes.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Bring a real bill to the agent and we'll run the lever map on it. Next: <em>"next
+  lesson"</em> for 0018 · Workflow design — escalation, compliance, graceful degradation,
+  human handoff: the last lesson of Phase 4 and the customer-service scenario's home turf.
+</div>
+
+<div class="lesson-nav">
+  <a href="0016-evaluation-and-feedback-loops.html">◂ 0016 · Evaluation</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0017 · Claude Architect course · grounded in the official
+  <a href="https://platform.claude.com/docs/en/build-with-claude/batch-processing">Batch</a> and
+  <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">prompt caching</a> docs
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

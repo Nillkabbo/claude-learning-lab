@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0016 · Evaluation &amp; feedback loops</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0016 · Phase 4 — Agentic architecture · 27%</p>
+<h1>Evaluation &amp; feedback loops</h1>
+<p class="subtitle">The loop that makes iteration safe — criteria first, graders second, humans last (but always).</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Exam: Agentic Architecture · 27%</span>
+  <span>+ the exam guide's validation area</span>
+</div>
+
+<p><a href="0013-workflows-vs-agents.html">0013</a> demanded "extensive testing" before
+agent complexity; <a href="0015-orchestrator-workers.html">0015</a> showed why agents break
+traditional testing — identical inputs legitimately take different paths. Evaluation is
+the missing pillar: without it, every prompt change is a coin flip dressed as progress.
+Today: how the officials say to build the feedback loop.</p>
+
+<h2>Success criteria come first</h2>
+
+<p>Before any grader exists, the target does — specific, measurable, achievable, relevant:</p>
+<ul>
+  <li><strong>Specific:</strong> "accurate sentiment classification," not "good performance."</li>
+  <li><strong>Measurable, with numbers:</strong> the docs' own examples — F1 ≥ 0.85 on
+  10,000 held-out tweets; fewer than 0.1% of 10,000 outputs flagged for toxicity;
+  95% of responses under 200ms. Even fuzzy dimensions (safety, ethics) get quantified.</li>
+  <li><strong>Achievable:</strong> anchored to benchmarks and prior experiments — targets
+  beyond frontier-model capability are theater.</li>
+  <li><strong>Relevant:</strong> citation accuracy matters for a medical app, not a
+  casual chatbot. "Most use cases need multidimensional evaluation" — pick dimensions
+  from the menu: task fidelity, consistency, relevance, tone, privacy, context
+  utilization, latency, price.</li>
+</ul>
+
+<h2>The grader spectrum</h2>
+
+<table>
+  <thead><tr><th>Method</th><th>Best for</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td>Exact match</td><td>Categorical tasks</td><td>After normalizing whitespace/case</td></tr>
+    <tr><td>Cosine similarity (embeddings)</td><td>Consistency across paraphrases</td><td>Closer to 1 = more similar</td></tr>
+    <tr><td>ROUGE-L</td><td>Summarization overlap</td><td>Longest common subsequence vs. reference</td></tr>
+    <tr><td>LLM-based Likert (1–5)</td><td>Tone, empathy, professionalism</td><td>Traits traditional metrics can't touch</td></tr>
+    <tr><td>LLM-based binary</td><td>Policy/privacy checks</td><td>Catches "subtle or implicit" violations (e.g., PHI) that rules miss</td></tr>
+    <tr><td>LLM-based ordinal</td><td>Context utilization in multi-turn</td><td>Rates building on conversation history</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <span class="callout-title">The cross-model rule</span>
+  Every LLM-graded example in the official docs notes it: <strong>use a different model to
+  evaluate than the model that generated the output.</strong> Same-model judging inherits
+  the generator's blind spots — the grader that made the mistake can't see it.
+</div>
+
+<h2>Design principles, and the loop</h2>
+
+<ul>
+  <li><strong>Mirror the real distribution</strong> — edge cases included: sarcasm, mixed
+  sentiment, typos, rambling input, irrelevant info, ambiguity.</li>
+  <li><strong>Automate the grading</strong> — multiple-choice, string match, code-graded,
+  LLM-graded — so the loop can run without a human in it.</li>
+  <li><strong>Volume beats handmade polish:</strong> many questions with lower-signal
+  automated grading <em>outperforms</em> fewer hand-graded ones.</li>
+  <li><strong>The loop itself:</strong> test cases → preliminary prompt → iterative
+  testing and refinement → <strong>final validation on held-out data</strong> → ship.
+  "This cycle is central to prompt engineering" — it's 0002's success-criteria-first
+  discipline, closed into a circuit.</li>
+</ul>
+
+<h2>Agent-grade evaluation (from 0015's source)</h2>
+
+<ul>
+  <li><strong>Start small, immediately:</strong> ~20 queries of real usage patterns.
+  Early changes move success rates 30% → 80%; you don't need hundreds of cases to see
+  that. Teams that wait for big evals ship blind.</li>
+  <li><strong>Judge outcomes, not paths:</strong> agents take different valid paths to the
+  same goal — evaluate "whether they achieved the right outcomes while also following a
+  reasonable process."</li>
+  <li><strong>State-mutating agents:</strong> evaluate <strong>end states at discrete
+  checkpoints</strong> (specific state changes that should have occurred), not every
+  intermediate step.</li>
+  <li><strong>LLM-judge design that worked:</strong> a <em>single</em> judge call scoring
+  0.0–1.0 plus pass/fail against a rubric — factual accuracy, citation accuracy,
+  completeness, source quality, tool efficiency — beat multi-judge setups for consistency
+  and alignment with humans.</li>
+  <li><strong>Humans catch what automation can't:</strong> Anthropic's human testers found
+  agents preferring SEO content farms over authoritative PDFs — a source-selection bias no
+  automatic grader flagged. Manual testing stays essential.</li>
+</ul>
+
+<div class="callout win">
+  <span class="callout-title">The win</span>
+  You can build an eval suite end-to-end: numeric success criteria chosen per dimension,
+  the right grader from the spectrum (judged cross-model), volume-optimized automation,
+  outcome-based treatment for agents, a ~20-case starter set, and a defined role for
+  humans. That's the "evaluation, feedback loops" exam area complete.
+</div>
+
+<h2>Check yourself</h2>
+<p>From memory.</p>
+
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "LLM-graded evaluations should use:",
+    "answers": [
+      "a different model than generation",
+      "the same model for consistency",
+      "the cheapest available model always",
+      "human graders exclusively every time"
+    ],
+    "correct": 0,
+    "why": "Best practice from every official example: judge with a different model than the generator — same-model judging inherits the very blind spots you're testing for."
+  },
+  {
+    "q": "For tone or empathy, the recommended grader is:",
+    "answers": [
+      "an LLM-based Likert grader",
+      "exact match string comparisons",
+      "ROUGE-L summary overlap scores",
+      "cosine similarity embedding checks"
+    ],
+    "correct": 0,
+    "why": "Tone, empathy, and professionalism are exactly the traits 'difficult to quantify with traditional metrics' — the LLM-based Likert scale's home turf. The others suit categorical, summarization, and consistency respectively."
+  },
+  {
+    "q": "On eval volume versus quality, official guidance says:",
+    "answers": [
+      "more auto-graded beats fewer handcrafted",
+      "fewer handcrafted tests beat volume",
+      "expert-written cases only are valid",
+      "test count simply never matters"
+    ],
+    "correct": 0,
+    "why": "Many questions with lower-signal automated grading outperforms fewer hand-graded ones — automation is what lets the loop run at the speed of iteration."
+  },
+  {
+    "q": "Evaluating agents that mutate state should use:",
+    "answers": [
+      "end-state checks at milestones",
+      "prescribed step-by-step path checking",
+      "exact transcript matching throughout",
+      "voting by independent judges"
+    ],
+    "correct": 0,
+    "why": "Agents take different valid paths and each action changes the environment — evaluate end states at discrete checkpoints where specific changes should have occurred, not the path taken."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — eval the 0014 pipeline (exam-style)</span>
+  <p>Recall the Q&amp;A pipeline you composed in <a href="0014-composition-patterns.html">0014</a>
+  (route → chain w/ gates → vote → premium polish). Design its eval suite:</p>
+  <p><strong>On paper:</strong> (1) four success criteria with numbers, one per concern
+  (routing quality, grounding, safety, latency); (2) the grader for each, from the
+  spectrum; (3) your first test set — what's in the ~20 cases; (4) what humans review
+  that automation can't.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1)</strong> e.g. routing accuracy ≥ 98% on a labeled 500-ticket set;
+  ≥ 95% of claims carry verifiable citations (grounding gate pass rate); harmful-content
+  escape rate &lt; 0.1% at the 2/3 voting threshold; p95 latency &lt; 3s standard tier.
+  Numbers anchored to benchmarks where possible — the shape matters more than the values.</p>
+    <p><strong>(2)</strong> Routing: <strong>exact match</strong> vs. labels (categorical,
+  normalized). Grounding: <strong>LLM-binary</strong> judge ("does each cited source
+  support its claim?") — implicit, context-dependent. Safety: <strong>LLM-binary</strong>
+  on drafted answers (subtle violations), tuned against the voting threshold. Latency:
+  <strong>programmatic</strong> timers. And every LLM judge runs on a different model
+  than the drafting model.</p>
+    <p><strong>(3)</strong> ~20 real-distribution queries with the edge cases named in the
+  docs: ambiguous category tickets (routing stress), sarcasm, typo-laden questions,
+  regulated-data examples (privacy route), abusive inputs, and a couple of premium-tier
+  polishing cases.</p>
+    <p><strong>(4)</strong> Human review for source-selection bias (the content-farm
+  failure mode), tone on the premium tier, and sampling rejected answers for
+  mis-voting patterns. If your criteria came <em>before</em> your graders — in writing,
+  not just intent — you've got the discipline this area grades.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">Define success criteria and build evaluations</a></strong> (official docs),
+plus the evaluation section of Anthropic's
+<a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">multi-agent research post</a>.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  The volume-beats-handmade claim is worth arguing — when would 20 handcrafted cases
+  genuinely beat 2,000 auto-graded ones? Bring it. Next: <em>"next lesson"</em> for
+  0017 · Batches, cost &amp; latency engineering — the Message Batches API, prompt
+  caching economics, and thinking/effort as budget dials.
+</div>
+
+<div class="lesson-nav">
+  <a href="0015-orchestrator-workers.html">◂ 0015 · Orchestrator-workers</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0016 · Claude Architect course · grounded in
+  <a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">Develop tests (official)</a> and Anthropic's
+  <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">multi-agent evaluation practice</a>
+</footer>
+
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+</body>
+</html>

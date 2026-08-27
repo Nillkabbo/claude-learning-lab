@@ -1,0 +1,4 @@
+tasks.json
+tasks.corrupt.json
+.audit.log
+__pycache__/
