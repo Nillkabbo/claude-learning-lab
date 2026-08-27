@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
+<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-browser.html">Code</a></nav>
 
 <p class="kicker">Lesson 0010 · Phase 3 — Claude Code &amp; the Agent SDK</p>
 <h1>Claude Code in the team: hooks, slash commands &amp; shared config</h1>
@@ -18,7 +19,7 @@
   <span>No install needed</span>
 </div>
 
-<p><a href="0009-claude-code-essentials.html">Lesson 0009</a> gave you the three pillars
+<div class="svgbox"><svg viewBox="0 0 680 215" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><text x="70" y="53" text-anchor="end" font-family="Georgia,serif" font-size="11" fill="#1c1b18">session</text><line x1="90" y1="49" x2="620" y2="49" stroke="#e3ded2" stroke-width="10" stroke-linecap="round"/><circle cx="200" cy="49" r="7" fill="#6b675e"/><text x="200" y="31" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">SessionStart</text><circle cx="460" cy="49" r="7" fill="#6b675e"/><text x="460" y="31" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">SessionEnd</text><text x="70" y="109" text-anchor="end" font-family="Georgia,serif" font-size="11" fill="#1c1b18">turn</text><line x1="90" y1="105" x2="620" y2="105" stroke="#e3ded2" stroke-width="10" stroke-linecap="round"/><circle cx="200" cy="105" r="7" fill="#6b675e"/><text x="200" y="87" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">UserPromptSubmit</text><circle cx="460" cy="105" r="7" fill="#6b675e"/><text x="460" y="87" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">Stop</text><text x="70" y="165" text-anchor="end" font-family="Georgia,serif" font-size="11" fill="#1c1b18">tool call</text><line x1="90" y1="161" x2="620" y2="161" stroke="#e3ded2" stroke-width="10" stroke-linecap="round"/><circle cx="200" cy="161" r="7" fill="#8a2323"/><text x="200" y="143" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">PreToolUse</text><circle cx="460" cy="161" r="7" fill="#6b675e"/><text x="460" y="143" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">PostToolUse</text><text x="400" y="205" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e" font-style="italic">PreToolUse exit 2 blocks — regardless of JSON; hooks fail open, so rules are the guarantee</text></svg><div class="caption">Hooks fire at three cadences — session, turn, tool call — and the exit-2 contract is the same at each.</div></div><p><a href="0009-claude-code-essentials.html">Lesson 0009</a> gave you the three pillars
 solo. Teams add the interesting problems: config that travels through a repo, policy that
 comes from the org, behavior that must fire <em>every</em> time, and procedures every
 teammate can invoke. That's hooks and slash commands — plus a sharper rule than 0009's
@@ -239,6 +240,6 @@ The hooks exit-code contract is worth a second read — it's dense with exam mat
   <a href="https://code.claude.com/docs/en/slash-commands">slash commands</a> references
 </footer>
 
-<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

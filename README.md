@@ -1,25 +1,18 @@
 # The Claude Learning Lab
 
-An unofficial, self-built curriculum for mastering Claude — three tracks over one
-workspace, every fact verified against official documentation (as of Aug 2026).
+An unofficial, self-built curriculum for mastering Claude — three tracks, every fact
+verified against official documentation (as of Aug 2026). Not affiliated with Anthropic.
 
 ## The tracks
-1. **[The Story](reference/story-roadmap.html)** — learn Claude Code by building one
-   real project across 12 narrative chapters (worked example included: `tracker/`).
-2. **[The Architect Course](reference/claude-architect-roadmap.html)** — 24 lessons +
-   reviews + mock exams mapped to the Claude Certified Architect (CCAR-F) blueprint.
-3. **[The Claude Code Guide](reference/claude-code-guide-roadmap.html)** — 26 lessons
-   spanning the full official docscape, beginner to master.
+1. **[The Story](reference/story-roadmap.html)** — Claude Code through 12 narrative chapters.
+2. **[The Architect Course](reference/claude-architect-roadmap.html)** — 24 lessons + mocks, mapped to CCAR-F.
+3. **[The Claude Code Guide](reference/claude-code-guide-roadmap.html)** — 26 lessons, full docscape.
 
-## Also inside
-- **[The Apex Project](project/README.md)** — build the whole curriculum in code
-  (10 milestones, 118 acceptance checks: `python3 project/verify.py`).
-- **[The Starter Kit](starter/README.md)** — Claude's fundamentals as a zero-dependency,
-  self-checking reference implementation.
-- **[Cheat sheets](reference/cheatsheets.html)**, a **[drill bank](reference/drill-bank.html)**,
-  a **[cross-index](reference/cross-index.html)**, and an Anki deck (`resources/glossary-anki.tsv`).
+## Inside
+- **[Apex Project](project/README.md)** — 118 acceptance checks (`python3 project/verify.py`)
+- **[Starter Kit](starter/README.md)** — zero-dependency reference implementation
+- **[Code Browser](reference/code-browser.html)** — every runnable file, one page
+- **[Cheat Sheets](reference/cheatsheets.html)** · **[Drill Bank](reference/drill-bank.html)** · **[Cross-Index](reference/cross-index.html)**
+- **[Sprints](reference/tracker-sprints.html)** — the do-it-with-me mode
 
-Browse every runnable file via the **[code browser](reference/code-browser.html)**.
-Start at **[index.html](index.html)** (the front door). Everything runs as plain static
-HTML — quizzes included. Not affiliated with Anthropic; verify time-sensitive facts
-before relying on them.
+Start at **[index.html](index.html)**. Everything is static HTML — quizzes, diagrams included.

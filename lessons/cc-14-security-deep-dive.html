@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
+<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-browser.html">Code</a></nav>
 <p class="kicker">CC-14 · Phase D — Team & enterprise</p>
 <h1>Security deep-dive: sandboxing and data</h1>
 <p class="subtitle">What runs where, what leaves, and which walls are real.</p>
@@ -15,7 +16,7 @@
   <span>Claude Code Guide</span>
   <span>Hands-on by design</span>
 </div>
-<p>Track 1's enforcement layers, plus Claude Code's own walls:</p>
+<div class="svgbox"><svg viewBox="0 0 240 115" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><path d="M 120 20 L 155 35 L 155 60 Q 155 80 120 92 Q 85 80 85 60 L 85 35 Z" fill="#eaf3ec" stroke="#1c1b18" stroke-width="2"/><text x="120" y="60" text-anchor="middle" font-family="Georgia,serif" font-size="14" fill="#8a2323">✓</text><text x="120" y="110" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">sandbox + ZDR</text></svg><div class="caption">sandbox + ZDR</div></div><p>Track 1's enforcement layers, plus Claude Code's own walls:</p>
 <ul>
   <li><strong>Sandboxed Bash</strong> — the sandboxed Bash tool runs commands in a
   restricted environment; sandbox substitution can stand in for whole-tool Bash asks
@@ -86,6 +87,6 @@ enforced layer behind it, and test that a broken gate fails loud.</p>
 <footer class="course-footer">
   CC-14 · Claude Code Guide · sources: official docs + Track 1 lessons 0009–0012
 </footer>
-<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

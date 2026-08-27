@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
+<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-browser.html">Code</a></nav>
 
 <p class="kicker">Lesson 0011 · Phase 3 — Claude Code &amp; the Agent SDK</p>
 <h1>Subagents &amp; skills: teaching Claude Code new tricks</h1>
@@ -18,7 +19,7 @@
   <span>No install needed</span>
 </div>
 
-<p>Notice the through-line. <a href="0006-designing-tool-interfaces.html">Lesson 0006</a>:
+<div class="svgbox"><svg viewBox="0 0 680 215" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><rect x="230" y="25" width="220" height="50" rx="8" fill="#eaf3ec" stroke="#1c1b18" stroke-width="1.5"/><text x="340.0" y="48.0" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">MAIN CONTEXT</text><text x="340.0" y="63.0" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">clean, small, expensive-to-lose</text><rect x="40" y="130" width="160" height="48" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="120.0" y="152.0" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">worker 1</text><text x="120.0" y="167.0" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">own context window</text><path d="M 120 128 L 340 78" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)" fill="none"/><path d="M 340 78 L 120 128" stroke="#6b675e" stroke-width="1.4" marker-end="url(#ah)" fill="none" stroke-dasharray="4 3"/><rect x="280" y="130" width="160" height="48" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="360.0" y="152.0" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">worker 2</text><text x="360.0" y="167.0" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">own context window</text><path d="M 360 128 L 340 78" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)" fill="none"/><path d="M 340 78 L 360 128" stroke="#6b675e" stroke-width="1.4" marker-end="url(#ah)" fill="none" stroke-dasharray="4 3"/><rect x="520" y="130" width="160" height="48" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="600.0" y="152.0" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">worker 3</text><text x="600.0" y="167.0" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">own context window</text><path d="M 600 128 L 340 78" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)" fill="none"/><path d="M 340 78 L 600 128" stroke="#6b675e" stroke-width="1.4" marker-end="url(#ah)" fill="none" stroke-dasharray="4 3"/><text x="150" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#8a2323">delegate</text><text x="560" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">summary back</text><text x="340" y="205" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e" font-style="italic">workers' contexts are disposable; yours is not</text></svg><div class="caption">Delegation out, summary back: the main context stays clean while workers churn in their own windows.</div></div><p>Notice the through-line. <a href="0006-designing-tool-interfaces.html">Lesson 0006</a>:
 Claude picks tools by reading descriptions. <a href="0010-claude-code-in-the-team.html">Lesson 0010</a>:
 slash commands load by description. Today: <strong>Claude delegates to workers by reading
 their descriptions</strong>. Same craft, third surface — and this one solves the problem
@@ -239,6 +240,6 @@ else — no parent conversation.</p>
   <a href="https://code.claude.com/docs/en/sub-agents">subagents docs</a>
 </footer>
 
-<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

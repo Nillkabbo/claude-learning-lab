@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
+<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-browser.html">Code</a></nav>
 
 <p class="kicker">Lesson 0003 · Phase 1 — The API core</p>
 <h1>Output control: max tokens, stop reasons &amp; the dials that replaced temperature</h1>
@@ -18,7 +19,7 @@
   <span>No coding needed</span>
 </div>
 
-<p><a href="0002-system-prompts-and-prefilling.html">Lesson 0002</a> controlled the voice
+<div class="svgbox"><svg viewBox="0 0 680 185" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><rect x="270" y="75" width="140" height="44" rx="8" fill="#f6e9e9" stroke="#1c1b18" stroke-width="1.5"/><text x="340.0" y="101.0" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#1c1b18">stop_reason</text><rect x="15" y="35" width="110" height="34" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="70.0" y="56.0" text-anchor="middle" font-family="Georgia,serif" font-size="10.5" fill="#1c1b18">end_turn</text><text x="70" y="83" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">use the output</text><line x1="125" y1="52" x2="272" y2="90" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)"/><rect x="15" y="115" width="110" height="34" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="70.0" y="136.0" text-anchor="middle" font-family="Georgia,serif" font-size="10.5" fill="#1c1b18">max_tokens</text><text x="70" y="163" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">your cap fired</text><line x1="125" y1="132" x2="272" y2="90" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)"/><rect x="555" y="115" width="110" height="34" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="610.0" y="136.0" text-anchor="middle" font-family="Georgia,serif" font-size="10.5" fill="#1c1b18">stop_sequence</text><text x="610" y="163" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">your brake fired</text><line x1="555" y1="132" x2="408" y2="90" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)"/><rect x="555" y="35" width="110" height="34" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="610.0" y="56.0" text-anchor="middle" font-family="Georgia,serif" font-size="10.5" fill="#1c1b18">tool_use</text><text x="610" y="83" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">execute and loop</text><line x1="555" y1="52" x2="408" y2="90" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)"/><rect x="285" y="12" width="110" height="34" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="340.0" y="33.0" text-anchor="middle" font-family="Georgia,serif" font-size="10.5" fill="#1c1b18">refusal</text><text x="340" y="60" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" fill="#6b675e">policy path</text><line x1="340" y1="30" x2="340" y2="72" stroke="#8a2323" stroke-width="1.4" marker-end="url(#ah)"/></svg><div class="caption">The switchboard: five reasons generation stops — each one tells your code what to do next.</div></div><p><a href="0002-system-prompts-and-prefilling.html">Lesson 0002</a> controlled the voice
 <em>before</em> generation. Today you control generation itself: how long it runs, why it
 stops, and what the modern dials are — because the most famous dial of all,
 <strong>temperature, is now deprecated</strong>. Migrations like this are pure architect-exam
@@ -229,6 +230,6 @@ output_config). For the consistency toolkit:
   <a href="https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency">official consistency guidance</a>
 </footer>
 
-<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

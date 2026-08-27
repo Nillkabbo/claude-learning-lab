@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
+<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-browser.html">Code</a></nav>
 
 <p class="kicker">Lesson 0006 · Phase 2 — Tools &amp; context</p>
 <h1>Designing tool interfaces models use correctly</h1>
@@ -18,7 +19,7 @@
   <span>No coding needed</span>
 </div>
 
-<p><a href="0005-tool-use-fundamentals.html">Lesson 0005</a> taught the loop's mechanics.
+<div class="svgbox"><svg viewBox="0 0 680 185" xmlns="http://www.w3.org/2000/svg" role="img"><defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs><rect x="60" y="30" width="410" height="140" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="265.0" y="104.0" text-anchor="middle" font-family="Georgia,serif" font-size="1" fill="#1c1b18"></text><text x="265" y="55" text-anchor="middle" font-family="Georgia,serif" font-size="14" fill="#1c1b18">get_flight_status</text><text x="265" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">what it does · when · when NOT · limits</text><rect x="85" y="92" width="140" height="34" rx="8" fill="none" stroke="#1c1b18" stroke-width="1.5"/><text x="155.0" y="113.0" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">input_schema</text><rect x="245" y="92" width="120" height="34" rx="8" fill="#eaf3ec" stroke="#1c1b18" stroke-width="1.5"/><text x="305.0" y="113.0" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">enum: closed</text><rect x="385" y="92" width="60" height="34" rx="8" fill="#eaf3ec" stroke="#1c1b18" stroke-width="1.5"/><text x="415.0" y="113.0" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#1c1b18">strict</text><text x="265" y="160" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e" font-style="italic">the interface the model reads</text><path d="M 475 105 L 560 105" stroke="#8a2323" stroke-width="2" marker-end="url(#ah)"/><text x="600" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">model</text><text x="600" y="118" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#6b675e">chooses by</text><text x="600" y="131" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#6b675e">reading</text></svg><div class="caption">The tool interface is a card the model reads — and the description is by far the most important factor.</div></div><p><a href="0005-tool-use-fundamentals.html">Lesson 0005</a> taught the loop's mechanics.
 Today is the craft: why does Claude use one tool flawlessly and fumble another? The model
 chooses tools by <em>reading</em> — name, description, schema. That readable surface is a
 user interface, and you are its designer. The official docs are blunt about where the
@@ -243,6 +244,6 @@ The description anatomy, consolidation guidance, and input_examples rules all li
   <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools">Define tools (official)</a>
 </footer>
 
-<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026; see the re-verification list. Built as a personal curriculum.</div>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

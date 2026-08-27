@@ -460,3 +460,26 @@ footer.course-footer {
   text-align: center;
   margin-top: 0.5rem;
 }
+
+/* ---------- shared top navigation ---------- */
+.topnav {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 0;
+  background: #fffdf7;
+  border-bottom: 1px solid var(--rule);
+  margin: -3rem -1.5rem 1.75rem;
+  padding: 0.45rem 1.5rem 0.35rem;
+  font-family: var(--sans);
+  box-shadow: 0 1px 6px rgba(28,27,24,0.05);
+}
+.topnav .brand {
+  font-weight: 700; font-size: 0.8rem; color: var(--accent);
+  letter-spacing: 0.08em; margin-right: 1.1rem; padding-top: 2px;
+}
+.topnav a {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted); text-decoration: none;
+  padding: 0.28rem 0.6rem; border-radius: 6px;
+}
+.topnav a:hover { color: var(--accent); background: var(--accent-soft); }
+.topnav a[aria-current="page"] { color: #fff; background: var(--accent); }
