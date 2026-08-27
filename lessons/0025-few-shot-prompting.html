@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0025 · Few-shot prompting</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0025 · Phase 1 — The API core (exam gap filler)</p>
+<h1>Few-shot prompting: showing, not telling</h2>
+<p class="subtitle">The exam's second-most-tested prompt-engineering skill — and the course's biggest gap, now closed.</p>
+
+<div class="meta">
+  <span class="accent">≈ 12 minutes</span>
+  <span>Exam: Prompt Engineering &amp; Structured Output · 20%</span>
+  <span>Task Statement 4.2</span>
+</div>
+
+<p>The official exam guide dedicates an entire task statement to this (4.2: "Apply few-shot
+prompting to improve output consistency and accuracy"), listing it among the most-tested
+skills. Yet the course has only mentioned it in passing. This lesson fixes that gap.</p>
+
+<div class="svgbox"><svg viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#8a2323"/></marker></defs>
+<rect x="30" y="30" width="150" height="50" rx="8" fill="#eef1f7" stroke="#1c1b18" stroke-width="1.5"/>
+<text x="105" y="50" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">instruction only</text>
+<text x="105" y="66" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">"extract the date"</text>
+<text x="230" y="55" font-family="Georgia,serif" font-size="20" fill="#6b675e">→</text>
+<text x="280" y="50" font-family="Georgia,serif" font-size="12" fill="#6b675e">~60% consistent</text>
+<rect x="30" y="110" width="280" height="60" rx="8" fill="#eaf3ec" stroke="#1c1b18" stroke-width="1.5"/>
+<text x="170" y="130" text-anchor="middle" font-family="Georgia,serif" font-size="12" fill="#1c1b18">instruction + 2–4 examples</text>
+<text x="170" y="148" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">"extract → 2024-03-15" · "extract → 2023-11-08"</text>
+<text x="170" y="162" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">"extract → 2025-01-22"</text>
+<text x="340" y="140" font-family="Georgia,serif" font-size="20" fill="#8a2323">→</text>
+<text x="390" y="140" font-family="Georgia,serif" font-size="12" fill="#2e6b3f" font-weight="bold">~95% consistent</text>
+<rect x="440" y="30" width="200" height="50" rx="8" fill="#faf3e3" stroke="#1c1b18" stroke-width="1.5"/>
+<text x="540" y="50" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#1c1b18">few-shot + structured outputs</text>
+<text x="540" y="66" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#6b675e">schema-enforced = ~100%</text>
+<line x1="370" y1="55" x2="435" y2="55" stroke="#6b675e" stroke-width="1.4" marker-end="url(#ah)" stroke-dasharray="4 3"/>
+<line x1="370" y1="140" x2="435" y2="140" stroke="#6b675e" stroke-width="1.4" marker-end="url(#ah)" stroke-dasharray="4 3"/>
+</svg><div class="caption">The consistency ladder: instructions alone → few-shot examples → schema-enforced. Few-shot is the middle rung.</div></div>
+
+<h2>What few-shot prompting is</h2>
+
+<p><strong>Few-shot prompting</strong> means including 2–4 input/output examples in your prompt
+so the model can <em>see</em> the pattern you want, not just read about it. The official
+docs call examples "more effective than abstract instructions" — because the model
+pattern-matches from demonstrated behavior far better than it follows prose descriptions.</p>
+
+<h2>When to use it (the exam's three named scenarios)</h2>
+
+<table>
+  <thead><tr><th>Scenario</th><th>What you show</th><th>Why it works</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Format consistency</strong></td>
+      <td>2–3 input→output pairs in your exact target format</td>
+      <td>The model copies the demonstrated shape, including nuances you'd never think to describe</td>
+    </tr>
+    <tr>
+      <td><strong>Ambiguous classification</strong></td>
+      <td>Edge-case examples — one borderline input per class</td>
+      <td>The model generalizes the boundary from examples it can't infer from the label alone</td>
+    </tr>
+    <tr>
+      <td><strong>False-positive reduction</strong></td>
+      <td>Examples of inputs that should <em>not</em> match, alongside ones that should</td>
+      <td>Negative examples are the cheapest precision fix — they show what to exclude</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>How to write good examples</h2>
+
+<ol>
+  <li><strong>Use real data</strong> — your actual inputs, not synthetic placeholders. The model
+  notices when examples are too clean.</li>
+  <li><strong>Show edge cases</strong> — one typical case + one boundary case beats four
+  typical cases. The boundary is where the model needs help.</li>
+  <li><strong>Include a negative</strong> — an input where the correct output is "none" or
+  the empty case. This is the official docs' top tip for reducing false positives.</li>
+  <li><strong>Keep it small</strong> — 2–4 examples. More than that and you're paying tokens
+  for diminishing returns; fewer and the model may not generalize.</li>
+  <li><strong>Match your schema</strong> — if you're using structured outputs (0004), the
+  examples should show the exact JSON shape you expect.</li>
+</ol>
+
+<div class="callout note">
+  <span class="callout-title">Few-shot + structured outputs (the exam combo)</span>
+  The exam's task statement 4.2 sits right next to 4.3 (structured outputs). The intended
+  pairing: use <em>few-shot examples</em> to teach the model <em>what</em> to extract and the
+  boundary cases, then use <em>structured outputs</em> to enforce <em>how</em> it comes out.
+  Examples teach semantics; schemas enforce shape.
+</div>
+
+<h2>What few-shot is NOT</h2>
+
+<ul>
+  <li><strong>Not fine-tuning</strong> — you're not changing weights; you're showing the
+  pattern in-context. Every request carries the examples.</li>
+  <li><strong>Not a substitute for clear instructions</strong> — a good prompt has both:
+  a clear instruction AND 2–3 examples. Examples disambiguate; they don't replace the ask.</li>
+  <li><strong>Not free</strong> — examples consume input tokens on every request, and
+  they invalidate your prompt cache if they change. Keep them stable.</li>
+</ul>
+
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "The official docs say examples are:",
+    "answers": ["more effective than instructions", "less reliable than instructions", "only for classification tasks", "a replacement for system prompts"],
+    "correct": 0,
+    "why": "Examples are 'more effective than abstract instructions' — the model pattern-matches demonstrated behavior better than it follows prose descriptions."
+  },
+  {
+    "q": "The recommended number of few-shot examples is:",
+    "answers": ["two to four", "one only", "ten or more", "as many as possible"],
+    "correct": 0,
+    "why": "2–4 examples is the sweet spot. More costs tokens for diminishing returns; fewer risks the model not generalizing."
+  },
+  {
+    "q": "Including an example where the correct output is 'none' is:",
+    "answers": ["a false-positive reduction technique", "a waste of tokens", "only for classification", "unnecessary with schemas"],
+    "correct": 0,
+    "why": "Negative examples are the official docs' cheapest precision fix — they show what to exclude, directly reducing false positives."
+  },
+  {
+    "q": "Few-shot examples and structured outputs together:",
+    "answers": ["teach semantics and enforce shape", "are redundant together", "conflict with each other", "only work for JSON"],
+    "correct": 0,
+    "why": "The exam's intended combo: examples teach WHAT to extract (semantics, boundaries), schemas enforce HOW it comes out (shape). They complement, not compete."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — fix the sentiment classifier</span>
+  <p>A teammate's sentiment classifier keeps flagging neutral statements as negative.
+  The prompt is: <em>"Classify each message as positive, negative, or neutral."</em></p>
+  <p><strong>On paper:</strong> (1) write two few-shot examples that would fix this —
+  include one borderline case and one negative example; (2) explain why each example
+  targets the specific failure; (3) state what you'd add for structured-output enforcement.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p><strong>(1) Borderline example:</strong> input: "The package arrived on Tuesday."
+    → output: "neutral" (a factual statement with no emotional valence — this is the
+    boundary case the classifier keeps getting wrong).<br>
+    <strong>Negative example:</strong> input: "OK." → output: "neutral" (a terse
+    acknowledgment that looks negative to a pattern-matcher but isn't).</p>
+    <p><strong>(2)</strong> The first shows the <em>positive↔neutral boundary</em> (facts
+    aren't positive). The second shows the <em>negative↔neutral boundary</em> (terse isn't
+    hostile). Together they bracket the neutral zone from both sides.</p>
+    <p><strong>(3)</strong> An enum-constrained structured output: <code>{"sentiment":
+    {"enum": ["positive", "negative", "neutral"]}}</code> — the grammar guarantees the
+  label is valid; the examples teach which label to pick.</p>
+  </details>
+</div>
+
+<h2>Primary source</h2>
+<p>→ <strong><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/few-shot-examples">Few-shot examples — official docs</a></strong>
+and the exam guide's task statement 4.2.</p>
+
+<div class="callout note">
+  <span class="callout-title">Your teacher is on call</span>
+  Questions about when examples beat instructions, or how many is too many? Ask.
+  Next: <em>"next lesson"</em> for 0026 · The long tail — six exam topics you need.
+</div>
+
+<div class="lesson-nav">
+  <a href="0024-mock-exam-2.html">◂ 0024 · Mock exam II</a>
+  <a class="next" href="0026-exam-long-tail.html">0026 ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0025 · Claude Architect course · closes exam gap 4.2 ·
+  <a href="../reference/claude-architect-roadmap.html">roadmap</a>
+</footer>
+
+<script src="../assets/nav.js"></script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
+</body>
+</html>

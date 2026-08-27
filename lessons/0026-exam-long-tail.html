@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0026 · The exam long tail</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+
+<p class="kicker">Lesson 0026 · Exam gap filler</p>
+<h1>The long tail: six exam topics you need</h1>
+<p class="subtitle">Task statements the course missed — each one is worth points on exam day.</p>
+
+<div class="meta">
+  <span class="accent">≈ 15 minutes</span>
+  <span>Covers: 1.5 · 1.7 · 3.3 · 4.6 · 5.5 · 2.2</span>
+</div>
+
+<p>The official exam guide lists 30 task statements. The course covers 24 well. These six
+slipped through — each is testable, each is practical, and none takes more than a few
+minutes to learn.</p>
+
+<h2>1. Agent SDK hooks (Task 1.5)</h2>
+
+<p><strong>What it is:</strong> The Agent SDK exposes the same lifecycle events as Claude
+Code hooks — <code>PreToolUse</code>, <code>PostToolUse</code>, <code>Stop</code> — but as
+programmatic callbacks in your code rather than shell scripts.</p>
+
+<pre><code># In the Agent SDK
+for await (const message of query({
+  prompt: "Process the refund",
+  options: {
+    hooks: {
+      PostToolUse: async (event) => {
+        // Normalize tool output before it reaches the model
+        if (event.tool_name === "get_refund") {
+          event.output = normalizeCurrency(event.output);
+        }
+      },
+      PreToolUse: async (event) => {
+        // Block refunds over $500
+        if (event.tool_name === "process_refund" &&
+            event.input.amount > 500) {
+          return { block: true, reason: "Requires human approval" };
+        }
+      }
+    }
+  }
+})) { ... }</code></pre>
+
+<p><strong>Exam scenario shape:</strong> "Your agent processes refunds. How do you
+intercept calls over $500 before they execute?" → <em>PreToolUse hook that returns
+block:true.</em></p>
+
+<hr>
+
+<h2>2. Session forking and named resume (Task 1.7)</h2>
+
+<p><strong>What it is:</strong> The Agent SDK supports <code>fork_session()</code> —
+creating a new session that inherits the full conversation history — and
+<code>--resume &lt;session-name&gt;</code> for named session continuity.</p>
+
+<ul>
+  <li><strong>Fork</strong>: one session branches into two, each continuing independently.
+  Useful for exploring alternatives without polluting the original.</li>
+  <li><strong>Named resume</strong>: pick up exactly where a named session left off —
+  not just "the most recent" (<code>-c</code>) but a specific one (<code>-r</code> or
+  <code>--resume &lt;name&gt;</code>).</li>
+</ul>
+
+<p><strong>Exam scenario shape:</strong> "Your research agent has a promising partial
+result. How do you explore two different continuations?" → <em>fork the session, run each
+branch with a different approach, keep whichever succeeds.</em></p>
+
+<hr>
+
+<h2>3. Path-specific rules and @import (Task 3.1/3.3)</h2>
+
+<p><strong>What it is:</strong> Beyond the CLAUDE.md scope ladder, Claude Code supports:</p>
+
+<ul>
+  <li><strong><code>@import</code></strong>: a CLAUDE.md can import other files:
+  <code>@docs/api-conventions.md</code> pulls that file's content into the memory.</li>
+  <li><strong><code>.claude/rules/</code> with <code>paths:</code> frontmatter</strong>:
+  rules that load only when Claude reads files matching a path pattern.<br>
+  <pre><code># .claude/rules/python-style.md
+---
+paths: ["**/*.py", "**/tests/**"]
+---
+Use pytest. fixtures over mocks. 88-char lines.</code></pre></li>
+</ul>
+
+<p><strong>Exam scenario shape:</strong> "Your monorepo has different conventions for
+Python and TypeScript. How do you load only the relevant rules?" → <em>path-scoped rules
+in .claude/rules/ with paths frontmatter.</em></p>
+
+<hr>
+
+<h2>4. Multi-instance review architectures (Task 4.6)</h2>
+
+<p><strong>What it is:</strong> For high-stakes output, run multiple independent review
+passes and reconcile. The official guide's named patterns:</p>
+
+<ul>
+  <li><strong>Self-review</strong>: the same model reviews its own output. Cheapest,
+  but shares blind spots with the generator.</li>
+  <li><strong>Independent instances</strong>: separate model instances (different seeds,
+  or different models) review the same output. Catches what self-review misses.</li>
+  <li><strong>Per-file + cross-file passes</strong>: one review checks each file in
+  isolation; another checks cross-file consistency (imports, naming, API contracts).</li>
+</ul>
+
+<p><strong>The limitation the exam tests:</strong> Self-review alone is unreliable —
+"a model cannot reliably find its own errors." Independent instances or cross-model
+review are the fix.</p>
+
+<p><strong>Exam scenario shape:</strong> "Your code-generation agent produces multi-file
+changes. How do you catch cross-file inconsistencies?" → <em>run independent review
+instances: one per-file, one cross-file, then reconcile before merging.</em></p>
+
+<hr>
+
+<h2>5. Confidence calibration and stratified sampling (Task 5.5)</h2>
+
+<p><strong>What it is:</strong> When a model outputs field-level confidence scores,
+those scores need <em>calibration</em> — verifying that "80% confident" actually means
+80% correct. The official approach:</p>
+
+<ol>
+  <li>Have the model output confidence per field.</li>
+  <li>On a labeled validation set, measure actual accuracy at each confidence level.</li>
+  <li><strong>Stratify</strong>: sort outputs by confidence; route high-confidence to
+  auto-accept, low-confidence to human review.</li>
+  <li>Tune the threshold based on your precision/recall needs.</li>
+</ol>
+
+<p><strong>Exam scenario shape:</strong> "Your extraction pipeline outputs confidence
+scores, but '90% confident' fields are only 70% accurate. What do you do?" →
+<em>calibrate against a labeled set, stratify the review threshold, tune for the
+acceptable error rate.</em></p>
+
+<hr>
+
+<h2>6. Structured error metadata (Task 2.2)</h2>
+
+<p><strong>What it is:</strong> Beyond the text-based error taxonomy from 0007, the exam
+tests <em>structured metadata</em> on tool errors:</p>
+
+<pre><code>{
+  "type": "tool_result",
+  "tool_use_id": "toolu_01",
+  "is_error": true,
+  "content": "Rate limit exceeded. Retry after 30 seconds.",
+  "metadata": {
+    "errorCategory": "transient",
+    "isRetryable": true,
+    "retryAfterSeconds": 30
+  }
+}</code></pre>
+
+<p><strong>The exam angle:</strong> the model reads the text, but your <em>orchestration
+code</em> reads the metadata — it decides whether to retry, escalate, or reroute based on
+the structured fields, not by parsing natural language.</p>
+
+<hr>
+
+<h2>Check yourself</h2>
+<div class="quiz">
+<script type="application/json">
+[
+  {
+    "q": "PreToolUse hooks in the Agent SDK can:",
+    "answers": ["block a call before execution", "modify the system prompt", "change the model mid-session", "bypass permission rules"],
+    "correct": 0,
+    "why": "PreToolUse hooks intercept before execution and can return block:true — the programmatic confirmation gate."
+  },
+  {
+    "q": "Forking a session creates:",
+    "answers": ["a branch with full history", "an empty new session", "a subagent context", "a cached prompt copy"],
+    "correct": 0,
+    "why": "fork_session() inherits the complete conversation — both branches continue independently from the same point."
+  },
+  {
+    "q": "Path-scoped rules load when:",
+    "answers": ["Claude reads matching files", "the session starts", "the user asks", "a hook fires"],
+    "correct": 0,
+    "why": "The paths frontmatter in .claude/rules/ activates only when Claude touches files matching the pattern — monorepo-friendly."
+  },
+  {
+    "q": "Self-review alone is unreliable because:",
+    "answers": ["the model shares its own blind spots", "it costs too many tokens", "it requires a different model", "it only works for code"],
+    "correct": 0,
+    "why": "The same model reviewing its own output inherits the biases that produced the errors — independent instances or cross-model review are the fix."
+  },
+  {
+    "q": "Confidence calibration means:",
+    "answers": ["verifying scores against actual accuracy", "adjusting temperature to zero", "using a bigger model", "averaging all confidence scores"],
+    "correct": 0,
+    "why": "Calibration = measuring whether '90% confident' is actually 90% correct on a labeled set, then tuning the review threshold accordingly."
+  },
+  {
+    "q": "Structured error metadata lets your code:",
+    "answers": ["decide retry/escalate programmatically", "bypass the model entirely", "change the tool schema", "skip permission checks"],
+    "correct": 0,
+    "why": "The model reads the human-readable text; your orchestration code reads the structured metadata (errorCategory, isRetryable, retryAfterSeconds) to route programmatically."
+  }
+]
+</script>
+</div>
+<script src="../assets/quiz.js"></script>
+
+<h2>Your turn</h2>
+
+<div class="callout exercise">
+  <span class="callout-title">Exercise — wire the six into one architecture</span>
+  <p>Sketch (on paper) a refund-processing agent that uses all six: (1) a PreToolUse hook
+  blocking refunds over $500, (2) a session fork to explore two resolution paths,
+  (3) path-scoped rules for the payments/ directory, (4) independent review instances
+  for the generated refund messages, (5) confidence-calibrated routing to human review,
+  (6) structured error metadata for the retry logic.</p>
+  <details class="reveal">
+    <summary>Check your answer</summary>
+    <p>Each piece slots into a different layer: the hook is the PreToolUse gate, the fork
+    is orchestration strategy, the rules are memory, the review is evaluation, the
+    calibration is human-in-the-loop routing, the metadata is error handling. Together
+    they form the full architecture the exam's scenario questions test — the trick is
+    knowing which tool goes in which layer.</p>
+  </details>
+</div>
+
+<div class="lesson-nav">
+  <a href="0025-few-shot-prompting.html">◂ 0025 · Few-shot prompting</a>
+  <a class="next" href="../reference/claude-architect-roadmap.html">Roadmap ▸</a>
+</div>
+
+<footer class="course-footer">
+  Lesson 0026 · Claude Architect course · closes exam gaps 1.5, 1.7, 3.1/3.3, 4.6, 5.5, 2.2 ·
+  <a href="../reference/claude-architect-roadmap.html">roadmap</a>
+</footer>
+
+<script src="../assets/nav.js"></script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
+</body>
+</html>

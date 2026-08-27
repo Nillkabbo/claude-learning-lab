@@ -482,3 +482,18 @@ footer.course-footer {
 }
 .topnav a:hover { color: var(--accent); background: var(--accent-soft); }
 .topnav a[aria-current="page"] { color: #fff; background: var(--accent); }
+
+/* ---------- multi-response quiz additions ---------- */
+.quiz-hint {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+.quiz-option.multi-selected {
+  border-color: var(--note-ink);
+  background: var(--note-soft);
+  color: var(--note-ink);
+  font-weight: 600;
+}
