@@ -169,42 +169,72 @@ the structured fields, not by parsing natural language.</p>
 <div class="quiz">
 <script type="application/json">
 [
-  {
-    "q": "PreToolUse hooks in the Agent SDK can:",
-    "answers": ["block a call before execution", "modify the system prompt", "change the model mid-session", "bypass permission rules"],
-    "correct": 0,
-    "why": "PreToolUse hooks intercept before execution and can return block:true — the programmatic confirmation gate."
-  },
-  {
-    "q": "Forking a session creates:",
-    "answers": ["a branch with full history", "an empty new session", "a subagent context", "a cached prompt copy"],
-    "correct": 0,
-    "why": "fork_session() inherits the complete conversation — both branches continue independently from the same point."
-  },
-  {
-    "q": "Path-scoped rules load when:",
-    "answers": ["Claude reads matching files", "the session starts", "the user asks", "a hook fires"],
-    "correct": 0,
-    "why": "The paths frontmatter in .claude/rules/ activates only when Claude touches files matching the pattern — monorepo-friendly."
-  },
-  {
-    "q": "Self-review alone is unreliable because:",
-    "answers": ["the model shares its own blind spots", "it costs too many tokens", "it requires a different model", "it only works for code"],
-    "correct": 0,
-    "why": "The same model reviewing its own output inherits the biases that produced the errors — independent instances or cross-model review are the fix."
-  },
-  {
-    "q": "Confidence calibration means:",
-    "answers": ["verifying scores against actual accuracy", "adjusting temperature to zero", "using a bigger model", "averaging all confidence scores"],
-    "correct": 0,
-    "why": "Calibration = measuring whether '90% confident' is actually 90% correct on a labeled set, then tuning the review threshold accordingly."
-  },
-  {
-    "q": "Structured error metadata lets your code:",
-    "answers": ["decide retry/escalate programmatically", "bypass the model entirely", "change the tool schema", "skip permission checks"],
-    "correct": 0,
-    "why": "The model reads the human-readable text; your orchestration code reads the structured metadata (errorCategory, isRetryable, retryAfterSeconds) to route programmatically."
-  }
+ {
+  "q": "PreToolUse hooks in the Agent SDK can:",
+  "answers": [
+   "block calls before execution",
+   "modify the system prompt",
+   "change the model mid-session",
+   "bypass all permission rules"
+  ],
+  "correct": 0,
+  "why": "PreToolUse hooks intercept before execution and can return block:true \u2014 the programmatic confirmation gate."
+ },
+ {
+  "q": "Forking a session creates:",
+  "answers": [
+   "a branch with full history",
+   "an empty and fresh session",
+   "a subagent with no tools",
+   "a read-only cached prompt copy"
+  ],
+  "correct": 0,
+  "why": "fork_session() inherits the complete conversation \u2014 both branches continue independently from the same point."
+ },
+ {
+  "q": "Path-scoped rules load when:",
+  "answers": [
+   "matching files are first read",
+   "the session always starts first",
+   "a hook triggers the loading",
+   "users must explicitly request them"
+  ],
+  "correct": 0,
+  "why": "The paths frontmatter in .claude/rules/ activates only when Claude touches files matching the pattern \u2014 monorepo-friendly."
+ },
+ {
+  "q": "Self-review alone is unreliable because:",
+  "answers": [
+   "the model shares its own blind spots",
+   "it costs too many tokens to run",
+   "it would require a genuinely different model",
+   "it only works for code review tasks"
+  ],
+  "correct": 0,
+  "why": "The same model reviewing its own output inherits the biases that produced the errors \u2014 independent instances or cross-model review are the fix."
+ },
+ {
+  "q": "Confidence calibration means:",
+  "answers": [
+   "verifying scores against actual accuracy",
+   "adjusting temperature down to zero",
+   "just use a larger model",
+   "averaging all confidence scores together"
+  ],
+  "correct": 0,
+  "why": "Calibration = measuring whether '90% confident' is actually 90% correct on a labeled set, then tuning the review threshold accordingly."
+ },
+ {
+  "q": "Structured error metadata lets your code:",
+  "answers": [
+   "decide retry or escalate programmatically",
+   "bypass both model and tool",
+   "dynamically change the tool schema",
+   "automatically skip all permission checks"
+  ],
+  "correct": 0,
+  "why": "The model reads the human-readable text; your orchestration code reads the structured metadata (errorCategory, isRetryable, retryAfterSeconds) to route programmatically."
+ }
 ]
 </script>
 </div>

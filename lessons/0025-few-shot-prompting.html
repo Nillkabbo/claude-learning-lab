@@ -110,30 +110,50 @@ pattern-matches from demonstrated behavior far better than it follows prose desc
 <div class="quiz">
 <script type="application/json">
 [
-  {
-    "q": "The official docs say examples are:",
-    "answers": ["more effective than instructions", "less reliable than instructions", "only for classification tasks", "a replacement for system prompts"],
-    "correct": 0,
-    "why": "Examples are 'more effective than abstract instructions' — the model pattern-matches demonstrated behavior better than it follows prose descriptions."
-  },
-  {
-    "q": "The recommended number of few-shot examples is:",
-    "answers": ["two to four", "one only", "ten or more", "as many as possible"],
-    "correct": 0,
-    "why": "2–4 examples is the sweet spot. More costs tokens for diminishing returns; fewer risks the model not generalizing."
-  },
-  {
-    "q": "Including an example where the correct output is 'none' is:",
-    "answers": ["a false-positive reduction technique", "a waste of tokens", "only for classification", "unnecessary with schemas"],
-    "correct": 0,
-    "why": "Negative examples are the official docs' cheapest precision fix — they show what to exclude, directly reducing false positives."
-  },
-  {
-    "q": "Few-shot examples and structured outputs together:",
-    "answers": ["teach semantics and enforce shape", "are redundant together", "conflict with each other", "only work for JSON"],
-    "correct": 0,
-    "why": "The exam's intended combo: examples teach WHAT to extract (semantics, boundaries), schemas enforce HOW it comes out (shape). They complement, not compete."
-  }
+ {
+  "q": "The official docs say examples are:",
+  "answers": [
+   "more effective than instructions",
+   "less effective than instructions",
+   "same as plain instructions",
+   "only for classification tasks"
+  ],
+  "correct": 0,
+  "why": "Examples are 'more effective than abstract instructions' \u2014 the model pattern-matches demonstrated behavior better than it follows prose descriptions."
+ },
+ {
+  "q": "The recommended number of few-shot examples is:",
+  "answers": [
+   "two to four examples",
+   "one example is enough",
+   "ten or more examples",
+   "as many as possible"
+  ],
+  "correct": 0,
+  "why": "2\u20134 examples is the sweet spot. More costs tokens for diminishing returns; fewer risks the model not generalizing."
+ },
+ {
+  "q": "Including an example where the correct output is 'none' is:",
+  "answers": [
+   "a false-positive reduction technique",
+   "a waste of tokens",
+   "only for classification tasks",
+   "never needed with schemas"
+  ],
+  "correct": 0,
+  "why": "Negative examples are the official docs' cheapest precision fix \u2014 they show what to exclude, directly reducing false positives."
+ },
+ {
+  "q": "Few-shot examples and structured outputs together:",
+  "answers": [
+   "examples teach semantics, schemas enforce shape",
+   "schemas replace examples with pure enforcement",
+   "they conflict and cannot combine them",
+   "examples override schemas in all cases"
+  ],
+  "correct": 0,
+  "why": "The exam's intended combo: examples teach WHAT to extract (semantics, boundaries), schemas enforce HOW it comes out (shape). They complement, not compete."
+ }
 ]
 </script>
 </div>
