@@ -73,8 +73,8 @@ with a <em>partial assistant turn</em>, and the model would continue from it. Tw
   { "role": "assistant", "content": "{" }   <span style="color:#8a2323">← the prefill: continue from here</span>
 ]</code></pre>
 
-<p><strong>On Claude 4.6 and later models (including Sonnet 5, Mythos 5, Fable 5) this is
-now a 400 error.</strong> Requests to those models must end with a <code>user</code> message.
+<p><strong>NOTE (re-verified): prefilling is supported on current models. The one limitation:
+not available with extended thinking modes.</strong> Requests to those models must end with a <code>user</code> message.
 Earlier models still accept prefills, which is precisely why the exam includes them: real
 codebases still carry the pattern, and an architect must recognize it and know the
 migration paths.</p>
@@ -109,50 +109,50 @@ migration paths.</p>
 <div class="quiz">
 <script type="application/json">
 [
-  {
-    "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this now risks:",
-    "answers": [
-      "calling the tool excessively",
-      "refusing to call tools",
-      "ignoring the system prompt",
-      "returning a 400 error"
-    ],
-    "correct": 0,
-    "why": "Newer Opus models are more responsive to the system prompt, so aggressive anti-laziness idioms over-trigger. The official migration advice is to soften to plain phrasing like 'Use this tool when…'."
-  },
-  {
-    "q": "Your request ends with a partial assistant turn, sent to Claude Sonnet 4.6 or later. What happens?",
-    "answers": [
-      "It returns a 400 error",
-      "It continues from that text",
-      "It ignores the final turn",
-      "It appends a user message"
-    ],
-    "correct": 0,
-    "why": "Claude 4.6+ rejects trailing assistant messages (prefill attempts) with a 400 error — requests must end with a user message. Earlier models still accept prefills."
-  },
-  {
-    "q": "You need rigidly schema-valid JSON from a modern model. The recommended tool is:",
-    "answers": [
-      "structured outputs",
-      "response prefilling",
-      "stop sequences",
-      "higher temperature"
-    ],
-    "correct": 0,
-    "why": "Structured outputs constrain the response to a schema — the official prefill replacement. Prefilling returns a 400 on modern models; stop sequences and temperature don't enforce shape."
-  },
-  {
-    "q": "A reminder that was once a prefilled assistant turn should now be placed:",
-    "answers": [
-      "in the user turn",
-      "in the system prompt",
-      "in the model identifier",
-      "in the tool description"
-    ],
-    "correct": 0,
-    "why": "Official guidance: refreshable mid-conversation nudges move into the user turn (or arrive via tools/compaction). The system prompt is for standing policy, not per-turn reminders."
-  }
+ {
+  "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this now risks:",
+  "answers": [
+   "calling the tool excessively",
+   "refusing to call tools",
+   "ignoring the system prompt",
+   "returning a 400 error"
+  ],
+  "correct": 0,
+  "why": "Newer Opus models are more responsive to the system prompt, so aggressive anti-laziness idioms over-trigger. The official migration advice is to soften to plain phrasing like 'Use this tool when\u2026'."
+ },
+ {
+  "q": "A request ends with a partial assistant turn (non-thinking mode). What happens?",
+  "answers": [
+   "It continues from that text",
+   "It returns a 400 error",
+   "It ignores the final turn",
+   "It appends a user message"
+  ],
+  "correct": 0,
+  "why": "Prefilling is supported on current models (re-verified). The model continues from the trailing assistant turn. Only limitation: not available with extended thinking."
+ },
+ {
+  "q": "You need rigidly schema-valid JSON from a modern model. The recommended tool is:",
+  "answers": [
+   "structured outputs",
+   "response prefilling",
+   "stop sequences",
+   "higher temperature"
+  ],
+  "correct": 0,
+  "why": "Structured outputs constrain the response to a schema \u2014 the official prefill replacement. Prefilling returns a 400 on modern models; stop sequences and temperature don't enforce shape."
+ },
+ {
+  "q": "A reminder that was once a prefilled assistant turn should now be placed:",
+  "answers": [
+   "in the user turn",
+   "in the system prompt",
+   "in the model identifier",
+   "in the tool description"
+  ],
+  "correct": 0,
+  "why": "Official guidance: refreshable mid-conversation nudges move into the user turn (or arrive via tools/compaction). The system prompt is for standing policy, not per-turn reminders."
+ }
 ]
 </script>
 </div>

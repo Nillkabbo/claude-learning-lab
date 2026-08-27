@@ -90,7 +90,7 @@
   <dd>Agentic pattern: a lead model splits the task, delegates pieces to worker instances, and synthesizes results. Scales parallelizable work; adds coordination overhead.</dd>
 
   <dt>Prefill (response prefilling)</dt>
-  <dd>Legacy technique: end <code>messages</code> with a partial assistant turn so generation continues from it — used to skip preambles or force formats. <strong>Unsupported on Claude 4.6 and later models</strong> (returns a 400 error; requests must end with a user message). Modern replacements: system-prompt phrasing and structured outputs.</dd>
+  <dd>Legacy technique: end <code>messages</code> with a partial assistant turn so generation continues from it — used to skip preambles or force formats. <strong>Supported on current models</strong> (re-verified August 2026; not available with extended thinking).</dd>
 
   <dt>Prompt chaining</dt>
   <dd>Decomposing a task into a fixed sequence of model calls, each with a focused prompt, passing output forward. Cheaper and more debuggable than one mega-prompt.</dd>

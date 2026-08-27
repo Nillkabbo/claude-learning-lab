@@ -25,94 +25,94 @@ answer; the reaching is the point.</p>
 <div class="quiz">
 <script type="application/json">
 [
-  {
-    "q": "You send a follow-up request after getting a reply. The request must include:",
-    "answers": [
-      "The full prior conversation",
-      "Just the new question",
-      "A stored session identifier",
-      "The previous response only"
-    ],
-    "correct": 0,
-    "why": "The API is stateless — your client owns and resends the entire history as the messages array. (Lesson 0001)"
-  },
-  {
-    "q": "A schema sets maxLength on a string field. What happens?",
-    "answers": [
-      "A 400 error",
-      "Silent constraint dropping",
-      "Validation happens afterward",
-      "Automatic schema rewriting"
-    ],
-    "correct": 0,
-    "why": "minLength/maxLength are unsupported by constrained decoding — like numerical constraints, they 400. Enforce lengths in your own code after parsing. (Lesson 0004)"
-  },
-  {
-    "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this risks:",
-    "answers": [
-      "calling the tool excessively",
-      "refusing to call tools",
-      "ignoring the system prompt",
-      "returning a 400 error"
-    ],
-    "correct": 0,
-    "why": "Newer Opus models are more responsive to the system prompt, so anti-laziness idioms over-trigger. Official fix: soften to plain phrasing. (Lesson 0002)"
-  },
-  {
-    "q": "On current models, reliable schema-valid JSON comes from:",
-    "answers": [
-      "structured outputs",
-      "temperature zero",
-      "stop sequences",
-      "longer thinking"
-    ],
-    "correct": 0,
-    "why": "output_config.format with a JSON schema guarantees compliance via constrained decoding — the replacement for prefill hacks and temperature rituals. (Lessons 0003–0004)"
-  },
-  {
-    "q": "A reply's text content arrives as:",
-    "answers": [
-      "A list of content blocks",
-      "One single plain text string",
-      "A dictionary keyed by role",
-      "An array of raw strings"
-    ],
-    "correct": 0,
-    "why": "content is an array of typed blocks — text, tool_use — which is exactly what makes tool calling representable. (Lesson 0001)"
-  },
-  {
-    "q": "A request ends with a partial assistant turn on Claude Sonnet 4.6 or later. What happens?",
-    "answers": [
-      "It returns a 400 error",
-      "It continues from that text",
-      "It ignores the final turn",
-      "It appends a user message"
-    ],
-    "correct": 0,
-    "why": "Prefilling is unsupported on Claude 4.6+ — requests must end with a user message. Earlier models still accept prefills. (Lesson 0002)"
-  },
-  {
-    "q": "temperature set to 0.2, sent to a model released after Claude Opus 4.6, yields:",
-    "answers": [
-      "A 400 error",
-      "Deterministic, consistent outputs",
-      "Faster, cheaper responses",
-      "A truncated response"
-    ],
-    "correct": 0,
-    "why": "Post-Opus-4.6 models accept only temperature 1.0 — any other value 400s. top_k is rejected likewise. (Lesson 0003)"
-  },
-  {
-    "q": "Structured-output schema compliance is guaranteed by:",
-    "answers": [
-      "constrained decoding",
-      "post-hoc validation",
-      "retry-based correction",
-      "prefill-based enforcement"
-    ],
-    "correct": 0,
-    "why": "The schema compiles into a grammar and generation is constrained to it during sampling — enforced, not checked after. (Lesson 0004)"
-  }
+ {
+  "q": "You send a follow-up request after getting a reply. The request must include:",
+  "answers": [
+   "The full prior conversation",
+   "Just the new question",
+   "A stored session identifier",
+   "The previous response only"
+  ],
+  "correct": 0,
+  "why": "The API is stateless \u2014 your client owns and resends the entire history as the messages array. (Lesson 0001)"
+ },
+ {
+  "q": "A schema sets maxLength on a string field. What happens?",
+  "answers": [
+   "A 400 error",
+   "Silent constraint dropping",
+   "Validation happens afterward",
+   "Automatic schema rewriting"
+  ],
+  "correct": 0,
+  "why": "minLength/maxLength are unsupported by constrained decoding \u2014 like numerical constraints, they 400. Enforce lengths in your own code after parsing. (Lesson 0004)"
+ },
+ {
+  "q": "A legacy system prompt shouts 'CRITICAL: You MUST always use this tool.' On newer Opus models this risks:",
+  "answers": [
+   "calling the tool excessively",
+   "refusing to call tools",
+   "ignoring the system prompt",
+   "returning a 400 error"
+  ],
+  "correct": 0,
+  "why": "Newer Opus models are more responsive to the system prompt, so anti-laziness idioms over-trigger. Official fix: soften to plain phrasing. (Lesson 0002)"
+ },
+ {
+  "q": "On current models, reliable schema-valid JSON comes from:",
+  "answers": [
+   "structured outputs",
+   "temperature zero",
+   "stop sequences",
+   "longer thinking"
+  ],
+  "correct": 0,
+  "why": "output_config.format with a JSON schema guarantees compliance via constrained decoding \u2014 the replacement for prefill hacks and temperature rituals. (Lessons 0003\u20130004)"
+ },
+ {
+  "q": "A reply's text content arrives as:",
+  "answers": [
+   "A list of content blocks",
+   "One single plain text string",
+   "A dictionary keyed by role",
+   "An array of raw strings"
+  ],
+  "correct": 0,
+  "why": "content is an array of typed blocks \u2014 text, tool_use \u2014 which is exactly what makes tool calling representable. (Lesson 0001)"
+ },
+ {
+  "q": "A request ends with a partial assistant turn (non-thinking mode). What happens?",
+  "answers": [
+   "It continues from that text",
+   "It returns a 400 error",
+   "It ignores the final turn",
+   "It appends a user message"
+  ],
+  "correct": 0,
+  "why": "Prefilling is supported (re-verified August 2026)."
+ },
+ {
+  "q": "temperature set to 0.2, sent to a model released after Claude Opus 4.6, yields:",
+  "answers": [
+   "A 400 error",
+   "Deterministic, consistent outputs",
+   "Faster, cheaper responses",
+   "A truncated response"
+  ],
+  "correct": 0,
+  "why": "Post-Opus-4.6 models accept only temperature 1.0 \u2014 any other value 400s. top_k is rejected likewise. (Lesson 0003)"
+ },
+ {
+  "q": "Structured-output schema compliance is guaranteed by:",
+  "answers": [
+   "constrained decoding",
+   "post-hoc validation",
+   "retry-based correction",
+   "prefill-based enforcement"
+  ],
+  "correct": 0,
+  "why": "The schema compiles into a grammar and generation is constrained to it during sampling \u2014 enforced, not checked after. (Lesson 0004)"
+ }
 ]
 </script>
 </div>

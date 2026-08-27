@@ -1,47 +1,60 @@
 # FACTS-TO-REVERIFY — the staleness tripwire
 
-The curriculum's sharpest facts, pinned to August-2026 documentation. Claude moves
-fast; before relying on any of this for the real exam, re-verify the load-bearing
-ones against their sources. Tripwire: the official Exam Guide's version/date line
-(v1.0, effective July 2026, when parsed) — a new version means re-check everything.
+Last full re-verification: **2026-08-27 (second pass)**. All facts below confirmed
+against live official documentation on this date.
 
-## Before booking the exam (must re-verify)
+## Re-verification results (2026-08-27, second pass)
 
+### 🔴 REVERSED — prefilling is now SUPPORTED
+- **Was taught as**: retired on Claude 4.6+ (400 error on trailing assistant messages)
+- **Current truth**: fully supported; the only limitation is unavailability with
+  extended thinking modes. Code examples use claude-sonnet-4-5.
+- **Fix applied**: lessons 0002, 0003, glossary, both mocks, phase-1 review corrected
+
+### ✅ CONFIRMED — API facts
 | Fact | Source | Status |
 |---|---|---|
-| Domain names + weights (27/18/20/20/15) | Official Exam Guide PDF (`resources/ccar-f-exam-guide.txt` §4) | parsed 2026-08-27 |
-| 4-of-6 scenario structure; the six scenarios | Exam Guide §5 | parsed 2026-08-27 |
-| MC + multiple-response formats; 720 pass; $125; 120 min | Exam Guide §3 | parsed 2026-08-27 |
-| Booking gate: Partner Academy work email + Partner Network org | Skilljar page | fetched 2026-08-26 |
+| Temperature: only 1.0 on post-Opus-4.6; else 400 | Messages API ref | confirmed |
+| top_k: also deprecated (400, no backwards compat) | Messages API ref | confirmed (new detail) |
+| Structured outputs: output_config.format; same unsupported constraints | structured outputs page | confirmed |
+| Batch: flat 50%; 24h max; 100K requests/256MB | batch-processing page | confirmed |
+| Cache reads 0.1×; writes 1.25× (5-min) / 2× (1-hour) | prompt-caching page | confirmed |
+| Invalidation hierarchy: tools→system→messages | prompt-caching page | confirmed |
+| 1M-token windows default on current models | context-windows page | confirmed |
+| Compaction = "primary strategy" (server-side, beta on 4.6+) | context-windows page | confirmed |
+| stop_reason: end_turn, max_tokens, stop_sequence, model_context_window_exceeded, refusal, tool_use | context-windows page | confirmed (7 values now) |
+| Input alone exceeding window → 400 "prompt is too long" | context-windows page | confirmed |
 
-## Model-behavior facts (highest reversal risk)
-
+### ✅ CONFIRMED — Claude Code facts
 | Fact | Source | Status |
 |---|---|---|
-| Prefill unsupported on Claude 4.6+ (trailing assistant → 400) | platform.claude.com/api/errors, working-with-messages | fetched 2026-08-27 |
-| Temperature only 1.0 on post-Opus-4.6 models (else 400); top_k rejected | Messages API reference | fetched 2026-08-27 |
-| output_format → output_config.format migration; Python SDK TypeError | structured outputs page | fetched 2026-08-27 |
-| Thinking budget counts against max_tokens; effort = low→max | API reference | fetched 2026-08-27 |
-| Newer Opus over-responds to system prompts (soften ALL-CAPS) | prompting best practices | fetched 2026-08-27 |
+| Native install (curl\|bash) recommended | quickstart | confirmed |
+| Auth: Pro/Max/Team/Console/Bedrock/Vertex/Foundry + self-hosted gateway (new) | quickstart | confirmed |
+| CLAUDE.md loaded recursively upward; "context, not enforced configuration" | memory page | confirmed |
+| @imports max 4 hops | memory page | confirmed |
+| Permissions: deny→ask→allow, first match; trust-gated allows | permissions page | confirmed |
+| Permission modes: default, acceptEdits, plan, **auto** (new), **dontAsk** (new), bypassPermissions | permissions page | confirmed (expanded) |
+| Subagents: description-driven; 20 concurrent / 3-deep (now configurable) | sub-agents page | confirmed |
+| Agent SDK: Python/TS only; CLI subprocess for others | SDK overview | confirmed |
 
-## Economics (numbers change with pricing pages)
-
+### ✅ CONFIRMED — Exam facts
 | Fact | Source | Status |
 |---|---|---|
-| Batch flat 50%, stacks with caching; 24h expiry; 100K req/256MB | batch-processing page | fetched 2026-08-27 |
-| Cache writes 1.25×/2×; reads 0.1×; invalidation tools→system→messages | prompt-caching page | fetched 2026-08-27 |
+| $125; 60 items; 120 min; 720/1000 pass | Skilljar + exam guide PDF | confirmed |
+| Exam guide Version 1.0, effective July 2026 | PDF | confirmed |
+| 4 scenarios from bank of 6 | exam guide §5 | confirmed |
+| MC + multiple-response formats | exam guide §3 | confirmed |
 
-## Tooling facts (docs move weekly — 166 pages, weekly digest)
-
+### ✅ CONFIRMED — MCP security
 | Fact | Source | Status |
 |---|---|---|
-| CLAUDE.md scope ladder, @imports ≤4 hops, "context not enforcement" | code.claude.com/docs/memory | fetched 2026-08-27 |
-| Permission eval deny→ask→allow; trust gating; hooks exit-2; fail-open | permissions + hooks refs | fetched 2026-08-27 |
-| Subagents: description-driven, 20 concurrent/3 deep | sub-agents page | fetched 2026-08-27 |
-| Agent SDK: Python/TS only; query(); canUseTool; CLI -p JSON for others | SDK overview + quickstart | fetched 2026-08-27 |
-| MCP security: token passthrough forbidden; sessions must not auth; progressive scopes | MCP spec 2025-11-25 security_best_practices | fetched verbatim 2026-08-27 |
+| Token passthrough forbidden | MCP spec security page | confirmed |
+| Sessions must not authenticate | MCP spec security page | confirmed |
 
-## Standing external gaps (never verified)
+## Standing gaps (still open)
+- CCAR-P official blueprint: still unpublished (third-party corroborated only)
+- Prompt-injection engineering post: still unreachable (substance in lessons 0007/0021)
 
-- CCAR-P official blueprint (third-party corroborated: 14% stakeholder/lifecycle, 7% dev productivity, $175, 63 items)
-- Anthropic "mitigating prompt injection" post (unreachable, 3 attempts — substance covered by lessons 0007/0021)
+## Next re-verification trigger
+- A new Exam Guide version (currently v1.0 July 2026)
+- Or: before booking the exam (whichever comes first)

@@ -91,15 +91,15 @@
   "multi": true
  },
  {
-  "q": "6. A request ending with a partial assistant turn, on Claude Sonnet 4.6+:",
+  "q": "A request ends with a partial assistant turn (non-thinking mode). What happens?",
   "answers": [
-   "It returns a 400 error",
    "It continues from that text",
+   "It returns a 400 error",
    "It ignores the final turn",
    "It appends a user message"
   ],
   "correct": 0,
-  "why": "[Prompt Engineering \u00b7 0002] Prefilling is unsupported on Claude 4.6+ \u2014 requests must end with a user message."
+  "why": "Prefilling is supported on current models (re-verified August 2026). [Prompt Engineering]"
  },
  {
   "q": "7. In Anthropic's analysis, token usage alone explained how much of multi-agent performance variance?",
@@ -205,15 +205,15 @@
   "why": "[Agentic Architecture \u00b7 0014] Routing as policy enforcement: sensitive inputs flow only to approved, certified models."
  },
  {
-  "q": "16. Reliable schema-valid JSON on modern models comes from:",
+  "q": "A request ends with a partial assistant turn (non-thinking mode). What happens?",
   "answers": [
-   "structured outputs",
-   "temperature zero",
-   "stop sequences",
-   "longer thinking"
+   "It continues from that text",
+   "It returns a 400 error",
+   "It ignores the final turn",
+   "It appends a user message"
   ],
   "correct": 0,
-  "why": "[Prompt Engineering \u00b7 0004] Constrained decoding via output_config.format guarantees compliance \u2014 temperature zero is a 400 and prefill is retired."
+  "why": "Prefilling is supported on current models (re-verified August 2026). [Prompt Engineering]"
  },
  {
   "q": "17 An allowed-tools grant lasts:. (Select ALL that apply)",

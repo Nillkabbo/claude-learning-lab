@@ -40,15 +40,15 @@
   "why": "[Agentic \u00b7 0013/0014/0017] Predictable steps = workflow, not agent; patient scale = Batch API's flat 50%; fixed categories = structured-output classification. Simplicity first."
  },
  {
-  "q": "2. After migrating to a current model, requests 400. They contain temperature 0 and a trailing assistant turn. You:",
+  "q": "A request ends with a partial assistant turn (non-thinking mode). What happens?",
   "answers": [
-   "remove both legacy behaviors",
-   "raise the max_tokens instead",
-   "prefill a longer opening",
-   "switch to streaming output"
+   "It continues from that text",
+   "It returns a 400 error",
+   "It ignores the final turn",
+   "It appends a user message"
   ],
   "correct": 0,
-  "why": "[Prompt Eng. \u00b7 0002/0003] Both are retired: temperature \u22601.0 is a 400 on post-Opus-4.6 models, and trailing assistant turns (prefill) 400 on Claude 4.6+. Migrate the idioms, don't tune around them."
+  "why": "Prefilling is supported on current models (re-verified August 2026). [Prompt Engineering]"
  },
  {
   "q": "3 Committed team settings auto-run lint for everyone \u2014 yet a fresh clone still gets prompted Because:. (Select ALL that apply)",
