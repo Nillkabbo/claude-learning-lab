@@ -69,19 +69,69 @@ class RealClient:
         return Response(blocks, raw.stop_reason, dict(raw.usage))
 
 
+class ContractViolation(Exception):
+    """The request violates the Messages API contract."""
+
+
+class UnknownStopReason(Exception):
+    """The model returned a stop_reason we don't know how to handle."""
+
+
 class RequestBuilder:
-    """Builds only contract-valid requests (Law 1: statelessness)."""
+    """Builds only contract-valid requests (Law 1: statelessness).
+    Enforces the full API contract: non-empty, ends-with-user, role alternation,
+    tool_result placement, and message shape."""
 
     def build(self, messages, system, max_tokens=1024, tools=None, model="claude-sonnet-4-6"):
-        if not messages:
-            raise ValueError("messages must not be empty")
-        if messages[-1]["role"] != "user":
-            raise ValueError("requests must end with a user message (no prefills)")
+        self._validate(messages)
         request = {"model": model, "max_tokens": max_tokens, "system": system,
                    "messages": messages}
         if tools:
             request["tools"] = tools
         return request
+
+    def _validate(self, messages):
+        if not messages:
+            raise ContractViolation("messages must not be empty")
+
+        if messages[-1]["role"] != "user":
+            raise ContractViolation(
+                "requests must end with a user message (no prefills on modern models)")
+
+        for i, msg in enumerate(messages):
+            role = msg.get("role")
+            if role not in ("user", "assistant"):
+                raise ContractViolation(
+                    f"message {i}: role must be 'user' or 'assistant', got '{role}'")
+
+            # First message must be user
+            if i == 0 and role != "user":
+                raise ContractViolation("messages[0] must have role 'user'")
+
+            # Role alternation (allow user→user only if the second is tool_results)
+            if i > 0:
+                prev = messages[i - 1]["role"]
+                content = msg.get("content", "")
+                is_tool_result = (role == "user" and isinstance(content, list)
+                                  and content and content[0].get("type") == "tool_result")
+                if role == prev and not is_tool_result:
+                    raise ContractViolation(
+                        f"message {i}: consecutive '{role}' messages without tool_result "
+                        f"(expected alternation)")
+
+            # Content shape
+            content = msg.get("content", "")
+            if isinstance(content, list):
+                for block in content:
+                    if not isinstance(block, dict) or "type" not in block:
+                        raise ContractViolation(
+                            f"message {i}: content blocks must be dicts with a 'type' key")
+                    if block["type"] == "tool_result" and role != "user":
+                        raise ContractViolation(
+                            f"message {i}: tool_result blocks only allowed in user messages")
+                    if block["type"] == "tool_result" and "tool_use_id" not in block:
+                        raise ContractViolation(
+                            f"message {i}: tool_result block missing tool_use_id")
 
 
 def handle_response(response):
@@ -95,7 +145,7 @@ def handle_response(response):
         return Action.TRUNCATED, None          # your cap fired — not the model
     if response.stop_reason == "refusal":
         return Action.REFUSED, None            # policy path — never retry blindly
-    raise ValueError(f"unknown stop_reason: {response.stop_reason}")
+    raise UnknownStopReason(f"unknown stop_reason: {response.stop_reason}")
 
 
 def assistant_turn_message(response):

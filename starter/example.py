@@ -6,12 +6,12 @@ Run:  python3 example.py    (no API key, no dependencies)
 import tempfile
 from pathlib import Path
 
-from claude_starter.client import (
+from claude.client import (
     FixtureModel, RequestBuilder, handle_response, Action,
     assistant_turn_message, tool_results_message, ContentBlock, Response,
 )
-from claude_starter.tools import Tool, ToolRunner, IdempotencyLedger
-from claude_starter import context, patterns, evals
+from claude.tools import Tool, ToolRunner, IdempotencyLedger
+from claude import context, patterns, evals
 
 
 # --- tools with interface discipline -------------------------------------------

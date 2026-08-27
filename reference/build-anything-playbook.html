@@ -7,8 +7,6 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
-<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-examples.html">Code</a></nav>
-
 <p class="kicker">Reference · The universal plan</p>
 <h1>The build-anything playbook</h1>
 <p class="subtitle">From blank page to owned production, for any Claude project. Nine phases, each with a decision, an artifact, and a ready-when checkpoint.</p>
@@ -25,12 +23,12 @@
     <tr><td><strong>0 · Mindset</strong></td><td>—</td><td>Nothing; walk the ten laws against your idea</td><td><a href="foundations-of-claude.html">Foundations</a></td></tr>
     <tr><td><strong>1 · Success</strong></td><td>What does "right" mean, numerically?</td><td>Criteria w/ numbers, constraint inventory, failure catalog w/ costs</td><td><a href="../lessons/0019-discovery-and-scoping.html">0019</a> · <a href="../lessons/0016-evaluation-and-feedback-loops.html">0016</a></td></tr>
     <tr><td><strong>2 · Posture</strong></td><td>Who runs the loop, and how much agent do you need?</td><td>Product-chooser quadrant + ladder position, losing reasons recorded</td><td><a href="../lessons/0012-agent-sdk.html">0012</a> · <a href="../lessons/0013-workflows-vs-agents.html">0013</a></td></tr>
-    <tr><td><strong>3 · Core loop</strong></td><td>The request contract</td><td>Client wrapper: full history, ends-with-user, stop-reason branching</td><td><a href="../lessons/0001-anatomy-of-a-claude-request.html">0001</a> · <a href="../lessons/0003-output-control.html">0003</a> · <a href="../starter/claude_starter/client.py">starter/client</a></td></tr>
-    <tr><td><strong>4 · Shape &amp; tools</strong></td><td>What's schema'd; what tools exist</td><td>Schemas + semantic validators; four-question tool descriptions, enums, consolidation</td><td><a href="../lessons/0004-structured-outputs.html">0004</a> · <a href="../lessons/0006-designing-tool-interfaces.html">0006</a> · <a href="../starter/claude_starter/tools.py">starter/tools</a></td></tr>
-    <tr><td><strong>5 · Context</strong></td><td>What stays in the window</td><td>Budget strategy: compaction trigger, clearing config, memory plan</td><td><a href="../lessons/0008-context-management.html">0008</a> · <a href="../starter/claude_starter/context.py">starter/context</a></td></tr>
+    <tr><td><strong>3 · Core loop</strong></td><td>The request contract</td><td>Client wrapper: full history, ends-with-user, stop-reason branching</td><td><a href="../lessons/0001-anatomy-of-a-claude-request.html">0001</a> · <a href="../lessons/0003-output-control.html">0003</a> · <a href="../starter/claude/client.py">starter/client</a></td></tr>
+    <tr><td><strong>4 · Shape &amp; tools</strong></td><td>What's schema'd; what tools exist</td><td>Schemas + semantic validators; four-question tool descriptions, enums, consolidation</td><td><a href="../lessons/0004-structured-outputs.html">0004</a> · <a href="../lessons/0006-designing-tool-interfaces.html">0006</a> · <a href="../starter/claude/tools.py">starter/tools</a></td></tr>
+    <tr><td><strong>5 · Context</strong></td><td>What stays in the window</td><td>Budget strategy: compaction trigger, clearing config, memory plan</td><td><a href="../lessons/0008-context-management.html">0008</a> · <a href="../starter/claude/context.py">starter/context</a></td></tr>
     <tr><td><strong>6 · Guardrails</strong></td><td>What's enforced, where</td><td>Permission/gate config, deterministic filters, escalation triggers + handoff</td><td><a href="../lessons/0009-claude-code-essentials.html">0009</a> · <a href="../lessons/0018-workflow-design.html">0018</a> · <a href="../lessons/0021-trust-security-mcp.html">0021</a></td></tr>
-    <tr><td><strong>7 · Composition</strong></td><td>Which patterns, if any</td><td>Route table, chain w/ gates, votes, orchestrator — each justified by phase 1</td><td><a href="../lessons/0014-composition-patterns.html">0014</a> · <a href="../lessons/0015-orchestrator-workers.html">0015</a> · <a href="../starter/claude_starter/patterns.py">starter/patterns</a></td></tr>
-    <tr><td><strong>8 · Prove &amp; price</strong></td><td>Is it good, and what does it cost?</td><td>Eval suite (cross-model judges, outcomes) + cost model with real multipliers</td><td><a href="../lessons/0016-evaluation-and-feedback-loops.html">0016</a> · <a href="../lessons/0017-batches-cost-latency.html">0017</a> · <a href="../starter/claude_starter/evals.py">starter/evals</a></td></tr>
+    <tr><td><strong>7 · Composition</strong></td><td>Which patterns, if any</td><td>Route table, chain w/ gates, votes, orchestrator — each justified by phase 1</td><td><a href="../lessons/0014-composition-patterns.html">0014</a> · <a href="../lessons/0015-orchestrator-workers.html">0015</a> · <a href="../starter/claude/patterns.py">starter/patterns</a></td></tr>
+    <tr><td><strong>8 · Prove &amp; price</strong></td><td>Is it good, and what does it cost?</td><td>Eval suite (cross-model judges, outcomes) + cost model with real multipliers</td><td><a href="../lessons/0016-evaluation-and-feedback-loops.html">0016</a> · <a href="../lessons/0017-batches-cost-latency.html">0017</a> · <a href="../starter/claude/evals.py">starter/evals</a></td></tr>
     <tr><td><strong>9 · Ship &amp; own</strong></td><td>How it fails, hands off, and changes</td><td>Degradation ladder, runbook, observation planes, iteration gate</td><td><a href="../lessons/0018-workflow-design.html">0018</a> · <a href="../lessons/0020-lifecycle-management.html">0020</a></td></tr>
   </tbody>
 </table>
@@ -59,6 +57,7 @@
   <a href="foundations-of-claude.html">Foundations</a> · <a href="claude-architect-roadmap.html">Roadmap</a>
 </footer>
 
+<script src="../assets/nav.js"></script>
 <div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

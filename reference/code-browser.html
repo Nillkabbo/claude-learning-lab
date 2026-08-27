@@ -7,8 +7,6 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
-<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="../reference/code-examples.html" aria-current="page">Code</a></nav>
-
 <p class="kicker">Reference · Browse the code</p>
 <h1>Code browser: every runnable file</h1>
 <p class="subtitle">All code in the lab, one page — click any file to read it; clone the repo to run it.</p>
@@ -45,11 +43,11 @@
 <h2>2 · The starter kit — fundamentals as correct-by-construction code</h2>
 <table>
   <tbody>
-    <tr><td><a href="../starter/claude_starter/client.py"><code>client.py</code></a></td><td>The request contract enforced: builder, stop-reason switchboard, echo rules</td></tr>
-    <tr><td><a href="../starter/claude_starter/tools.py"><code>tools.py</code></a></td><td>Interface audit, tool runner, error taxonomy, idempotency ledger</td></tr>
-    <tr><td><a href="../starter/claude_starter/context.py"><code>context.py</code></a></td><td>Budget rules: the 400 check, compaction, cache-aware clearing</td></tr>
-    <tr><td><a href="../starter/claude_starter/patterns.py"><code>patterns.py</code></a></td><td>Route/chain/vote/orchestrate — the composition kit</td></tr>
-    <tr><td><a href="../starter/claude_starter/evals.py"><code>evals.py</code></a></td><td>Cross-model judging, outcome suites, cost multipliers</td></tr>
+    <tr><td><a href="../starter/claude/client.py"><code>client.py</code></a></td><td>The request contract enforced: builder, stop-reason switchboard, echo rules</td></tr>
+    <tr><td><a href="../starter/claude/tools.py"><code>tools.py</code></a></td><td>Interface audit, tool runner, error taxonomy, idempotency ledger</td></tr>
+    <tr><td><a href="../starter/claude/context.py"><code>context.py</code></a></td><td>Budget rules: the 400 check, compaction, cache-aware clearing</td></tr>
+    <tr><td><a href="../starter/claude/patterns.py"><code>patterns.py</code></a></td><td>Route/chain/vote/orchestrate — the composition kit</td></tr>
+    <tr><td><a href="../starter/claude/evals.py"><code>evals.py</code></a></td><td>Cross-model judging, outcome suites, cost multipliers</td></tr>
     <tr><td><a href="../starter/example.py"><code>example.py</code></a> · <a href="../starter/selfcheck.py"><code>selfcheck.py</code></a></td><td>End-to-end demo; the gate that proves all ten fundamentals</td></tr>
     <tr><td><a href="../starter/real_example.py"><code>real_example.py</code></a></td><td>Your first REAL API call (~$0.01, stdlib urllib)</td></tr>
   </tbody>
@@ -77,6 +75,7 @@
   <a href="../index.html">front door</a>
 </footer>
 
+<script src="../assets/nav.js"></script>
 <div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>

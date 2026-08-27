@@ -19,7 +19,7 @@ default; wire a real SDK into `RealClient` when ready).
 
 ## How to use it on a new project
 
-1. Copy `claude_starter/` into your project.
+1. Copy `claude/` into your project.
 2. Walk the **build-anything playbook** (`reference/build-anything-playbook.html`) phase by phase.
 3. Check yourself against the **ten laws** (`reference/foundations-of-claude.html`) at every gate.
 4. When you're ready for the real API, implement `RealClient.complete` with the SDK — the contract is already enforced around it.

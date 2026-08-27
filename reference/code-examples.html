@@ -7,8 +7,6 @@
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
-<nav class="topnav"><span class="brand">CLAUDE LAB</span><a href="../index.html">The Lab</a><a href="../reference/story-roadmap.html">Story</a><a href="../reference/claude-architect-roadmap.html">Architect</a><a href="../reference/claude-code-guide-roadmap.html">CC Guide</a><a href="../reference/tracker-sprints.html">Sprints</a><a href="../reference/drill-bank.html">Drills</a><a href="../reference/cheatsheets.html">Cheats</a><a href="#code" aria-current="page">Code</a></nav>
-
 <p class="kicker">Reference - Copy and paste</p>
 <h1>Code examples, inline</h1>
 <p class="subtitle">Every key file from the lab in readable code blocks with explanations and a copy button.</p>
@@ -569,7 +567,7 @@ sys.exit(2)
 <h3>client.py - request contract</h3>
 <p class="desc">Builder, stop-reason switchboard, echo rules, tool_result placement.</p>
 <div class="code-wrap">
-<span class="filename">starter/claude_starter/client.py &middot; 112 lines</span>
+<span class="filename">starter/claude/client.py &middot; 112 lines</span>
 <button class="copy-btn" onclick="copyCode(this)">copy</button>
 <pre><code class="language-python">&quot;&quot;&quot;client.py — the request contract, enforced. Law 1, 2, 3, 4.
 
@@ -689,7 +687,7 @@ def tool_results_message(blocks):
 <h3>tools.py - interface + errors</h3>
 <p class="desc">Tool audit, error taxonomy, IdempotencyLedger.</p>
 <div class="code-wrap">
-<span class="filename">starter/claude_starter/tools.py &middot; 89 lines</span>
+<span class="filename">starter/claude/tools.py &middot; 89 lines</span>
 <button class="copy-btn" onclick="copyCode(this)">copy</button>
 <pre><code class="language-python">&quot;&quot;&quot;tools.py — the interface discipline and the error taxonomy. Law 5, 6.&quot;&quot;&quot;
 from dataclasses import dataclass, field
@@ -786,7 +784,7 @@ class IdempotencyLedger:
 <h3>context.py - the budget</h3>
 <p class="desc">400 rule, compaction, cache-aware clearing, memory-before-clear.</p>
 <div class="code-wrap">
-<span class="filename">starter/claude_starter/context.py &middot; 66 lines</span>
+<span class="filename">starter/claude/context.py &middot; 66 lines</span>
 <button class="copy-btn" onclick="copyCode(this)">copy</button>
 <pre><code class="language-python">&quot;&quot;&quot;context.py — the budget that rots, managed. Law 7.&quot;&quot;&quot;
 from .client import estimate_tokens
@@ -860,7 +858,7 @@ def save_essentials(messages, memory, threshold, warn_fraction=0.9):
 <h3>patterns.py - composition</h3>
 <p class="desc">Route, chain, vote, scale_effort, orchestrator.</p>
 <div class="code-wrap">
-<span class="filename">starter/claude_starter/patterns.py &middot; 52 lines</span>
+<span class="filename">starter/claude/patterns.py &middot; 52 lines</span>
 <button class="copy-btn" onclick="copyCode(this)">copy</button>
 <pre><code class="language-python">&quot;&quot;&quot;patterns.py — the composition kit. Law 9: buy each rung only when it pays.&quot;&quot;&quot;
 from pathlib import Path
@@ -920,7 +918,7 @@ def orchestrate(query, plan, worker, artifact_dir, recorder=None):
 <h3>evals.py - evidence + economics</h3>
 <p class="desc">Cross-model judging, suites, cost multipliers, invalidation.</p>
 <div class="code-wrap">
-<span class="filename">starter/claude_starter/evals.py &middot; 56 lines</span>
+<span class="filename">starter/claude/evals.py &middot; 56 lines</span>
 <button class="copy-btn" onclick="copyCode(this)">copy</button>
 <pre><code class="language-python">&quot;&quot;&quot;evals.py — evidence and economics. Law 10.&quot;&quot;&quot;
 
@@ -1699,5 +1697,7 @@ def master_checklist(architecture):
   <a href="../index.html">front door</a>
 </footer>
 
+<script src="../assets/nav.js"></script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:#1c1b18;color:#a39e93;font-family:sans-serif;font-size:11px;text-align:center;padding:4px 8px;z-index:99">Unofficial learning material — not affiliated with or endorsed by Anthropic. Facts verified against official docs as of Aug 2026.</div>
 </body>
 </html>
